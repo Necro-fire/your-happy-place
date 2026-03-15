@@ -14,7 +14,188 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          codigo: string
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      company_settings: {
+        Row: {
+          created_at: string
+          custo_fixo_mensal: number
+          email_empresa: string
+          endereco_empresa: string
+          id: string
+          logo_url: string
+          margem_custo_percentual: number
+          nome_empresa: string
+          telefone_empresa: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
+          id?: string
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custo_fixo_mensal?: number
+          email_empresa?: string
+          endereco_empresa?: string
+          id?: string
+          logo_url?: string
+          margem_custo_percentual?: number
+          nome_empresa?: string
+          telefone_empresa?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string
+          cor_tema: string
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string
+          cor_tema?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string
+          cor_tema?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_orders: {
+        Row: {
+          aparelho: string
+          client_id: string | null
+          cliente: string
+          codigo: string
+          created_at: string
+          data_entrada: string
+          hora_final: string | null
+          hora_inicio: string | null
+          id: string
+          marca: string
+          modelo: string
+          observacoes: string
+          problema: string
+          status: string
+          tecnico: string
+          telefone: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          aparelho: string
+          client_id?: string | null
+          cliente: string
+          codigo: string
+          created_at?: string
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          aparelho?: string
+          client_id?: string | null
+          cliente?: string
+          codigo?: string
+          created_at?: string
+          data_entrada?: string
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          observacoes?: string
+          problema?: string
+          status?: string
+          tecnico?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
