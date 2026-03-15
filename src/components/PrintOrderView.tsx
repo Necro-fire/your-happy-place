@@ -14,6 +14,7 @@ interface PrintOrderProps {
     email: string;
     logo_url?: string;
   };
+  clientCode?: string;
 }
 
 const defaultCompany = {
@@ -25,7 +26,7 @@ const defaultCompany = {
 };
 
 export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
-  ({ order, companyInfo = defaultCompany }, ref) => {
+  ({ order, companyInfo = defaultCompany, clientCode }, ref) => {
     const statusLabel = statusLabels[order.status as OrderStatus] || order.status;
     const today = new Date().toLocaleDateString('pt-BR');
     const valor = Number(order.valor);
@@ -71,6 +72,7 @@ export const PrintOrderView = forwardRef<HTMLDivElement, PrintOrderProps>(
             <h2 className="section-title mb-3 pb-1 border-b border-border">Informações do Cliente</h2>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
               <Field label="Nome" value={order.cliente} />
+              {clientCode && <Field label="Código do Cliente" value={clientCode} />}
               <Field label="Telefone" value={order.telefone} />
             </div>
           </div>

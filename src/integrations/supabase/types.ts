@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          codigo: string
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           created_at: string
@@ -92,6 +125,7 @@ export type Database = {
       service_orders: {
         Row: {
           aparelho: string
+          client_id: string | null
           cliente: string
           codigo: string
           created_at: string
@@ -112,6 +146,7 @@ export type Database = {
         }
         Insert: {
           aparelho: string
+          client_id?: string | null
           cliente: string
           codigo: string
           created_at?: string
@@ -132,6 +167,7 @@ export type Database = {
         }
         Update: {
           aparelho?: string
+          client_id?: string | null
           cliente?: string
           codigo?: string
           created_at?: string
@@ -150,14 +186,22 @@ export type Database = {
           user_id?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_next_os_code: { Args: { p_user_id: string }; Returns: string }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
