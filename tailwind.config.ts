@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"IBM Plex Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,33 +60,46 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        surface: {
+          0: "hsl(var(--surface-0))",
+          1: "hsl(var(--surface-1))",
+          2: "hsl(var(--surface-2))",
+          3: "hsl(var(--surface-3))",
+        },
+        status: {
+          pending: "hsl(var(--status-pending))",
+          maintenance: "hsl(var(--status-maintenance))",
+          completed: "hsl(var(--status-completed))",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "12px",
+        md: "8px",
+        sm: "6px",
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "status-flash": {
+          "0%": { backgroundColor: "hsl(var(--primary) / 0.1)" },
+          "100%": { backgroundColor: "transparent" },
+        },
+        "pulse-once": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0)" },
+          "50%": { boxShadow: "0 0 0 6px hsl(var(--primary) / 0.3)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "status-flash": "status-flash 300ms ease-out",
+        "pulse-once": "pulse-once 600ms ease-out",
       },
     },
   },
