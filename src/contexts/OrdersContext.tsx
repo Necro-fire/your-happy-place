@@ -9,7 +9,7 @@ type ServiceOrder = Tables<'service_orders'>;
 interface OrdersContextType {
   orders: ServiceOrder[];
   loading: boolean;
-  addOrder: (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string }) => Promise<void>;
+  addOrder: (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string; client_id?: string | null }) => Promise<void>;
   updateOrder: (id: string, updates: Partial<ServiceOrder>) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
   refetch: () => Promise<void>;
@@ -26,7 +26,6 @@ const OrdersContext = createContext<OrdersContextType>({
 export const useOrders = () => useContext(OrdersContext);
 
 async function generateUniqueOSCode(userId: string): Promise<string> {
-  // Try up to 10 times to get a unique code
   for (let i = 0; i < 10; i++) {
     const code = generateCode('OS-');
     const { data } = await supabase
@@ -36,7 +35,6 @@ async function generateUniqueOSCode(userId: string): Promise<string> {
       .maybeSingle();
     if (!data) return code;
   }
-  // Fallback
   return `OS-${Date.now().toString(36).toUpperCase().slice(-5)}`;
 }
 
@@ -57,7 +55,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const addOrder = async (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string }) => {
+  const addOrder = async (order: { cliente: string; telefone: string; aparelho: string; marca: string; modelo: string; problema: string; observacoes: string; valor: number; tecnico: string; client_id?: string | null }) => {
     if (!user) return;
     const codigo = await generateUniqueOSCode(user.id);
     await supabase.from('service_orders').insert({

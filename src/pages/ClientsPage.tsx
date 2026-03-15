@@ -1,85 +1,37 @@
 import { useMemo, useState } from 'react';
+import { useClients } from '@/contexts/ClientsContext';
 import { useOrders } from '@/contexts/OrdersContext';
-import { Search, User, Phone, ClipboardList } from 'lucide-react';
+import { Search, User, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { generateCode } from '@/lib/checklist-utils';
-
-interface ClientInfo {
-  nome: string;
-  telefone: string;
-  codigo: string;
-  totalOrdens: number;
-  ultimaOrdem: string;
-  valorTotal: number;
-}
-
-// Persistent client codes stored in localStorage
-function getClientCodes(): Record<string, string> {
-  try {
-    return JSON.parse(localStorage.getItem('client-codes') || '{}');
-  } catch {
-    return {};
-  }
-}
-
-function saveClientCodes(codes: Record<string, string>) {
-  localStorage.setItem('client-codes', JSON.stringify(codes));
-}
-
-function getOrCreateClientCode(clientName: string): string {
-  const key = clientName.trim().toLowerCase();
-  const codes = getClientCodes();
-  if (codes[key]) return codes[key];
-  // Generate unique code
-  const existingValues = new Set(Object.values(codes));
-  let code: string;
-  do {
-    code = generateCode('CL-');
-  } while (existingValues.has(code));
-  codes[key] = code;
-  saveClientCodes(codes);
-  return code;
-}
 
 export default function ClientsPage() {
+  const { clients } = useClients();
   const { orders } = useOrders();
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
-  const clients = useMemo(() => {
-    const map = new Map<string, ClientInfo>();
-    for (const o of orders) {
-      const key = o.cliente.trim().toLowerCase();
-      if (!map.has(key)) {
-        map.set(key, {
-          nome: o.cliente,
-          telefone: o.telefone,
-          codigo: getOrCreateClientCode(o.cliente),
-          totalOrdens: 0,
-          ultimaOrdem: o.data_entrada,
-          valorTotal: 0,
-        });
-      }
-      const c = map.get(key)!;
-      c.totalOrdens++;
-      c.valorTotal += Number(o.valor);
-      if (o.data_entrada > c.ultimaOrdem) c.ultimaOrdem = o.data_entrada;
-      if (o.telefone && !c.telefone) c.telefone = o.telefone;
-    }
-    return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [orders]);
+  const clientsWithStats = useMemo(() => {
+    return clients.map(client => {
+      const clientOrders = orders.filter(o => o.client_id === client.id);
+      const valorTotal = clientOrders.reduce((s, o) => s + Number(o.valor), 0);
+      const ultimaOrdem = clientOrders.length > 0
+        ? clientOrders.sort((a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime())[0].data_entrada
+        : client.created_at;
+      return { ...client, totalOrdens: clientOrders.length, valorTotal, ultimaOrdem };
+    });
+  }, [clients, orders]);
 
   const filtered = useMemo(() => {
-    if (!search) return clients;
+    if (!search) return clientsWithStats;
     const q = search.toLowerCase();
-    return clients.filter(c =>
+    return clientsWithStats.filter(c =>
       c.nome.toLowerCase().includes(q) ||
       c.codigo.toLowerCase().includes(q) ||
       c.telefone.toLowerCase().includes(q)
     );
-  }, [clients, search]);
+  }, [clientsWithStats, search]);
 
   const inputShadow = { boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' };
 
@@ -106,12 +58,12 @@ export default function ClientsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((client, i) => (
           <motion.div
-            key={client.codigo}
+            key={client.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
             className="surface-card rounded-lg p-4 space-y-3 cursor-pointer hover:bg-[hsl(var(--surface-2))] transition-colors"
-            onClick={() => navigate(`/ordens?q=${encodeURIComponent(client.nome)}`)}
+            onClick={() => navigate(`/clientes/${client.id}`)}
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-primary tabular-nums">{client.codigo}</span>

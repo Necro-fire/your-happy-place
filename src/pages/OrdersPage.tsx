@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useOrders } from '@/contexts/OrdersContext';
+import { useClients } from '@/contexts/ClientsContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { type OrderStatus, statusLabels } from '@/lib/mock-data';
 import { DateRangeFilter, getDefaultDateRange, type DateRange } from '@/components/DateRangeFilter';
@@ -20,6 +21,7 @@ import { parseISO, isWithinInterval } from 'date-fns';
 
 export default function OrdersPage() {
   const { orders, addOrder, updateOrder, deleteOrder } = useOrders();
+  const { findOrCreateClient, getClientByCode } = useClients();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') || '');
@@ -28,6 +30,8 @@ export default function OrdersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
+  const [codigoCliente, setCodigoCliente] = useState('');
+  const [clienteAutoLoaded, setClienteAutoLoaded] = useState(false);
   const [formData, setFormData] = useState({
     cliente: '', telefone: '', aparelho: '', marca: '', modelo: '',
     problema: '', observacoes: '', valor: 0, tecnico: '',
@@ -57,6 +61,8 @@ export default function OrdersPage() {
     setEditingId(null);
     setFormData({ cliente: '', telefone: '', aparelho: '', marca: '', modelo: '', problema: '', observacoes: '', valor: 0, tecnico: '' });
     setSelectedProblems([]);
+    setCodigoCliente('');
+    setClienteAutoLoaded(false);
     setShowForm(true);
   };
 
@@ -70,7 +76,27 @@ export default function OrdersPage() {
       cliente: o.cliente, telefone: o.telefone, aparelho: o.aparelho, marca: o.marca,
       modelo: o.modelo, problema: decoded.freeText, observacoes: o.observacoes, valor: Number(o.valor), tecnico: o.tecnico,
     });
+    setCodigoCliente('');
+    setClienteAutoLoaded(false);
     setShowForm(true);
+  };
+
+  // Auto-load client data when code is entered
+  const handleClientCodeChange = (code: string) => {
+    setCodigoCliente(code);
+    const upper = code.trim().toUpperCase();
+    if (upper.startsWith('CL-') && upper.length >= 7) {
+      const client = getClientByCode(upper);
+      if (client) {
+        setFormData(p => ({ ...p, cliente: client.nome, telefone: client.telefone }));
+        setClienteAutoLoaded(true);
+        toast.success(`Cliente encontrado: ${client.nome}`);
+      } else {
+        setClienteAutoLoaded(false);
+      }
+    } else {
+      setClienteAutoLoaded(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -79,13 +105,20 @@ export default function OrdersPage() {
       return;
     }
     const encodedProblema = encodeProblema(selectedProblems, formData.problema);
-    const orderData = { ...formData, problema: encodedProblema };
+
     if (editingId) {
-      await updateOrder(editingId, orderData);
+      await updateOrder(editingId, { ...formData, problema: encodedProblema });
       toast.success('Ordem atualizada.');
     } else {
-      await addOrder(orderData);
-      toast.success('Nova ordem criada.');
+      try {
+        // Find or create client
+        const client = await findOrCreateClient(formData.cliente, formData.telefone, codigoCliente || undefined);
+        await addOrder({ ...formData, problema: encodedProblema, client_id: client.id });
+        toast.success(`OS criada. Código do cliente: ${client.codigo}`);
+      } catch (err) {
+        toast.error('Erro ao criar ordem.');
+        return;
+      }
     }
     setShowForm(false);
   };
@@ -198,13 +231,43 @@ export default function OrdersPage() {
                 <DialogTitle>{editingId ? 'Editar OS' : 'Nova Ordem de Serviço'}</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 mt-4">
+                {/* Client Code Field - only for new orders */}
+                {!editingId && (
+                  <div className="col-span-2">
+                    <Label className="text-xs text-muted-foreground">Código do Cliente (opcional)</Label>
+                    <Input
+                      value={codigoCliente}
+                      onChange={e => handleClientCodeChange(e.target.value)}
+                      placeholder="Ex: CL-A73F9 — deixe vazio para criar novo cliente"
+                      className="mt-1 bg-surface-2 border-0"
+                      style={inputShadow}
+                    />
+                    {clienteAutoLoaded && (
+                      <p className="text-xs text-primary mt-1">✓ Cliente vinculado automaticamente</p>
+                    )}
+                  </div>
+                )}
+
                 <div className="col-span-2">
                   <Label className="text-xs text-muted-foreground">Nome do Cliente *</Label>
-                  <Input value={formData.cliente} onChange={e => setFormData(p => ({ ...p, cliente: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} autoFocus />
+                  <Input
+                    value={formData.cliente}
+                    onChange={e => setFormData(p => ({ ...p, cliente: e.target.value }))}
+                    className="mt-1 bg-surface-2 border-0"
+                    style={inputShadow}
+                    autoFocus={!!editingId}
+                    disabled={clienteAutoLoaded}
+                  />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Telefone</Label>
-                  <Input value={formData.telefone} onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))} className="mt-1 bg-surface-2 border-0" style={inputShadow} />
+                  <Input
+                    value={formData.telefone}
+                    onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
+                    className="mt-1 bg-surface-2 border-0"
+                    style={inputShadow}
+                    disabled={clienteAutoLoaded}
+                  />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Aparelho *</Label>
