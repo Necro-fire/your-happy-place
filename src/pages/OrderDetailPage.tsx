@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOrders } from '@/contexts/OrdersContext';
+import { useClients } from '@/contexts/ClientsContext';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { type OrderStatus, statusLabels } from '@/lib/mock-data';
 import { decodeProblema } from '@/lib/checklist-utils';
-import { ArrowLeft, Printer, FileText, Clock, User, Phone, Monitor, Wrench, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Printer, FileText, Clock, User, Phone, Monitor, Wrench, CheckSquare, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PrintOrderView } from '@/components/PrintOrderView';
 import { motion } from 'framer-motion';
@@ -14,6 +15,7 @@ import { useState } from 'react';
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { orders, updateOrder } = useOrders();
+  const { getClientById } = useClients();
   const { settings } = useCompanySettings();
   const navigate = useNavigate();
   const [showPrint, setShowPrint] = useState(false);
@@ -23,6 +25,7 @@ export default function OrderDetailPage() {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Ordem não encontrada.</div>;
   }
 
+  const client = order.client_id ? getClientById(order.client_id) : undefined;
   const decoded = decodeProblema(order.problema);
   const companyInfo = {
     name: settings.nome_empresa || 'TechAssist — Assistência Técnica',
@@ -47,6 +50,7 @@ export default function OrderDetailPage() {
 
   const infoItems = [
     { icon: User, label: 'Cliente', value: order.cliente },
+    ...(client ? [{ icon: Tag, label: 'Código do Cliente', value: client.codigo }] : []),
     { icon: Phone, label: 'Telefone', value: order.telefone },
     { icon: Monitor, label: 'Aparelho', value: `${order.marca} ${order.modelo} (${order.aparelho})` },
     { icon: Wrench, label: 'Técnico', value: order.tecnico },
@@ -72,7 +76,10 @@ export default function OrderDetailPage() {
               <h1 className="text-xl font-semibold tabular-nums">{order.codigo}</h1>
               <StatusBadge status={order.status as OrderStatus} />
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">{order.cliente} · {order.marca} {order.modelo}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {order.cliente} · {order.marca} {order.modelo}
+              {client && <span className="text-primary ml-2">({client.codigo})</span>}
+            </p>
           </div>
           <div className="flex items-center gap-2 no-print">
             <Button variant="outline" size="sm" onClick={handlePrint} className="border-0 bg-surface-1" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
@@ -100,7 +107,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Checklist Problems */}
         {decoded.checklist.length > 0 && (
           <div className="card-accent-subtle rounded-lg p-5">
             <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
@@ -155,13 +161,13 @@ export default function OrderDetailPage() {
             </div>
           </div>
           <div className="border border-border rounded-lg overflow-hidden" style={{ boxShadow: '0 4px 30px rgba(0,0,0,0.4)' }}>
-            <PrintOrderView order={order} companyInfo={companyInfo} />
+            <PrintOrderView order={order} companyInfo={companyInfo} clientCode={client?.codigo} />
           </div>
         </div>
       )}
 
       <div className="hidden print-only">
-        <PrintOrderView order={order} companyInfo={companyInfo} />
+        <PrintOrderView order={order} companyInfo={companyInfo} clientCode={client?.codigo} />
       </div>
     </>
   );
