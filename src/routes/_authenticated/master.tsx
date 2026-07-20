@@ -18,10 +18,10 @@ export const Route = createFileRoute("/_authenticated/master")({
 function MasterLayout() {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-950">
+      <div className="flex h-dvh w-full overflow-hidden bg-slate-950">
         <MasterSidebar />
-        <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-800 bg-slate-950/95 px-4 backdrop-blur">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-800 bg-slate-950/95 px-4 backdrop-blur">
             <SidebarTrigger className="text-slate-200 hover:bg-slate-800" />
             <div className="flex items-center gap-2 text-sm">
               <ShieldCheck className="h-4 w-4 text-indigo-400" />
@@ -30,7 +30,7 @@ function MasterLayout() {
               <span className="text-slate-400">Gerenciamento da plataforma</span>
             </div>
           </header>
-          <main className="flex-1 bg-slate-950 p-4 text-slate-100 md:p-6">
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-slate-950 p-4 text-slate-100 md:p-6">
             <Outlet />
           </main>
         </div>
