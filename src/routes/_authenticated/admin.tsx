@@ -1,12 +1,14 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  useRealtimeSync();
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
