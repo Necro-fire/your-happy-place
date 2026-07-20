@@ -82,7 +82,7 @@ function CartPage() {
           <div className="rounded-xl border border-dashed border-border p-12 text-center">
             <ShoppingBag className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
             <p className="text-muted-foreground">Seu carrinho está vazio.</p>
-            <Button asChild className="mt-4"><Link to="/">Ver cardápio</Link></Button>
+            <Button asChild className="mt-4"><Link to={menuTo as any}>Ver cardápio</Link></Button>
           </div>
         ) : (
           <>
