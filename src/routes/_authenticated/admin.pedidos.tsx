@@ -10,7 +10,7 @@ import {
   fmtMoney, fmtTime, fmtDate, statusLabel, statusColor,
   paymentLabel, tipoLabel, tipoColor, tipoDot, origemLabel,
 } from "@/lib/format";
-import { Printer, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Printer, Truck, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
@@ -123,6 +123,30 @@ function PedidosPage() {
     return null;
   };
 
+  const prevStatus = (o: any): { status: string; label: string } | null => {
+    switch (o.status) {
+      case "em_preparo": return { status: "novo", label: "Novo" };
+      case "pronto": return { status: "em_preparo", label: "Em Produção" };
+      case "saiu_entrega": return { status: "pronto", label: "Pronto" };
+      case "entregue":
+        return o.tipo === "entrega"
+          ? { status: "saiu_entrega", label: "Em Rota de Entrega" }
+          : { status: "pronto", label: "Pronto" };
+      case "finalizado": return { status: "pronto", label: "Pronto" };
+      default: return null;
+    }
+  };
+
+  const confirmarRetroceder = async (o: any, target: { status: string; label: string }) => {
+    const ok = await dialog.confirm({
+      title: "Retroceder pedido",
+      description: `Tem certeza de que deseja retornar o pedido #${o.numero} para o status "${target.label}"?\n\nEssa ação atualizará o pedido para a etapa anterior.`,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+    });
+    if (ok) updateStatus.mutate({ id: o.id, status: target.status });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -163,6 +187,7 @@ function PedidosPage() {
                 <div className="flex min-h-[200px] flex-col gap-2 rounded-2xl border border-dashed border-border/50 bg-muted/20 p-2">
                   {items.map((o) => {
                     const next = nextStatus(col.key, o);
+                    const prev = prevStatus(o);
                     return (
                       <div
                         key={o.id}
@@ -181,11 +206,24 @@ function PedidosPage() {
                           <span className={`h-2 w-2 shrink-0 rounded-full ${tipoDot[o.tipo] ?? "bg-muted"}`} />
                           <span className="truncate font-medium text-muted-foreground">{tipoLabel[o.tipo]}</span>
                         </div>
-                        {next && (
-                          <Button size="sm" className="mt-2 h-8 w-full rounded-lg text-xs font-semibold" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
-                            {next.label} →
-                          </Button>
-                        )}
+                        <div className="mt-2 flex gap-1.5">
+                          {prev && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs font-semibold"
+                              title={`Retroceder para ${prev.label}`}
+                              onClick={(e) => { e.stopPropagation(); confirmarRetroceder(o, prev); }}
+                            >
+                              <Undo2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {next && (
+                            <Button size="sm" className="h-8 flex-1 rounded-lg text-xs font-semibold" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
+                              {next.label} →
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -198,12 +236,12 @@ function PedidosPage() {
       </div>
 
 
-      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
+      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} onRetrocede={(o: any) => { const p = prevStatus(o); if (p) confirmarRetroceder(o, p); }} />}
     </div>
   );
 }
 
-function OrderDetail({ order, list, onNavigate, onClose, onUpdate }: any) {
+function OrderDetail({ order, list, onNavigate, onClose, onUpdate, onRetrocede }: any) {
   const idx = (list ?? []).findIndex((o: any) => o.id === order.id);
   const prev = idx > 0 ? list[idx - 1] : null;
   const next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
@@ -253,6 +291,11 @@ function OrderDetail({ order, list, onNavigate, onClose, onUpdate }: any) {
         </div>
         <div className="no-print flex flex-wrap gap-2 pt-3">
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
+          {onRetrocede && !["novo", "cancelado"].includes(order.status) && (
+            <Button size="sm" variant="outline" onClick={() => onRetrocede(order)}>
+              <Undo2 className="h-4 w-4" />Voltar etapa
+            </Button>
+          )}
           <div className="flex-1" />
           <Button size="sm" variant="outline" onClick={async () => {
             const motivo = await dialog.prompt({ title: "Cancelar pedido", description: "Informe o motivo do cancelamento:", placeholder: "Ex: cliente desistiu", confirmText: "Cancelar pedido", cancelText: "Voltar" });

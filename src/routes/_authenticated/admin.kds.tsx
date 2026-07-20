@@ -5,17 +5,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fmtMoney, tipoLabel } from "@/lib/format";
-import { Clock, ChefHat, CheckCircle2, ArrowRight } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2, ArrowRight, Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/kds")({
   component: KDSPage,
 });
 
-const COLUMNS: { key: string; label: string; next?: string; icon: any; color: string }[] = [
+const COLUMNS: { key: string; label: string; next?: string; prev?: string; prevLabel?: string; icon: any; color: string }[] = [
   { key: "novo", label: "Recebido", next: "em_preparo", icon: Clock, color: "border-chart-4/60" },
-  { key: "em_preparo", label: "Em Preparo", next: "pronto", icon: ChefHat, color: "border-warning/60" },
-  { key: "pronto", label: "Pronto", next: "finalizado", icon: CheckCircle2, color: "border-success/60" },
+  { key: "em_preparo", label: "Em Preparo", next: "pronto", prev: "novo", prevLabel: "Recebido", icon: ChefHat, color: "border-warning/60" },
+  { key: "pronto", label: "Pronto", next: "finalizado", prev: "em_preparo", prevLabel: "Em Preparo", icon: CheckCircle2, color: "border-success/60" },
 ];
 
 function KDSPage() {
@@ -59,6 +60,19 @@ function KDSPage() {
     if (next === "finalizado") patch.finalizado_em = new Date().toISOString();
     await supabase.from("orders").update(patch).eq("id", order.id);
     toast.success(`Pedido #${order.numero} → ${next.replace("_", " ")}`);
+    qc.invalidateQueries({ queryKey: ["kds-orders"] });
+  }
+
+  async function retrocede(order: any, prev: string, prevLabel: string) {
+    const ok = await dialog.confirm({
+      title: "Retroceder pedido",
+      description: `Tem certeza de que deseja retornar o pedido #${order.numero} para o status "${prevLabel}"?\n\nEssa ação atualizará o pedido para a etapa anterior.`,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+    });
+    if (!ok) return;
+    await supabase.from("orders").update({ status: prev as any, finalizado_em: null }).eq("id", order.id);
+    toast.success(`Pedido #${order.numero} retornado para ${prevLabel}`);
     qc.invalidateQueries({ queryKey: ["kds-orders"] });
   }
 
@@ -115,14 +129,21 @@ function KDSPage() {
                           ⚠ {o.observacoes}
                         </p>
                       )}
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className="mt-3 flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">{fmtMoney(o.total)}</span>
-                        {col.next && (
-                          <Button size="sm" onClick={() => advance(o, col.next)}>
-                            {col.next === "finalizado" ? "Entregar" : col.next === "pronto" ? "Marcar pronto" : "Iniciar"}
-                            <ArrowRight className="h-3 w-3" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {col.prev && (
+                            <Button size="sm" variant="outline" title={`Retroceder para ${col.prevLabel}`} onClick={() => retrocede(o, col.prev!, col.prevLabel!)}>
+                              <Undo2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {col.next && (
+                            <Button size="sm" onClick={() => advance(o, col.next)}>
+                              {col.next === "finalizado" ? "Entregar" : col.next === "pronto" ? "Marcar pronto" : "Iniciar"}
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </article>
                   );
