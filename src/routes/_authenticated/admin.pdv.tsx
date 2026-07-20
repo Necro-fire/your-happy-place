@@ -959,32 +959,34 @@ function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => v
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{empty ?? "Nenhum produto encontrado"}</div>;
   }
   return (
-    <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
-      {list.map((p) => {
-        const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
-        return (
-          <button
-            key={p.id}
-            onClick={() => onAdd(p)}
-            disabled={indisponivel}
-            className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
-              <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full" />
-            </div>
-            <div className="flex flex-1 flex-col p-2">
-              <div className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-tight">{p.nome}</div>
-              {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-              <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-              {p.controla_estoque && (
-                <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-                  {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
-                </div>
-              )}
-            </div>
-          </button>
-        );
-      })}
+    <div className="h-full overflow-y-auto pr-1">
+      <div className="grid auto-rows-max grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {list.map((p) => {
+          const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
+          return (
+            <button
+              key={p.id}
+              onClick={() => onAdd(p)}
+              disabled={indisponivel}
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
+                <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full" />
+              </div>
+              <div className="flex flex-col gap-1 p-2">
+                <div className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-tight">{p.nome}</div>
+                {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
+                <div className="font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+                {p.controla_estoque && (
+                  <div className={`text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
+                    {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
