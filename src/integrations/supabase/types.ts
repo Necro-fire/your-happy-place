@@ -2128,6 +2128,31 @@ export type Database = {
       gen_menu_codigo: { Args: never; Returns: string }
       gen_public_codigo: { Args: never; Returns: string }
       gen_tenant_slug: { Args: { base: string }; Returns: string }
+      get_public_menu_settings: {
+        Args: { _tenant_id: string }
+        Returns: {
+          aceita_pedidos_online: boolean
+          banner_url: string
+          cep: string
+          cidade: string
+          cor_primaria: string
+          cor_secundaria: string
+          descricao: string
+          design: Json
+          dias_funcionamento: string[]
+          email: string
+          endereco: string
+          estado: string
+          horario_funcionamento: string
+          logo_url: string
+          nome_estabelecimento: string
+          nome_fantasia: string
+          taxa_entrega: number
+          telefone: string
+          tenant_id: string
+          whatsapp: string
+        }[]
+      }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
