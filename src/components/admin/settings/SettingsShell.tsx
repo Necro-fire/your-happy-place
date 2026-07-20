@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Building2, Users, Palette, Calculator, Boxes, CreditCard, Wallet,
-  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles, Tag,
+  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles, Tag, Image as ImageIcon,
 } from "lucide-react";
 
 export type SettingsSection = {
@@ -17,6 +17,7 @@ export const SECTIONS: SettingsSection[] = [
   { slug: "empresa", title: "Empresa", desc: "Dados comerciais, contato, endereço e horários", icon: Building2, group: "Empresa" },
   { slug: "usuarios", title: "Usuários e Permissões", desc: "Cargos, acessos e controle de perfis", icon: Users, group: "Empresa" },
   { slug: "aparencia", title: "Aparência", desc: "Tema claro/escuro e paleta de cores", icon: Palette, group: "Empresa" },
+  { slug: "design", title: "Design da Empresa", desc: "Logo, banners, capa e galeria", icon: ImageIcon, group: "Empresa" },
   { slug: "assinatura", title: "Assinatura", desc: "Plano atual e upgrade", icon: Crown, group: "Empresa" },
 
   { slug: "pdv", title: "PDV", desc: "Tipos de venda e finalização", icon: Calculator, group: "Operação" },
