@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { maskPhone, maskCEP, maskCPFOrCNPJ } from "@/lib/masks";
-import { Loader2, Search, Upload, Trash2, Copy, ExternalLink } from "lucide-react";
+import { Loader2, Search, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -42,40 +42,6 @@ function EmpresaPage() {
     queryKey: ["settings"],
     queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
   });
-  const tenantQ = useQuery({
-    queryKey: ["my-tenant"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo, slug, nome").eq("owner_user_id", user.id).maybeSingle();
-      return data as any;
-    },
-  });
-  const [slugInput, setSlugInput] = useState("");
-  const [savingSlug, setSavingSlug] = useState(false);
-  useEffect(() => {
-    if (tenantQ.data?.slug) setSlugInput(tenantQ.data.slug);
-  }, [tenantQ.data?.slug]);
-
-  async function saveSlug() {
-    const raw = slugInput.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-    if (raw.length < 3) { toast.error("O endereço deve ter pelo menos 3 caracteres"); return; }
-    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(raw)) { toast.error("Use letras, números e hífens (não pode começar/terminar com hífen)"); return; }
-    if (!tenantQ.data?.id) return;
-    setSavingSlug(true);
-    try {
-      const { data: exists } = await supabase.from("tenants" as any).select("id").eq("slug", raw).neq("id", tenantQ.data.id).maybeSingle();
-      if (exists) { toast.error("Este endereço já está em uso. Tente outro."); return; }
-      const { error } = await supabase.from("tenants" as any).update({ slug: raw }).eq("id", tenantQ.data.id);
-      if (error) throw error;
-      qc.invalidateQueries({ queryKey: ["my-tenant"] });
-      toast.success("Endereço público atualizado");
-    } catch (e: any) {
-      toast.error(e.message ?? "Falha ao salvar endereço");
-    } finally {
-      setSavingSlug(false);
-    }
-  }
 
   const [f, setF] = useState<any>(null);
   const [horarios, setHorarios] = useState<Horarios>(DEFAULT_HORARIOS);
@@ -196,67 +162,9 @@ function EmpresaPage() {
 
   if (!f) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
-  const slug = tenantQ.data?.slug as string | undefined;
-  const codigo = tenantQ.data?.menu_codigo as string | undefined;
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const publicUrl = slug ? `${origin}/cardapio/${slug}` : (codigo ? `${origin}/menu/${codigo}` : "");
-
   return (
     <div className="space-y-4">
-      <Card className="space-y-4 p-5">
-        <div>
-          <h2 className="font-display text-lg font-semibold">Endereço público do cardápio</h2>
-          <p className="text-xs text-muted-foreground">
-            Cada empresa possui um endereço exclusivo, sem códigos ou números. Escolha um nome curto e fácil de compartilhar.
-          </p>
-        </div>
 
-        <div className="grid gap-2">
-          <Label>Endereço amigável</Label>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="inline-flex items-center rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-              {origin}/cardapio/
-            </div>
-            <Input
-              value={slugInput}
-              onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
-              placeholder="minha-loja"
-              className="font-mono"
-              maxLength={64}
-            />
-            <Button type="button" onClick={saveSlug} disabled={savingSlug || !slugInput}>
-              {savingSlug ? "Salvando..." : "Salvar endereço"}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">Use letras minúsculas, números e hífens. Precisa ser único.</p>
-        </div>
-
-        {publicUrl && (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex-1 truncate rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
-              {publicUrl}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try { await navigator.clipboard.writeText(publicUrl); toast.success("URL copiada"); }
-                  catch { toast.error("Não foi possível copiar"); }
-                }}
-              >
-                <Copy className="mr-1 h-4 w-4" /> Copiar
-              </Button>
-              <Button type="button" variant="outline" size="sm" asChild>
-                <a href={publicUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-1 h-4 w-4" /> Abrir
-                </a>
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
 
 
       <Card className="space-y-4 p-5">
