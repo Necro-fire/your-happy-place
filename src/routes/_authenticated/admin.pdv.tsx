@@ -526,11 +526,17 @@ function PDVPage() {
 
       {/* ============ DIREITA: comanda ============ */}
       <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
           <h2 className="font-semibold">Comanda</h2>
+          {existingOrderNumero && (
+            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+              Continuando pedido #{existingOrderNumero}
+            </span>
+          )}
           {atendimento && <span className="ml-auto text-xs text-muted-foreground">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</span>}
         </div>
+
 
         <div className="flex-1 space-y-1 overflow-y-auto">
           {cart.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">Sem itens</div>}
