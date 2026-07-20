@@ -802,35 +802,6 @@ function PDVPage() {
         </Dialog>
       )}
 
-      {/* ============ Modal: vendas suspensas ============ */}
-      {heldOpen && (
-        <Dialog open onOpenChange={() => setHeldOpen(false)}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader><DialogTitle>Vendas suspensas ({held.length})</DialogTitle></DialogHeader>
-            <div className="max-h-[60vh] space-y-2 overflow-y-auto">
-              {held.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">Nenhuma venda suspensa</div>}
-              {held.map((h) => {
-                const tot = h.cart.reduce((s, i) => s + i.preco * i.quantidade - i.desconto, 0);
-                return (
-                  <div key={h.id} className="flex items-center gap-2 rounded-md border p-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{h.label}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {h.cart.length} itens • {fmtMoney(tot)} • {new Date(h.savedAt).toLocaleString("pt-BR")}
-                      </div>
-                    </div>
-                    <Button size="sm" onClick={() => resumeSale(h)}><Play className="mr-1 h-3 w-3" />Retomar</Button>
-                    <Button size="icon" variant="ghost" onClick={() => removeHeld(h.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex gap-2 border-t pt-3">
-              <Input placeholder="Nome para a próxima suspensão (opcional)" value={holdName} onChange={(e) => setHoldName(e.target.value)} />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* ============ Modal: checkout ============ */}
       {checkout && (
