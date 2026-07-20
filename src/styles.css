@@ -150,12 +150,11 @@
   --sidebar-ring: oklch(0.78 0.13 75);
 }
 
-/* Scroll containment: only internal areas scroll, never the outer document */
-html, body { height: 100%; }
-body { overflow: hidden; overscroll-behavior: none; }
-#root { height: 100%; overflow: hidden; }
-html.allow-page-scroll, html.allow-page-scroll body { overflow: auto; height: auto; }
-html.allow-page-scroll #root { overflow: visible; height: auto; }
+/* Scroll containment: admin/master shells use h-dvh + overflow-hidden, so the
+   outer document never scrolls when interacting with internal panes. Public
+   marketing/menu routes keep normal document scroll. */
+html, body, #root { min-height: 100%; }
+body { overscroll-behavior-y: none; }
 
 @layer base {
   * { border-color: var(--color-border); }
