@@ -450,12 +450,12 @@ function MesaDetailDialog({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
                 if (order) {
                   toast.error("Não é possível excluir uma mesa com pedido aberto.");
                   return;
                 }
-                if (confirm(`Excluir mesa ${mesa.numero}?`)) onDelete();
+                if (await dialog.confirm({ title: `Excluir mesa ${mesa.numero}?`, destructive: true, confirmText: "Excluir" })) onDelete();
               }}
             >
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Excluir
