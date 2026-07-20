@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as MesaNumeroRouteImport } from './routes/mesa.$numero'
 import { Route as MenuCodigoRouteImport } from './routes/menu.$codigo'
+import { Route as CardapioSlugRouteImport } from './routes/cardapio.$slug'
 import { Route as AuthenticatedMasterRouteImport } from './routes/_authenticated/master'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
@@ -103,6 +104,11 @@ const MesaNumeroRoute = MesaNumeroRouteImport.update({
 const MenuCodigoRoute = MenuCodigoRouteImport.update({
   id: '/menu/$codigo',
   path: '/menu/$codigo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CardapioSlugRoute = CardapioSlugRouteImport.update({
+  id: '/cardapio/$slug',
+  path: '/cardapio/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedMasterRoute = AuthenticatedMasterRouteImport.update({
@@ -322,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/master': typeof AuthenticatedMasterRouteWithChildren
+  '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
@@ -415,6 +423,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/master': typeof AuthenticatedMasterRouteWithChildren
+  '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/master'
+    | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/master'
+    | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
@@ -603,6 +615,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CardapioSlugRoute: typeof CardapioSlugRoute
   MenuCodigoRoute: typeof MenuCodigoRoute
   MesaNumeroRoute: typeof MesaNumeroRouteWithChildren
   PedidoNumeroRoute: typeof PedidoNumeroRoute
@@ -678,6 +691,13 @@ declare module '@tanstack/react-router' {
       path: '/menu/$codigo'
       fullPath: '/menu/$codigo'
       preLoaderRoute: typeof MenuCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cardapio/$slug': {
+      id: '/cardapio/$slug'
+      path: '/cardapio/$slug'
+      fullPath: '/cardapio/$slug'
+      preLoaderRoute: typeof CardapioSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/master': {
@@ -1081,6 +1101,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CardapioSlugRoute: CardapioSlugRoute,
   MenuCodigoRoute: MenuCodigoRoute,
   MesaNumeroRoute: MesaNumeroRouteWithChildren,
   PedidoNumeroRoute: PedidoNumeroRoute,

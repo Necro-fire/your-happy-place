@@ -34,12 +34,17 @@ function MenuPage() {
 
   useEffect(() => {
     (async () => {
-      if (tenant?.codigo === codigo.toUpperCase()) return;
+      if (tenant?.codigo === codigo.toUpperCase()) {
+        if (tenant.slug) navigate({ to: "/cardapio/$slug", params: { slug: tenant.slug }, replace: true });
+        return;
+      }
       const t = await loadTenantByCodigo(codigo);
-      if (!t) setNotFound(true);
+      if (!t) { setNotFound(true); return; }
+      if (t.slug) navigate({ to: "/cardapio/$slug", params: { slug: t.slug }, replace: true });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigo]);
+
 
   const tenantId = tenant?.tenant_id ?? null;
   const { add } = useCart();
