@@ -46,7 +46,6 @@ const groups: Group[] = [
   {
     id: "atendimento", label: "Atendimento", icon: ConciergeBell,
     items: [
-      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat, module: "kds" },
       { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode, module: "qrcodes" },
     ],
   },
