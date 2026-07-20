@@ -34,7 +34,7 @@ function MenuPage() {
 
   useEffect(() => {
     (async () => {
-      if (tenant?.codigo === codigo.toUpperCase()) {
+      if (tenant && tenant.codigo === codigo.toUpperCase()) {
         if (tenant.slug) navigate({ to: "/cardapio/$slug", params: { slug: tenant.slug }, replace: true });
         return;
       }
@@ -44,6 +44,7 @@ function MenuPage() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigo]);
+
 
 
   const tenantId = tenant?.tenant_id ?? null;
