@@ -243,14 +243,8 @@ function PDVPage() {
     setMesaId(id);
   }
 
-  const recent = loadRecent();
-
   const filtered = useMemo(() => {
     let list = (products.data ?? []) as any[];
-    if (tab === "recentes") {
-      const map = new Map(list.map((p) => [p.id, p]));
-      list = recent.map((id) => map.get(id)).filter(Boolean);
-    }
     if (cat && tab === "produtos") list = list.filter((p) => p.category_id === cat);
     if (q.trim()) {
       const s = q.toLowerCase();
@@ -261,7 +255,7 @@ function PDVPage() {
       );
     }
     return list;
-  }, [products.data, cat, q, tab, recent]);
+  }, [products.data, cat, q, tab]);
 
   const filteredCombos = useMemo(() => {
     const list = combos.data ?? [];
@@ -290,7 +284,6 @@ function PDVPage() {
         preco, base_preco: preco, quantidade: 1, desconto: 0, complementos: [],
       }];
     });
-    pushRecent(p.id);
   }
 
   function addCombo(cb: any) {
