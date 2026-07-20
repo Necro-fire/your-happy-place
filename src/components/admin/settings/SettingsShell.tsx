@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Building2, Users, Palette, Calculator, Boxes, CreditCard, Wallet, Printer,
-  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles,
+  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles, Tag,
 } from "lucide-react";
 
 export type SettingsSection = {
@@ -18,12 +18,13 @@ export const SECTIONS: SettingsSection[] = [
   { slug: "aparencia", title: "Aparência", desc: "Tema claro/escuro e paleta de cores", icon: Palette, group: "Empresa" },
   { slug: "assinatura", title: "Assinatura", desc: "Plano atual e upgrade", icon: Crown, group: "Empresa" },
 
-  { slug: "pdv", title: "PDV", desc: "Comportamento das vendas e finalização", icon: Calculator, group: "Operação" },
+  { slug: "pdv", title: "PDV", desc: "Tipos de venda, finalização e comportamento", icon: Calculator, group: "Operação" },
   { slug: "estoque", title: "Estoque", desc: "Controle, mínimo e regras de venda", icon: Boxes, group: "Operação" },
-  { slug: "impressoes", title: "Impressões", desc: "Comprovantes, cabeçalho e rodapé", icon: Printer, group: "Operação" },
+  { slug: "impressoes", title: "Impressões", desc: "Impressoras, vias e rodapé", icon: Printer, group: "Operação" },
 
   { slug: "financeiro", title: "Financeiro", desc: "Moeda, formatação e categorias", icon: CreditCard, group: "Financeiro" },
-  { slug: "pagamentos", title: "Formas de pagamento", desc: "Métodos aceitos no PDV", icon: Wallet, group: "Financeiro" },
+  { slug: "pagamentos", title: "Formas de pagamento", desc: "Métodos aceitos no sistema", icon: Wallet, group: "Financeiro" },
+  { slug: "descontos", title: "Descontos", desc: "Regras, limites e permissões", icon: Tag, group: "Financeiro" },
 
   { slug: "notificacoes", title: "Notificações", desc: "Alertas do sistema e canais", icon: Bell, group: "Sistema" },
   { slug: "seguranca", title: "Segurança", desc: "Sessões, senhas e auditoria", icon: Lock, group: "Sistema" },
