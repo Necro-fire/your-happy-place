@@ -16,7 +16,7 @@ import { fmtMoney } from "@/lib/format";
 import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
-  Star, Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
+  Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
   MapPin, User, Phone, StickyNote as NoteIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -84,7 +84,7 @@ function PDVPage() {
   const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"produtos" | "combos" | "favoritos" | "recentes">("produtos");
+  const [tab, setTab] = useState<"produtos" | "combos" | "recentes">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
   const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
@@ -224,7 +224,6 @@ function PDVPage() {
 
   const filtered = useMemo(() => {
     let list = (products.data ?? []) as any[];
-    if (tab === "favoritos") list = list.filter((p) => p.favorito);
     if (tab === "recentes") {
       const map = new Map(list.map((p) => [p.id, p]));
       list = recent.map((id) => map.get(id)).filter(Boolean);
@@ -373,11 +372,7 @@ function PDVPage() {
     saveHeld(list); setHeld(list);
   }
 
-  async function toggleFavorito(p: any, e: React.MouseEvent) {
-    e.stopPropagation();
-    await supabase.from("products").update({ favorito: !p.favorito }).eq("id", p.id);
-    qc.invalidateQueries({ queryKey: ["admin-products-pdv"] });
-  }
+
 
   function printReceipt(order: { id: string; numero: number }) {
     const w = window.open("", "_blank", "width=380,height=600");
@@ -504,7 +499,8 @@ function PDVPage() {
         </div>
 
         {atendimento && (
-          <div className="mt-3 grid gap-3">
+          <div className="mt-3 grid max-h-[34vh] gap-3 overflow-y-auto pr-1 lg:max-h-[220px]">
+
             {atendimento === "mesa" && (
               <div>
                 <Label className="flex items-center gap-1 text-xs"><Coffee className="h-3 w-3" /> Mesa *</Label>
@@ -632,15 +628,14 @@ function PDVPage() {
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
             <TabsTrigger value="combos">Combos</TabsTrigger>
-            <TabsTrigger value="favoritos"><Star className="mr-1 h-3 w-3" />Favoritos</TabsTrigger>
             <TabsTrigger value="recentes"><Clock className="mr-1 h-3 w-3" />Recentes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} />
+            <ProductGrid list={filtered} onAdd={addProduct} />
           </TabsContent>
           <TabsContent value="combos" className="mt-2 flex-1 overflow-hidden">
             <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
@@ -653,11 +648,8 @@ function PDVPage() {
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
           </TabsContent>
-          <TabsContent value="favoritos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} empty="Marque produtos com a estrela ⭐ para acessá-los aqui" />
-          </TabsContent>
           <TabsContent value="recentes" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} empty="Nenhum produto usado recentemente" />
+            <ProductGrid list={filtered} onAdd={addProduct} empty="Nenhum produto usado recentemente" />
           </TabsContent>
         </Tabs>
       </div>
@@ -889,27 +881,32 @@ function PDVPage() {
 }
 
 /* ============ Grade de produtos reutilizável ============ */
-function ProductGrid({ list, onAdd, onFav, empty }: { list: any[]; onAdd: (p: any) => void; onFav: (p: any, e: React.MouseEvent) => void; empty?: string }) {
+function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => void; empty?: string }) {
   if (list.length === 0) {
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{empty ?? "Nenhum produto encontrado"}</div>;
   }
   return (
     <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
-      {list.map((p) => (
-        <button key={p.id} onClick={() => onAdd(p)} className="group relative rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20">
-          <button onClick={(e) => onFav(p, e)} className="absolute right-2 top-2 opacity-70 hover:opacity-100" title="Favorito">
-            <Star className={`h-4 w-4 ${p.favorito ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+      {list.map((p) => {
+        const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
+        return (
+          <button
+            key={p.id}
+            onClick={() => onAdd(p)}
+            disabled={indisponivel}
+            className="group relative flex flex-col rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <div className="line-clamp-2 text-sm font-medium">{p.nome}</div>
+            {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
+            <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+            {p.controla_estoque && (
+              <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
+                {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+              </div>
+            )}
           </button>
-          <div className="line-clamp-2 pr-6 text-sm font-medium">{p.nome}</div>
-          {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-          <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-          {p.controla_estoque && (
-            <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-              estoque: {p.estoque_atual} {p.unidade}
-            </div>
-          )}
-        </button>
-      ))}
+        );
+      })}
     </div>
   );
 }
