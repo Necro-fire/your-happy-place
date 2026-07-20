@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { MasterSidebar } from "@/components/master/MasterSidebar";
+import { MasterTopbar } from "@/components/master/MasterTopbar";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyRoles, isMaster } from "@/hooks/use-role";
 
@@ -15,11 +16,14 @@ export const Route = createFileRoute("/_authenticated/master")({
 
 function MasterLayout() {
   return (
-    <div className="master-doodle flex min-h-dvh w-full">
+    <div className="master-saas flex min-h-dvh w-full bg-[#f7f8fa]">
       <MasterSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-6">
-        <Outlet />
-      </main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <MasterTopbar />
+        <main className="min-w-0 flex-1 overflow-x-hidden p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Building2, KeyRound, ScrollText, LogOut,
-  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck,
+  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,11 +16,11 @@ const items: Item[] = [
   { title: "Licenças", url: "/master/licencas", icon: KeyRound },
   { title: "Assinaturas", icon: Receipt, soon: true },
   { title: "Pagamentos", icon: CreditCard, soon: true },
-  { title: "Relatórios", icon: BarChart3, soon: true },
   { title: "Usuários", icon: Users, soon: true },
+  { title: "Relatórios", icon: BarChart3, soon: true },
   { title: "Logs", url: "/master/logs", icon: ScrollText },
-  { title: "Configurações", icon: Settings, soon: true },
   { title: "Segurança", icon: ShieldCheck, soon: true },
+  { title: "Configurações", icon: Settings, soon: true },
 ];
 
 export function MasterSidebar() {
@@ -51,41 +51,34 @@ export function MasterSidebar() {
     navigate({ to: "/auth", replace: true });
   }
 
+  const initials = (me.data?.nome ?? "D").slice(0, 1).toUpperCase();
+
   return (
-    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col gap-4 overflow-y-auto p-4 md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-[#e5e7eb] bg-white lg:flex">
       {/* Brand */}
-      <div className="doodle-card rounded-[28px_16px_32px_14px] p-5">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 shrink-0 rotate-[-4deg] place-items-center rounded-2xl border-2 border-slate-900 bg-[#FF8A00] text-slate-900 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-            <span className="font-display text-xl font-bold">S</span>
-          </div>
-          <div className="min-w-0">
-            <div className="truncate text-2xl font-bold leading-none">SaborSys</div>
-            <div className="mt-1 inline-flex rounded-full border-2 border-emerald-700 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-              Painel Master
-            </div>
-          </div>
+      <div className="flex h-16 items-center gap-2.5 border-b border-[#e5e7eb] px-5">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#2563eb] text-white">
+          <Box className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="truncate text-[15px] font-semibold text-[#0f172a]">SaborSys</div>
+          <div className="truncate text-[11px] text-[#6b7280]">Painel Master</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="doodle-card flex-1 rounded-[24px_18px_28px_16px] p-4">
-        <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">Menu</div>
-        <div className="space-y-1.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-[#9ca3af]">Menu principal</div>
+        <div className="space-y-1">
           {items.map((item) => {
             const active = isActive(item.url, item.exact);
             const content = (
-              <div className={cn("doodle-nav-item text-[15px] font-bold", active && "is-active")}>
-                <span className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-xl border-2 border-slate-900",
-                  active ? "bg-white" : "bg-[#fff7ec]",
-                )}>
-                  <item.icon className="h-4 w-4" />
-                </span>
+              <div className={cn("ms-nav-item", active && "is-active")}>
+                <item.icon className="h-[18px] w-[18px] shrink-0" />
                 <span className="flex-1 truncate">{item.title}</span>
                 {item.soon && (
-                  <span className="rounded-full border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-500">
-                    em breve
+                  <span className="rounded-md bg-[#f3f4f6] px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                    breve
                   </span>
                 )}
               </div>
@@ -108,24 +101,23 @@ export function MasterSidebar() {
       </nav>
 
       {/* Profile */}
-      <div className="doodle-card rounded-[20px_28px_16px_24px] p-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-slate-900 bg-[#FF8A00]/20 text-slate-900">
-            <span className="font-bold">
-              {(me.data?.nome ?? "D").slice(0, 1).toUpperCase()}
-            </span>
+      <div className="border-t border-[#e5e7eb] p-3">
+        <div className="flex items-center gap-3 rounded-xl p-2">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-sm font-semibold text-[#2563eb]">
+            {initials}
           </div>
-          <div className="min-w-0 leading-tight">
-            <div className="truncate text-sm font-bold">Desenvolvedor Master</div>
-            <div className="truncate text-[11px] text-slate-500">{me.data?.email ?? "—"}</div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="truncate text-[13px] font-medium text-[#0f172a]">Desenvolvedor</div>
+            <div className="truncate text-[11px] text-[#6b7280]">{me.data?.email ?? "—"}</div>
           </div>
+          <button
+            onClick={signOut}
+            title="Sair"
+            className="grid h-8 w-8 place-items-center rounded-lg text-[#6b7280] hover:bg-[#f9fafb] hover:text-[#ef4444]"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
-        <button
-          onClick={signOut}
-          className="doodle-btn mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm hover:bg-red-50 hover:text-red-600"
-        >
-          <LogOut className="h-4 w-4" /> Sair
-        </button>
       </div>
     </aside>
   );

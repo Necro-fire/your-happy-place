@@ -199,84 +199,161 @@ body { overscroll-behavior-y: none; }
 }
 
 /* ============================================================
-   Master (Developer) Panel — Doodle + Cartoon theme
-   Scoped to `.master-doodle` root; hardcoded palette per PRD.
+   Master (Developer) Panel — Modern SaaS theme
+   Clean, minimal, premium (Stripe / Linear / Vercel inspired).
+   Class names kept for backwards compatibility but restyled.
    ============================================================ */
-.master-doodle {
-  font-family: "Patrick Hand", "Comic Neue", ui-rounded, system-ui, sans-serif;
-  background-color: #fdfcf0;
+.master-saas {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  background-color: #f7f8fa;
   color: #0f172a;
+  --ms-primary: #2563eb;
+  --ms-primary-soft: #eff6ff;
+  --ms-border: #e5e7eb;
+  --ms-border-strong: #d1d5db;
+  --ms-muted: #6b7280;
+  --ms-surface: #ffffff;
+  --ms-hover: #f9fafb;
 }
-.master-doodle .doodle-card {
-  background: #ffffff;
-  border: 3px solid #0f172a;
-  box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 1);
-  transition: transform .18s ease, box-shadow .18s ease;
+.master-saas .ms-card {
+  background: var(--ms-surface);
+  border: 1px solid var(--ms-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
-.master-doodle .doodle-card--sm { box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 1); border-width: 2px; }
-.master-doodle .doodle-card--lg { box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 1); }
-.master-doodle .doodle-hover:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 0 rgba(0,0,0,1); }
-.master-doodle .doodle-btn {
-  background: #ffffff;
-  border: 2px solid #0f172a;
-  border-radius: 14px;
-  box-shadow: 3px 3px 0 0 rgba(0,0,0,1);
-  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
-  font-weight: 700;
+.master-saas .ms-card-hover:hover {
+  box-shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.12);
+  border-color: var(--ms-border-strong);
 }
-.master-doodle .doodle-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 rgba(0,0,0,1); }
-.master-doodle .doodle-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 rgba(0,0,0,1); }
-.master-doodle .doodle-btn--primary { background: #FF8A00; color: #0f172a; }
-.master-doodle .doodle-btn--success { background: #43A047; color: #ffffff; }
-.master-doodle .doodle-btn--ghost { box-shadow: none; background: transparent; border-color: transparent; }
-.master-doodle .doodle-btn--icon { padding: 6px; border-radius: 12px; box-shadow: 2px 2px 0 0 rgba(0,0,0,1); }
-.master-doodle .doodle-input {
-  border: 2px solid #0f172a;
-  background: #ffffff;
-  border-radius: 999px;
-  padding: 8px 16px;
-  outline: none;
-  font-family: inherit;
+.master-saas .ms-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 38px; padding: 0 14px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; line-height: 1;
+  background: var(--ms-surface); color: #0f172a;
+  border: 1px solid var(--ms-border);
+  transition: all .15s ease;
+  cursor: pointer;
 }
-.master-doodle .doodle-input:focus { box-shadow: 0 0 0 3px rgba(255,138,0,.25); }
-.master-doodle .doodle-badge {
+.master-saas .ms-btn:hover { background: var(--ms-hover); border-color: var(--ms-border-strong); }
+.master-saas .ms-btn--primary {
+  background: var(--ms-primary); color: #fff; border-color: var(--ms-primary);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+.master-saas .ms-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.master-saas .ms-btn--ghost { border-color: transparent; background: transparent; }
+.master-saas .ms-btn--ghost:hover { background: var(--ms-hover); }
+.master-saas .ms-btn--icon { height: 32px; width: 32px; padding: 0; border-radius: 8px; }
+.master-saas .ms-btn--sm { height: 32px; padding: 0 10px; font-size: 13px; border-radius: 8px; }
+.master-saas .ms-input {
+  width: 100%; height: 40px;
+  border: 1px solid var(--ms-border); background: var(--ms-surface);
+  border-radius: 10px; padding: 0 12px 0 38px;
+  font-size: 14px; color: #0f172a; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.master-saas .ms-input:focus { border-color: var(--ms-primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+.master-saas .ms-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px;
-  border: 1.5px solid currentColor;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 500; line-height: 1.4;
+  border: 1px solid transparent;
+}
+.master-saas .ms-nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; color: #4b5563;
+  transition: background .15s ease, color .15s ease;
+  cursor: pointer;
+}
+.master-saas .ms-nav-item:hover { background: var(--ms-hover); color: #0f172a; }
+.master-saas .ms-nav-item.is-active {
+  background: var(--ms-primary); color: #fff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+}
+.master-saas .ms-nav-item.is-active svg { color: #fff; }
+.master-saas table.ms-table { width: 100%; border-collapse: collapse; }
+.master-saas table.ms-table th {
+  padding: 12px 16px; text-align: left;
+  font-size: 12px; font-weight: 500; color: var(--ms-muted);
+  text-transform: none; letter-spacing: 0;
+  border-bottom: 1px solid var(--ms-border);
+  background: #fafbfc;
+}
+.master-saas table.ms-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ms-border);
+  vertical-align: middle; font-size: 14px;
+}
+.master-saas table.ms-table tbody tr { transition: background .1s ease; }
+.master-saas table.ms-table tbody tr:hover { background: var(--ms-hover); }
+.master-saas table.ms-table tbody tr:last-child td { border-bottom: none; }
+
+/* --- Legacy `.master-doodle` alias: restyle old classes as SaaS so any
+   remaining markup keeps working while we migrate. --- */
+.master-doodle,
+.master-doodle * { font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important; }
+.master-doodle {
+  background-color: #f7f8fa !important;
+  color: #0f172a !important;
+}
+.master-doodle .doodle-card,
+.master-doodle .doodle-card--sm,
+.master-doodle .doodle-card--lg {
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
+  transform: none !important;
+}
+.master-doodle .doodle-hover:hover { box-shadow: 0 8px 24px -12px rgba(15,23,42,0.12) !important; transform: translateY(-2px) !important; }
+.master-doodle .doodle-btn {
+  background: #fff !important; border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important; box-shadow: none !important;
+  font-weight: 500 !important; color: #0f172a !important;
+  transition: background .15s ease, border-color .15s ease !important;
+  transform: none !important;
+}
+.master-doodle .doodle-btn:hover { background: #f9fafb !important; border-color: #d1d5db !important; transform: none !important; }
+.master-doodle .doodle-btn--primary { background: #2563eb !important; color: #fff !important; border-color: #2563eb !important; }
+.master-doodle .doodle-btn--primary:hover { background: #1d4ed8 !important; }
+.master-doodle .doodle-btn--icon { border-radius: 8px !important; }
+.master-doodle .doodle-input {
+  border: 1px solid #e5e7eb !important; background: #fff !important;
+  border-radius: 10px !important; padding: 10px 14px !important;
+}
+.master-doodle .doodle-input:focus { box-shadow: 0 0 0 3px rgba(37,99,235,.15) !important; border-color: #2563eb !important; }
+.master-doodle .doodle-badge {
+  border-radius: 999px !important; border-width: 1px !important;
+  font-size: 12px !important; font-weight: 500 !important;
+  padding: 3px 10px !important;
 }
 .master-doodle .doodle-nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: 16px;
-  transition: transform .15s ease, background .15s ease;
-  color: #0f172a;
+  border-radius: 10px !important; padding: 9px 12px !important;
+  font-weight: 500 !important; color: #4b5563 !important;
+  transform: none !important;
 }
-.master-doodle .doodle-nav-item:hover { background: #fff7ec; transform: translateX(2px); }
+.master-doodle .doodle-nav-item:hover { background: #f9fafb !important; color: #0f172a !important; transform: none !important; }
 .master-doodle .doodle-nav-item.is-active {
-  background: #ffe1bf;
-  border: 2px solid #0f172a;
-  box-shadow: 3px 3px 0 0 rgba(0,0,0,1);
-  transform: rotate(-1deg);
+  background: #2563eb !important; color: #fff !important;
+  border: none !important; box-shadow: 0 1px 2px rgba(37,99,235,.25) !important;
+  transform: none !important;
 }
-.master-doodle .doodle-scribble {
-  position: absolute; pointer-events: none; user-select: none; opacity: .5;
-}
-@keyframes doodleFloat { 0%,100% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-6px) rotate(var(--r,0deg)); } }
-.master-doodle .doodle-float { animation: doodleFloat 4s ease-in-out infinite; }
-@keyframes doodleWiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
-.master-doodle .doodle-wiggle { animation: doodleWiggle 3s ease-in-out infinite; }
+.master-doodle .doodle-scribble { display: none !important; }
+.master-doodle .doodle-float, .master-doodle .doodle-wiggle { animation: none !important; }
 .master-doodle table.doodle-table th {
-  border-bottom: 2px dashed #0f172a;
-  padding: 12px 12px;
-  text-transform: uppercase; letter-spacing: .04em;
-  font-size: 12px; color: #64748b;
-  text-align: left; font-weight: 700;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 12px 16px !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  font-size: 12px !important; color: #6b7280 !important;
+  font-weight: 500 !important; background: #fafbfc !important;
 }
 .master-doodle table.doodle-table td {
-  padding: 14px 12px;
-  border-bottom: 1px dashed #e2e8f0;
-  vertical-align: middle;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
-.master-doodle table.doodle-table tbody tr:hover { background: #fff7ec; }
+.master-doodle table.doodle-table tbody tr:hover { background: #f9fafb !important; }
+
 
 
 @media print {
