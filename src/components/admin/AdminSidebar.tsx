@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, ShoppingCart, Package, ClipboardList, Calculator, Coffee, Wallet,
-  Settings, LogOut, Store, LifeBuoy, ChefHat, Users, QrCode, Search,
+  Settings, LogOut, Store, LifeBuoy, Users, QrCode, Search,
   DollarSign, Boxes, Building2, BarChart3, ConciergeBell, Globe,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
