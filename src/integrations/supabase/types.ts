@@ -2045,7 +2045,83 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_menu_settings: {
+        Row: {
+          aceita_pedidos_online: boolean | null
+          banner_url: string | null
+          cep: string | null
+          cidade: string | null
+          cor_primaria: string | null
+          cor_secundaria: string | null
+          descricao: string | null
+          design: Json | null
+          dias_funcionamento: string[] | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          horario_funcionamento: string | null
+          logo_url: string | null
+          nome_estabelecimento: string | null
+          nome_fantasia: string | null
+          taxa_entrega: number | null
+          telefone: string | null
+          tenant_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          aceita_pedidos_online?: boolean | null
+          banner_url?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          descricao?: string | null
+          design?: never
+          dias_funcionamento?: string[] | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          horario_funcionamento?: string | null
+          logo_url?: string | null
+          nome_estabelecimento?: string | null
+          nome_fantasia?: string | null
+          taxa_entrega?: number | null
+          telefone?: string | null
+          tenant_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          aceita_pedidos_online?: boolean | null
+          banner_url?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          descricao?: string | null
+          design?: never
+          dias_funcionamento?: string[] | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          horario_funcionamento?: string | null
+          logo_url?: string | null
+          nome_estabelecimento?: string | null
+          nome_fantasia?: string | null
+          taxa_entrega?: number | null
+          telefone?: string | null
+          tenant_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settings_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_tenant_id: { Args: never; Returns: string }
