@@ -343,7 +343,7 @@ function PDVPage() {
   const totalPago = pagamentos.reduce((s, p) => s + Number(p.valor || 0), 0);
   const restante = Math.max(0, total - totalPago);
   const trocoDinheiro = (() => {
-    const dinheiroPago = pagamentos.filter((p) => p.forma === "dinheiro").reduce((s, p) => s + Number(p.valor || 0), 0);
+    const dinheiroPago = pagamentos.filter((p) => isDinheiroMethod(p.methodId)).reduce((s, p) => s + Number(p.valor || 0), 0);
     if (dinheiroPago <= 0) return 0;
     return Math.max(0, recebido - dinheiroPago);
   })();
