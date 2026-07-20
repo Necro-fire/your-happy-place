@@ -409,10 +409,24 @@ function PDVPage() {
       }
       if (atendimento !== "mesa") payload.finalizado_em = new Date().toISOString();
 
-      const { data: order, error } = await supabase.from("orders").insert(payload).select("id, numero").single();
-      if (error) throw error;
+      let order: { id: string; numero: number };
+      if (existingOrderId) {
+        // Atualiza pedido já vinculado à mesa (sem duplicar)
+        const { data: upd, error: uErr } = await supabase
+          .from("orders").update(payload).eq("id", existingOrderId)
+          .select("id, numero").single();
+        if (uErr) throw uErr;
+        order = upd!;
+        // Substitui itens
+        const { error: dErr } = await supabase.from("order_items").delete().eq("order_id", order.id);
+        if (dErr) throw dErr;
+      } else {
+        const { data: ins, error } = await supabase.from("orders").insert(payload).select("id, numero").single();
+        if (error) throw error;
+        order = ins!;
+      }
       const { error: oiErr } = await supabase.from("order_items").insert(cart.map((i) => ({
-        order_id: order!.id, product_id: i.product_id ?? null, combo_id: i.combo_id ?? null,
+        order_id: order.id, product_id: i.product_id ?? null, combo_id: i.combo_id ?? null,
         produto_nome: i.nome, quantidade: i.quantidade, preco_unitario: i.preco,
         desconto: i.desconto, subtotal: i.preco * i.quantidade - i.desconto,
         observacoes: i.observacoes ?? null, complementos: i.complementos,
@@ -426,11 +440,11 @@ function PDVPage() {
         if (session) {
           await supabase.from("cash_movements").insert(pagsValidos.map((p) => ({
             session_id: session.id, tipo: "venda", valor: p.valor,
-            descricao: `${cfg.label} #${order!.numero}`, forma_pagamento: p.forma, order_id: order!.id,
+            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: p.forma, order_id: order.id,
           })));
         }
       }
-      return order!;
+      return order;
     },
     onSuccess: (order) => {
       toast.success(`Venda #${order.numero} registrada`);
