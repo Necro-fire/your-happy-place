@@ -206,11 +206,24 @@ function PedidosPage() {
                           <span className={`h-2 w-2 shrink-0 rounded-full ${tipoDot[o.tipo] ?? "bg-muted"}`} />
                           <span className="truncate font-medium text-muted-foreground">{tipoLabel[o.tipo]}</span>
                         </div>
-                        {next && (
-                          <Button size="sm" className="mt-2 h-8 w-full rounded-lg text-xs font-semibold" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
-                            {next.label} →
-                          </Button>
-                        )}
+                        <div className="mt-2 flex gap-1.5">
+                          {prev && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs font-semibold"
+                              title={`Retroceder para ${prev.label}`}
+                              onClick={(e) => { e.stopPropagation(); confirmarRetroceder(o, prev); }}
+                            >
+                              <Undo2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {next && (
+                            <Button size="sm" className="h-8 flex-1 rounded-lg text-xs font-semibold" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
+                              {next.label} →
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
