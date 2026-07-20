@@ -26,7 +26,7 @@ const items: Item[] = [
   { title: "Configurações", icon: Settings, soon: true },
 ];
 
-export function MasterSidebar() {
+function useMasterNav() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -54,10 +54,15 @@ export function MasterSidebar() {
     navigate({ to: "/auth", replace: true });
   }
 
+  return { me, isActive, signOut };
+}
+
+function NavBody({ onNavigate }: { onNavigate?: () => void }) {
+  const { me, isActive, signOut } = useMasterNav();
   const initials = (me.data?.nome ?? "D").slice(0, 1).toUpperCase();
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-[#e5e7eb] bg-white lg:flex">
+    <div className="flex h-full flex-col bg-white">
       {/* Brand */}
       <div className="flex h-16 items-center gap-2.5 border-b border-[#e5e7eb] px-5">
         <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#2563eb] text-white">
@@ -69,7 +74,6 @@ export function MasterSidebar() {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <div className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-[#9ca3af]">Menu principal</div>
         <div className="space-y-1">
@@ -87,13 +91,17 @@ export function MasterSidebar() {
               </div>
             );
             if (item.url) {
-              return <Link key={item.title} to={item.url} className="block">{content}</Link>;
+              return (
+                <Link key={item.title} to={item.url} className="block" onClick={onNavigate}>
+                  {content}
+                </Link>
+              );
             }
             return (
               <button
                 key={item.title}
                 type="button"
-                onClick={() => toast.info(`${item.title} em breve`)}
+                onClick={() => { toast.info(`${item.title} em breve`); onNavigate?.(); }}
                 className="block w-full text-left"
               >
                 {content}
@@ -103,7 +111,6 @@ export function MasterSidebar() {
         </div>
       </nav>
 
-      {/* Profile */}
       <div className="border-t border-[#e5e7eb] p-3">
         <div className="flex items-center gap-3 rounded-xl p-2">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-sm font-semibold text-[#2563eb]">
@@ -122,6 +129,33 @@ export function MasterSidebar() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function MasterSidebar() {
+  return (
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-[#e5e7eb] lg:block">
+      <NavBody />
     </aside>
   );
 }
+
+export function MasterMobileNav() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#e5e7eb] bg-white text-[#4b5563] hover:bg-[#f9fafb] lg:hidden"
+        aria-label="Abrir menu"
+      >
+        <Menu className="h-4 w-4" />
+      </SheetTrigger>
+      <SheetContent side="left" className="w-72 border-r border-[#e5e7eb] bg-white p-0">
+        <SheetTitle className="sr-only">Menu do Painel Master</SheetTitle>
+        <NavBody onNavigate={() => setOpen(false)} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
