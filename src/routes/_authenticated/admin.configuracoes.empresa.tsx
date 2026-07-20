@@ -213,6 +213,8 @@ function EmpresaPage() {
           </p>
         )}
       </Card>
+
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="font-display text-lg font-semibold">Logo do estabelecimento</h2>
           <p className="text-xs text-muted-foreground">Aparece no cabeçalho do cardápio público e nas telas de pedido do cliente.</p>
