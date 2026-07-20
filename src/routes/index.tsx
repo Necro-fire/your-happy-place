@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicLayout } from "@/components/public/PublicLayout";
 import { ProductImage } from "@/components/ProductImage";
@@ -9,17 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fmtMoney } from "@/lib/format";
 import { useCart } from "@/lib/cart";
-import { Plus, Search, Clock, MapPin } from "lucide-react";
+import { Plus, Search, Clock, MapPin, ChevronLeft, ChevronRight, X as XIcon } from "lucide-react";
 import { CategoryIcon } from "@/components/IconPicker";
 import { toast } from "sonner";
+import { usePublicSettings } from "@/hooks/use-public-settings";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cardápio — Padaria Pão Dourado" },
-      { name: "description", content: "Peça online pães, bolos, salgados, cafés e doces fresquinhos. Entrega e retirada rápida." },
-      { property: "og:title", content: "Padaria Pão Dourado — Cardápio" },
-      { property: "og:description", content: "Pães artesanais, bolos, doces e cafés fresquinhos todos os dias." },
+      { title: "Cardápio online" },
+      { name: "description", content: "Peça online e receba com rapidez. Confira o cardápio completo." },
+      { property: "og:title", content: "Cardápio online" },
+      { property: "og:description", content: "Peça online e receba com rapidez." },
     ],
   }),
   component: HomePage,
@@ -29,23 +31,12 @@ function HomePage() {
   const { add } = useCart();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
-
-  const settings = useQuery({
-    queryKey: ["settings"],
-    queryFn: async () => {
-      const { data } = await supabase.from("settings").select("*").eq("id", 1).single();
-      return data;
-    },
-  });
+  const { data: settings } = usePublicSettings();
 
   const categories = useQuery({
     queryKey: ["categories", "public"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("ativo", true)
-        .order("ordem");
+      const { data } = await supabase.from("categories").select("*").eq("ativo", true).order("ordem");
       return data ?? [];
     },
   });
@@ -53,12 +44,7 @@ function HomePage() {
   const products = useQuery({
     queryKey: ["products", "public"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .eq("ativo", true)
-        .eq("disponivel", true)
-        .order("ordem");
+      const { data } = await supabase.from("products").select("*").eq("ativo", true).eq("disponivel", true).order("ordem");
       return data ?? [];
     },
   });
@@ -83,27 +69,42 @@ function HomePage() {
     return map;
   }, [filtered]);
 
+  const carrossel = (settings?.design.carrossel ?? []).filter((b) => b.ativo && b.image_url);
+  const bannerUrl = settings?.design.banner_url ?? null;
+  const galeria = settings?.design.galeria ?? [];
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
   return (
     <PublicLayout>
-      <section className="bg-gradient-warm text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
-          <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30">Padaria artesanal</Badge>
-          <h1 className="font-display text-4xl font-bold md:text-6xl">
-            {settings.data?.nome_estabelecimento ?? "Padaria Pão Dourado"}
-          </h1>
-          <p className="mt-3 max-w-xl text-base text-white/90 md:text-lg">
-            {settings.data?.descricao ?? "Pães artesanais, bolos, doces e cafés todos os dias."}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4 text-sm text-white/90">
-            <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4" />{settings.data?.horario_funcionamento}</span>
-            {settings.data?.endereco && (
-              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" />{settings.data.endereco}</span>
-            )}
+      {carrossel.length > 0 ? (
+        <Carousel items={carrossel} />
+      ) : bannerUrl ? (
+        <a href="#cardapio" className="block">
+          <div className="mx-auto max-w-6xl px-4 pt-4">
+            <img src={bannerUrl} alt="Banner" className="aspect-[16/6] w-full rounded-xl object-cover" />
           </div>
-        </div>
-      </section>
+        </a>
+      ) : (
+        <section className="bg-gradient-warm text-primary-foreground">
+          <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
+            <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30">Estabelecimento</Badge>
+            <h1 className="font-display text-4xl font-bold md:text-6xl">{settings?.nome ?? ""}</h1>
+            {settings?.descricao && (
+              <p className="mt-3 max-w-xl text-base text-white/90 md:text-lg">{settings.descricao}</p>
+            )}
+            <div className="mt-6 flex flex-wrap gap-4 text-sm text-white/90">
+              {settings?.endereco && (
+                <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" />{settings.endereco}</span>
+              )}
+              {settings?.telefone && (
+                <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4" />{settings.telefone}</span>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
-      <div className="sticky top-[57px] z-30 border-b border-border bg-background/95 backdrop-blur">
+      <div id="cardapio" className="sticky top-[57px] z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 py-3">
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -176,7 +177,86 @@ function HomePage() {
         {filtered.length === 0 && !products.isLoading && (
           <p className="py-20 text-center text-muted-foreground">Nenhum item encontrado.</p>
         )}
+
+        {galeria.length > 0 && (
+          <section className="mt-12">
+            <h2 className="mb-4 font-display text-2xl font-bold">Galeria</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {galeria.map((url, i) => (
+                <button
+                  key={url + i}
+                  onClick={() => setLightbox(url)}
+                  className="aspect-square overflow-hidden rounded-lg border border-border bg-muted transition hover:opacity-90"
+                >
+                  <img src={url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
+
+      {lightbox && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setLightbox(null)}>
+          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Fechar">
+            <XIcon className="h-5 w-5" />
+          </button>
+          <img src={lightbox} alt="Ampliada" className="max-h-full max-w-full rounded-lg object-contain" />
+        </div>
+      )}
     </PublicLayout>
+  );
+}
+
+function Carousel({ items }: { items: { id: string; image_url: string; titulo?: string; descricao?: string; link?: string }[] }) {
+  const [idx, setIdx] = useState(0);
+  const n = items.length;
+
+  useEffect(() => {
+    if (n <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [n]);
+
+  const go = (d: number) => setIdx((i) => (i + d + n) % n);
+  const item = items[idx];
+  const content = (
+    <div className="relative aspect-[16/6] w-full overflow-hidden rounded-xl bg-muted">
+      <img src={item.image_url} alt={item.titulo || "Banner"} className="h-full w-full object-cover" />
+      {(item.titulo || item.descricao) && (
+        <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-6 text-white">
+          {item.titulo && <h2 className="font-display text-2xl font-bold md:text-4xl">{item.titulo}</h2>}
+          {item.descricao && <p className="mt-1 max-w-xl text-sm text-white/90 md:text-base">{item.descricao}</p>}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 pt-4">
+      <div className="relative">
+        {item.link ? <a href={item.link}>{content}</a> : content}
+        {n > 1 && (
+          <>
+            <button onClick={() => go(-1)} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60">
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button onClick={() => go(1)} aria-label="Próximo" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60">
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+              {items.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIdx(i)}
+                  aria-label={`Ir para ${i + 1}`}
+                  className={cn("h-2 rounded-full transition-all", i === idx ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/75")}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
