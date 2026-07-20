@@ -6,6 +6,7 @@ export type TenantSession = {
   codigo: string;
   slug?: string | null;
   nome?: string | null;
+  public_codigo?: string | null;
 };
 
 const KEY = "tenant_session_v1";
