@@ -1,9 +1,26 @@
 import { useMemo, useState } from "react";
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
+import * as LucideIcons from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+
+export type IconName = string;
+
+// Convert kebab-case name to PascalCase (lucide-react export naming).
+function pascal(name: string) {
+  return name
+    .split("-")
+    .map((p) => (p ? p[0].toUpperCase() + p.slice(1) : ""))
+    .join("");
+}
+
+function getIcon(name?: string | null) {
+  if (!name) return null;
+  const key = pascal(name);
+  const Comp = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[key];
+  return Comp ?? null;
+}
 
 // Curated set of common lucide icons grouped by category.
 const GROUPS: Record<string, IconName[]> = {
@@ -16,7 +33,7 @@ const GROUPS: Record<string, IconName[]> = {
   "Símbolos": ["check", "x", "plus", "minus", "circle", "square", "triangle", "diamond", "hexagon", "zap", "trophy", "medal", "award"],
 };
 
-const ALL = Array.from(new Set(Object.values(GROUPS).flat()));
+const ALL = Array.from(new Set(Object.values(GROUPS).flat())).filter((n) => getIcon(n));
 
 interface Props {
   open: boolean;
@@ -25,13 +42,19 @@ interface Props {
   onSelect: (icon: IconName) => void;
 }
 
+function RenderIcon({ name, className }: { name: string; className?: string }) {
+  const Comp = getIcon(name);
+  if (!Comp) return null;
+  return <Comp className={className ?? "h-5 w-5"} />;
+}
+
 export function IconPicker({ open, value, onClose, onSelect }: Props) {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<string>("Todos");
-  const [preview, setPreview] = useState<IconName | null>((value as IconName) ?? null);
+  const [preview, setPreview] = useState<IconName | null>(value ?? null);
 
   const list = useMemo(() => {
-    const base = tab === "Todos" ? ALL : GROUPS[tab] ?? [];
+    const base = tab === "Todos" ? ALL : (GROUPS[tab] ?? []).filter((n) => getIcon(n));
     if (!q.trim()) return base;
     const needle = q.toLowerCase();
     return base.filter((n) => n.includes(needle));
@@ -63,7 +86,7 @@ export function IconPicker({ open, value, onClose, onSelect }: Props) {
                   className={`flex aspect-square items-center justify-center rounded-md border transition hover:bg-accent ${active ? "border-primary bg-accent" : "border-transparent"}`}
                   title={name}
                 >
-                  <DynamicIcon name={name} className="h-5 w-5" />
+                  <RenderIcon name={name} className="h-5 w-5" />
                 </button>
               );
             })}
@@ -72,7 +95,7 @@ export function IconPicker({ open, value, onClose, onSelect }: Props) {
           {preview && (
             <div className="flex items-center gap-3 rounded-lg border p-3">
               <div className="grid h-12 w-12 place-items-center rounded-lg bg-accent">
-                <DynamicIcon name={preview} className="h-6 w-6" />
+                <RenderIcon name={preview} className="h-6 w-6" />
               </div>
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">Selecionado</div>
@@ -91,6 +114,8 @@ export function IconPicker({ open, value, onClose, onSelect }: Props) {
 }
 
 export function CategoryIcon({ name, className }: { name?: string | null; className?: string }) {
-  const safe = (name && /^[a-z0-9-]+$/.test(name)) ? (name as IconName) : ("tag" as IconName);
-  return <DynamicIcon name={safe} className={className ?? "h-5 w-5"} />;
+  const safe = (name && /^[a-z0-9-]+$/.test(name)) ? name : "tag";
+  const Comp = getIcon(safe) ?? getIcon("tag");
+  if (!Comp) return null;
+  return <Comp className={className ?? "h-5 w-5"} />;
 }
