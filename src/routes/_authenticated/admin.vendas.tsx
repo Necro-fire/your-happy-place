@@ -194,15 +194,8 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
         status: "cancelado", cancelado_em: new Date().toISOString(),
       }).eq("id", o.id);
       if (uErr) throw uErr;
-      // Estorno no caixa: cria movimentação de saída equivalente
-      const { data: session } = await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle();
-      if (session && Number(o.total) > 0) {
-        await supabase.from("cash_movements").insert({
-          session_id: session.id, tipo: "saida", valor: Number(o.total),
-          descricao: `Estorno venda #${o.numero}`, forma_pagamento: o.forma_pagamento ?? "dinheiro",
-          order_id: o.id,
-        });
-      }
+      // Remove todas as entradas do caixa vinculadas a essa venda
+      await supabase.from("cash_movements").delete().eq("order_id", o.id);
     },
     onSuccess: () => { toast.success("Venda cancelada"); qc.invalidateQueries(); onClose(); },
     onError: (e: any) => toast.error(e.message),
@@ -218,14 +211,20 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
       const novoSubtotal = Math.max(0, Number(o.subtotal) - valor);
       const novoTotal = Math.max(0, Number(o.total) - valor);
       await supabase.from("orders").update({ subtotal: novoSubtotal, total: novoTotal }).eq("id", o.id);
+      // Ajusta o caixa: remove entradas antigas dessa venda e reinsere pelo novo total
+      await supabase.from("cash_movements").delete().eq("order_id", o.id).eq("tipo", "entrada");
       const { data: session } = await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle();
-      if (session && valor > 0) {
+      if (session && novoTotal > 0) {
         await supabase.from("cash_movements").insert({
-          session_id: session.id, tipo: "saida", valor,
-          descricao: `Cancelamento item — venda #${o.numero} (${item.produto_nome})`,
+          session_id: session.id, tipo: "entrada", valor: novoTotal,
+          descricao: `Venda #${o.numero} (ajustada após cancelamento de item)`,
           forma_pagamento: o.forma_pagamento ?? "dinheiro",
           order_id: o.id,
         });
+      }
+      // Se removeu o último item, cancela a venda inteira
+      if (novoTotal === 0) {
+        await supabase.from("orders").update({ status: "cancelado", cancelado_em: new Date().toISOString() }).eq("id", o.id);
       }
     },
     onSuccess: () => { toast.success("Item cancelado"); qc.invalidateQueries(); },
