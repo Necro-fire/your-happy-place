@@ -414,7 +414,7 @@ function CategoriasTab() {
           value={reassign}
           options={(cats.data ?? []).filter((c: any) => c.id !== reassign.id)}
           onClose={() => setReassign(null)}
-          onConfirm={(targetId) => del.mutate({ id: reassign.id, reassignTo: targetId })}
+          onConfirm={(targetId: string | null) => del.mutate({ id: reassign.id, reassignTo: targetId })}
           pending={del.isPending}
         />
       )}
