@@ -627,15 +627,14 @@ function PDVPage() {
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
             <TabsTrigger value="combos">Combos</TabsTrigger>
-            <TabsTrigger value="favoritos"><Star className="mr-1 h-3 w-3" />Favoritos</TabsTrigger>
             <TabsTrigger value="recentes"><Clock className="mr-1 h-3 w-3" />Recentes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} />
+            <ProductGrid list={filtered} onAdd={addProduct} />
           </TabsContent>
           <TabsContent value="combos" className="mt-2 flex-1 overflow-hidden">
             <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
@@ -648,11 +647,8 @@ function PDVPage() {
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
           </TabsContent>
-          <TabsContent value="favoritos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} empty="Marque produtos com a estrela ⭐ para acessá-los aqui" />
-          </TabsContent>
           <TabsContent value="recentes" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} onFav={toggleFavorito} empty="Nenhum produto usado recentemente" />
+            <ProductGrid list={filtered} onAdd={addProduct} empty="Nenhum produto usado recentemente" />
           </TabsContent>
         </Tabs>
       </div>
