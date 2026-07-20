@@ -16,7 +16,7 @@ import { fmtMoney } from "@/lib/format";
 import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
-  Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
+  Barcode, Clock, StickyNote, Printer, Package,
   MapPin, User, Phone, StickyNote as NoteIcon, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,31 +47,12 @@ type CartLine = {
 };
 type Atendimento = "balcao" | "mesa" | "retirada" | "delivery";
 type PagamentoLinha = { methodId: string; valor: number };
-type Held = { id: string; label: string; cart: CartLine[]; atendimento: Atendimento | null; savedAt: string };
-
 const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; origem: string }[] = [
   { key: "balcao",   label: "Balcão",   icon: Store,        tipo: "retirada", origem: "pdv"  },
   { key: "mesa",     label: "Mesa",     icon: Coffee,       tipo: "local",    origem: "mesa" },
   { key: "retirada", label: "Retirada", icon: PackageCheck, tipo: "retirada", origem: "pdv"  },
   { key: "delivery", label: "Delivery", icon: Bike,         tipo: "entrega",  origem: "pdv"  },
 ];
-
-
-const HELD_KEY = "pdv_held_v1";
-const RECENT_KEY = "pdv_recent_v1";
-
-function loadHeld(): Held[] {
-  try { return JSON.parse(localStorage.getItem(HELD_KEY) ?? "[]"); } catch { return []; }
-}
-function saveHeld(list: Held[]) { localStorage.setItem(HELD_KEY, JSON.stringify(list)); }
-function loadRecent(): string[] {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]"); } catch { return []; }
-}
-function pushRecent(id: string) {
-  const cur = loadRecent().filter((x) => x !== id);
-  cur.unshift(id);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(cur.slice(0, 12)));
-}
 
 function newLineKey(product_id: string | undefined, combo_id: string | undefined, comps: Complemento[], obs?: string) {
   return `${product_id ?? "c"}_${combo_id ?? ""}_${comps.map((c) => c.id).sort().join(",")}_${obs ?? ""}_${Math.random().toString(36).slice(2, 6)}`;
@@ -83,11 +64,10 @@ function PDVPage() {
   const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"produtos" | "combos" | "recentes">("produtos");
+  const [tab, setTab] = useState<"produtos" | "combos">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
   const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
-  const [descOrder, setDescOrder] = useState(0);
   const [atendimento, setAtendimento] = useState<Atendimento | null>(null);
   const [mesaId, setMesaId] = useState<string>("");
   const [clienteNome, setClienteNome] = useState("");
@@ -102,14 +82,10 @@ function PDVPage() {
   // pagamento misto + troco
   const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ methodId: "dinheiro", valor: 0 }]);
   const [recebido, setRecebido] = useState(0); // para calcular troco quando 1ª forma é dinheiro
-  const [pessoas, setPessoas] = useState(1);
 
   // modais
   const [complementModal, setComplementModal] = useState<{ product: any; groups: any[] } | null>(null);
   const [lineEdit, setLineEdit] = useState<CartLine | null>(null);
-  const [holdName, setHoldName] = useState("");
-  const [heldOpen, setHeldOpen] = useState(false);
-  const [held, setHeld] = useState<Held[]>([]);
   const [lastOrder, setLastOrder] = useState<{ id: string; numero: number } | null>(null);
   const [attendModalOpen, setAttendModalOpen] = useState(false);
   const [attendSnap, setAttendSnap] = useState<any>(null);
@@ -161,7 +137,8 @@ function PDVPage() {
   const isDinheiroMethod = (id: string) => findMethod(id)?.tipo === "dinheiro";
   const defaultMethodId = () => paymentMethods[0]?.id ?? "dinheiro";
 
-  useEffect(() => { setHeld(loadHeld()); }, []);
+
+
 
   // Autoload mesa/order coming from /admin/mesas (Novo pedido / Continuar atendimento)
   useEffect(() => {
@@ -266,14 +243,8 @@ function PDVPage() {
     setMesaId(id);
   }
 
-  const recent = loadRecent();
-
   const filtered = useMemo(() => {
     let list = (products.data ?? []) as any[];
-    if (tab === "recentes") {
-      const map = new Map(list.map((p) => [p.id, p]));
-      list = recent.map((id) => map.get(id)).filter(Boolean);
-    }
     if (cat && tab === "produtos") list = list.filter((p) => p.category_id === cat);
     if (q.trim()) {
       const s = q.toLowerCase();
@@ -284,7 +255,7 @@ function PDVPage() {
       );
     }
     return list;
-  }, [products.data, cat, q, tab, recent]);
+  }, [products.data, cat, q, tab]);
 
   const filteredCombos = useMemo(() => {
     const list = combos.data ?? [];
@@ -313,7 +284,6 @@ function PDVPage() {
         preco, base_preco: preco, quantidade: 1, desconto: 0, complementos: [],
       }];
     });
-    pushRecent(p.id);
   }
 
   function addCombo(cb: any) {
@@ -333,8 +303,7 @@ function PDVPage() {
   }
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade - i.desconto, 0);
-  const total = Math.max(0, subtotal - descOrder + (atendimento === "delivery" ? Number(taxa) : 0));
-  const perPessoa = pessoas > 1 ? total / pessoas : total;
+  const total = Math.max(0, subtotal + (atendimento === "delivery" ? Number(taxa) : 0));
 
   // Sync pagamentos com total
   useEffect(() => {
@@ -381,41 +350,13 @@ function PDVPage() {
     setCheckout(true);
   }
 
-  async function cancelSale() {
-    if (cart.length === 0) return;
-    if (!(await dialog.confirm({ title: "Cancelar venda?", description: "A venda em andamento será descartada.", destructive: true, confirmText: "Cancelar venda", cancelText: "Voltar" }))) return;
-    resetSale();
-    toast.info("Venda cancelada");
-  }
-
   function resetSale() {
-    setCart([]); setDescOrder(0); setClienteNome(""); setClienteTel(""); setObs(""); setTaxa(0); setHorario("");
-    setMesaId(""); setAtendimento(null); setCheckout(false); setPessoas(1); setRecebido(0);
+    setCart([]); setClienteNome(""); setClienteTel(""); setObs(""); setTaxa(0); setHorario("");
+    setMesaId(""); setAtendimento(null); setCheckout(false); setRecebido(0);
     setEnd({ cep: "", rua: "", numero: "", bairro: "", cidade: "", estado: "", complemento: "", referencia: "" });
     setPagamentos([{ methodId: "dinheiro", valor: 0 }]);
     setExistingOrderId(null); setExistingOrderNumero(null);
     if (search.mesa || search.order) navigate({ to: "/admin/pdv", search: {} as any, replace: true });
-  }
-
-  function suspendSale() {
-    if (cart.length === 0) { toast.error("Sem itens"); return; }
-    const label = holdName.trim() || `Venda ${new Date().toLocaleTimeString("pt-BR")}`;
-    const list = loadHeld();
-    list.push({ id: crypto.randomUUID(), label, cart, atendimento, savedAt: new Date().toISOString() });
-    saveHeld(list); setHeld(list); setHoldName("");
-    toast.success(`Venda suspensa: ${label}`);
-    resetSale();
-  }
-
-  function resumeSale(h: Held) {
-    setCart(h.cart); setAtendimento(h.atendimento);
-    const list = loadHeld().filter((x) => x.id !== h.id);
-    saveHeld(list); setHeld(list); setHeldOpen(false);
-  }
-
-  function removeHeld(id: string) {
-    const list = loadHeld().filter((x) => x.id !== id);
-    saveHeld(list); setHeld(list);
   }
 
 
@@ -445,7 +386,7 @@ function PDVPage() {
       <div style="text-align:center;font-size:11px">${new Date().toLocaleString("pt-BR")}</div>
       <hr/>${linhas}<hr/>
       <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
-      ${descOrder ? `<div style="display:flex;justify-content:space-between"><span>Desconto</span><span>-${fmtMoney(descOrder)}</span></div>` : ""}
+      ${""}
       ${atendimento === "delivery" && taxa ? `<div style="display:flex;justify-content:space-between"><span>Taxa entrega</span><span>${fmtMoney(taxa)}</span></div>` : ""}
       <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:16px"><span>TOTAL</span><span>${fmtMoney(total)}</span></div>
       <hr/>${pgts}
@@ -477,7 +418,7 @@ function PDVPage() {
         cliente_telefone: clienteTel || null,
         origem: cfg.origem, tipo: cfg.tipo,
         status: atendimento === "mesa" ? "em_preparo" : "finalizado",
-        subtotal, desconto: descOrder,
+        subtotal, desconto: 0,
         taxa_entrega: atendimento === "delivery" ? Number(taxa) : 0,
         total, forma_pagamento, observacoes: obs || null,
       };
@@ -728,18 +669,15 @@ function PDVPage() {
               {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={() => { setHeldOpen(true); setHeld(loadHeld()); }} title="Vendas suspensas">
-            <Clock className="h-4 w-4" />
-            {held.length > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{held.length}</span>}
-          </Button>
           <Button variant="outline" size="icon" onClick={reprintLast} title="Reimprimir último"><Printer className="h-4 w-4" /></Button>
         </div>
 
+
+
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
             <TabsTrigger value="combos">Combos</TabsTrigger>
-            <TabsTrigger value="recentes"><Clock className="mr-1 h-3 w-3" />Recentes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
@@ -755,9 +693,6 @@ function PDVPage() {
               ))}
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
-          </TabsContent>
-          <TabsContent value="recentes" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} empty="Nenhum produto usado recentemente" />
           </TabsContent>
         </Tabs>
       </div>
@@ -809,10 +744,6 @@ function PDVPage() {
 
         <div className="space-y-2 border-t pt-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1"><Percent className="h-3 w-3" />Desconto</span>
-            <Input type="number" min={0} value={descOrder} onChange={(e) => setDescOrder(Number(e.target.value))} className="h-8 w-24 text-right" />
-          </div>
           {atendimento === "delivery" && (
             <div className="flex items-center justify-between">
               <span>Taxa entrega</span>
@@ -822,20 +753,8 @@ function PDVPage() {
           <div className="flex justify-between border-t pt-2 font-display text-xl font-bold">
             <span>Total</span><span className="text-primary">{fmtMoney(total)}</span>
           </div>
-          {pessoas > 1 && (
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Por pessoa ({pessoas})</span><span>{fmtMoney(perPessoa)}</span>
-            </div>
-          )}
         </div>
 
-        <div className="mt-2 grid grid-cols-3 gap-1">
-          <Button variant="outline" size="sm" onClick={suspendSale} disabled={cart.length === 0}><Pause className="mr-1 h-3 w-3" />Suspender</Button>
-          <Button variant="outline" size="sm" onClick={async () => { const n = await dialog.prompt({ title: "Dividir conta", description: "Dividir por quantas pessoas?", defaultValue: String(pessoas), placeholder: "Ex: 2" }); if (n) setPessoas(Math.max(1, Number(n) || 1)); }}>
-            <Split className="mr-1 h-3 w-3" />Dividir
-          </Button>
-          <Button variant="outline" size="sm" onClick={cancelSale} disabled={cart.length === 0}><XCircle className="mr-1 h-3 w-3" />Cancelar</Button>
-        </div>
         <Button size="lg" className="mt-2" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
           {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
         </Button>
@@ -856,7 +775,6 @@ function PDVPage() {
               key: newLineKey(p.id, undefined, comps, observacoes), product_id: p.id, nome: p.nome,
               preco, base_preco: base, quantidade: qty, desconto: 0, complementos: comps, observacoes,
             }]);
-            pushRecent(p.id);
             setComplementModal(null);
           }}
         />
@@ -884,35 +802,6 @@ function PDVPage() {
         </Dialog>
       )}
 
-      {/* ============ Modal: vendas suspensas ============ */}
-      {heldOpen && (
-        <Dialog open onOpenChange={() => setHeldOpen(false)}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader><DialogTitle>Vendas suspensas ({held.length})</DialogTitle></DialogHeader>
-            <div className="max-h-[60vh] space-y-2 overflow-y-auto">
-              {held.length === 0 && <div className="py-6 text-center text-sm text-muted-foreground">Nenhuma venda suspensa</div>}
-              {held.map((h) => {
-                const tot = h.cart.reduce((s, i) => s + i.preco * i.quantidade - i.desconto, 0);
-                return (
-                  <div key={h.id} className="flex items-center gap-2 rounded-md border p-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{h.label}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {h.cart.length} itens • {fmtMoney(tot)} • {new Date(h.savedAt).toLocaleString("pt-BR")}
-                      </div>
-                    </div>
-                    <Button size="sm" onClick={() => resumeSale(h)}><Play className="mr-1 h-3 w-3" />Retomar</Button>
-                    <Button size="icon" variant="ghost" onClick={() => removeHeld(h.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex gap-2 border-t pt-3">
-              <Input placeholder="Nome para a próxima suspensão (opcional)" value={holdName} onChange={(e) => setHoldName(e.target.value)} />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* ============ Modal: checkout ============ */}
       {checkout && (
