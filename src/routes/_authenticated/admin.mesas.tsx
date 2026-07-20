@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { fmtMoney, fmtDate } from "@/lib/format";
 import { Coffee, Plus, Trash2, Pencil, ShoppingCart, PlayCircle, ArrowRight, CircleDot } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/mesas")({
   component: MesasPage,
@@ -449,12 +450,12 @@ function MesaDetailDialog({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
                 if (order) {
                   toast.error("Não é possível excluir uma mesa com pedido aberto.");
                   return;
                 }
-                if (confirm(`Excluir mesa ${mesa.numero}?`)) onDelete();
+                if (await dialog.confirm({ title: `Excluir mesa ${mesa.numero}?`, destructive: true, confirmText: "Excluir" })) onDelete();
               }}
             >
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Excluir

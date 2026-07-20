@@ -17,6 +17,7 @@ import {
   Plus, Edit, Trash2, Copy, ExternalLink, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/suporte")({
@@ -424,7 +425,7 @@ function Base() {
     else { toast.success("Salvo"); setCatOpen(false); setCatEdit(null); qc.invalidateQueries(); }
   }
   async function delCat(id: string) {
-    if (!confirm("Excluir categoria e todos seus problemas?")) return;
+    if (!(await dialog.confirm({ title: "Excluir categoria?", description: "Excluir categoria e todos os seus problemas.", destructive: true, confirmText: "Excluir" }))) return;
     const { error } = await supabase.from("support_categories" as any).delete().eq("id", id);
     if (error) toast.error(error.message); else qc.invalidateQueries();
   }
@@ -451,7 +452,7 @@ function Base() {
     else { toast.success("Salvo"); setProbOpen(false); setProbEdit(null); qc.invalidateQueries(); }
   }
   async function delProb(id: string) {
-    if (!confirm("Excluir este problema?")) return;
+    if (!(await dialog.confirm({ title: "Excluir problema?", destructive: true, confirmText: "Excluir" }))) return;
     const { error } = await supabase.from("support_problems" as any).delete().eq("id", id);
     if (error) toast.error(error.message); else qc.invalidateQueries();
   }
