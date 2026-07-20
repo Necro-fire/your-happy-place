@@ -47,34 +47,23 @@ function CardapioPage() {
   const [cat, setCat] = useState<string | null>(null);
   const { data: settings } = usePublicSettings(tenantId);
 
-  const categories = useQuery({
-    queryKey: ["categories", "public", tenantId],
+  const menu = useQuery({
+    queryKey: ["public-menu", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("ativo", true)
-        .eq("tenant_id" as any, tenantId!)
-        .order("ordem");
-      return data ?? [];
+      const { data, error } = await supabase.rpc("get_public_menu", { _tenant_id: tenantId! } as any);
+      if (error) throw error;
+      const payload = (data ?? { categories: [], products: [] }) as any;
+      return {
+        categories: (payload.categories ?? []) as any[],
+        products: (payload.products ?? []) as any[],
+      };
     },
   });
 
-  const products = useQuery({
-    queryKey: ["products", "public", tenantId],
-    enabled: !!tenantId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .eq("ativo", true)
-        .eq("disponivel", true)
-        .eq("tenant_id" as any, tenantId!)
-        .order("ordem");
-      return data ?? [];
-    },
-  });
+  const categories = { data: menu.data?.categories ?? [], isLoading: menu.isLoading };
+  const products = { data: menu.data?.products ?? [], isLoading: menu.isLoading };
+
 
   const filtered = useMemo(() => {
     let list = products.data ?? [];

@@ -2128,6 +2128,7 @@ export type Database = {
       gen_menu_codigo: { Args: never; Returns: string }
       gen_public_codigo: { Args: never; Returns: string }
       gen_tenant_slug: { Args: { base: string }; Returns: string }
+      get_public_menu: { Args: { _tenant_id: string }; Returns: Json }
       get_public_menu_settings: {
         Args: { _tenant_id: string }
         Returns: {
