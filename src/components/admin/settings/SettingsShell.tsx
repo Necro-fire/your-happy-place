@@ -1,8 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Building2, Users, Package, ShoppingCart, Calculator, Coffee, Bike, Boxes, Wallet,
-  CreditCard, BarChart3, Users2, Gift, Megaphone, Printer, Bell, Globe, QrCode,
-  Store, Lock, ScrollText, Database, Palette, Languages, Info, Sparkles, Crown,
+  Building2, Users, Palette, Calculator, Boxes, CreditCard, Wallet, Printer,
+  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles,
 } from "lucide-react";
 
 export type SettingsSection = {
@@ -10,46 +9,31 @@ export type SettingsSection = {
   title: string;
   desc: string;
   icon: typeof Building2;
-  group: "Empresa" | "Operação" | "Financeiro" | "Clientes & Marketing" | "Comunicação" | "Sistema";
+  group: "Empresa" | "Operação" | "Financeiro" | "Sistema" | "Ajuda";
 };
 
 export const SECTIONS: SettingsSection[] = [
-  { slug: "empresa", title: "Empresa", desc: "Dados, contato, endereço e horário", icon: Building2, group: "Empresa" },
-  { slug: "assinatura", title: "Assinatura", desc: "Plano atual, upgrade e comparativo", icon: Crown, group: "Empresa" },
-  { slug: "usuarios", title: "Usuários e Permissões", desc: "Perfis, acessos e papéis", icon: Users, group: "Empresa" },
-  { slug: "aparencia", title: "Aparência", desc: "Logo, banner e cores da marca", icon: Palette, group: "Empresa" },
+  { slug: "empresa", title: "Empresa", desc: "Dados comerciais, contato, endereço e logo", icon: Building2, group: "Empresa" },
+  { slug: "usuarios", title: "Usuários e Permissões", desc: "Cargos, acessos e controle de perfis", icon: Users, group: "Empresa" },
+  { slug: "aparencia", title: "Aparência", desc: "Tema claro/escuro e paleta de cores", icon: Palette, group: "Empresa" },
+  { slug: "assinatura", title: "Assinatura", desc: "Plano atual e upgrade", icon: Crown, group: "Empresa" },
 
-  { slug: "produtos", title: "Produtos", desc: "Catálogo, unidades e validade", icon: Package, group: "Operação" },
-  { slug: "pedidos", title: "Pedidos", desc: "Tipos de pedido, status e tempo", icon: ShoppingCart, group: "Operação" },
-  { slug: "pdv", title: "PDV", desc: "Pagamento, desconto e atalhos", icon: Calculator, group: "Operação" },
-  { slug: "mesas", title: "Mesas", desc: "Setores, capacidade e QR", icon: Coffee, group: "Operação" },
-  { slug: "delivery", title: "Delivery", desc: "Taxas, áreas e horários", icon: Bike, group: "Operação" },
-  { slug: "estoque", title: "Estoque", desc: "Mínimo, alertas e receita", icon: Boxes, group: "Operação" },
-  { slug: "impressoes", title: "Impressões", desc: "Impressoras e vias", icon: Printer, group: "Operação" },
+  { slug: "pdv", title: "PDV", desc: "Comportamento das vendas e finalização", icon: Calculator, group: "Operação" },
+  { slug: "estoque", title: "Estoque", desc: "Controle, mínimo e regras de venda", icon: Boxes, group: "Operação" },
+  { slug: "impressoes", title: "Impressões", desc: "Comprovantes, cabeçalho e rodapé", icon: Printer, group: "Operação" },
 
-  { slug: "caixa", title: "Caixa", desc: "Sangria, suprimento e fechamento", icon: Wallet, group: "Financeiro" },
-  { slug: "financeiro", title: "Financeiro", desc: "Categorias e formas de pagamento", icon: CreditCard, group: "Financeiro" },
-  { slug: "dashboard", title: "Dashboard", desc: "Indicadores e metas", icon: BarChart3, group: "Financeiro" },
+  { slug: "financeiro", title: "Financeiro", desc: "Moeda, formatação e categorias", icon: CreditCard, group: "Financeiro" },
+  { slug: "pagamentos", title: "Formas de pagamento", desc: "Métodos aceitos no PDV", icon: Wallet, group: "Financeiro" },
 
-  { slug: "clientes", title: "Clientes", desc: "Cadastro e histórico", icon: Users2, group: "Clientes & Marketing" },
-  { slug: "fidelidade", title: "Fidelidade", desc: "Pontos, cashback e cupons", icon: Gift, group: "Clientes & Marketing" },
-  { slug: "marketing", title: "Marketing", desc: "Campanhas e mensagens", icon: Megaphone, group: "Clientes & Marketing" },
+  { slug: "notificacoes", title: "Notificações", desc: "Alertas do sistema e canais", icon: Bell, group: "Sistema" },
+  { slug: "seguranca", title: "Segurança", desc: "Sessões, senhas e auditoria", icon: Lock, group: "Sistema" },
+  { slug: "backup", title: "Dados e Backup", desc: "Exportações e histórico", icon: Database, group: "Sistema" },
+  { slug: "integracoes", title: "Integrações", desc: "Impressoras, WhatsApp e webhooks", icon: Plug, group: "Sistema" },
 
-  { slug: "notificacoes", title: "Notificações", desc: "Alertas e canais", icon: Bell, group: "Comunicação" },
-  { slug: "area-publica", title: "Área Pública", desc: "Cardápio digital", icon: Globe, group: "Comunicação" },
-  { slug: "qrcodes", title: "QR Codes", desc: "Mesas e cardápio", icon: QrCode, group: "Comunicação" },
-
-  { slug: "filiais", title: "Filiais", desc: "Unidades do estabelecimento", icon: Store, group: "Sistema" },
-  { slug: "seguranca", title: "Segurança", desc: "Sessões e bloqueios", icon: Lock, group: "Sistema" },
-  { slug: "auditoria", title: "Auditoria", desc: "Histórico de alterações", icon: ScrollText, group: "Sistema" },
-  { slug: "backup", title: "Backup", desc: "Exportações e restaurações", icon: Database, group: "Sistema" },
-  { slug: "regiao", title: "Região", desc: "Fuso, moeda e idioma", icon: Languages, group: "Sistema" },
-  { slug: "sistema", title: "Sistema", desc: "Versão e informações", icon: Info, group: "Sistema" },
+  { slug: "suporte", title: "Suporte", desc: "Central de ajuda e atendimento", icon: LifeBuoy, group: "Ajuda" },
 ];
 
-const groupOrder: SettingsSection["group"][] = [
-  "Empresa", "Operação", "Financeiro", "Clientes & Marketing", "Comunicação", "Sistema",
-];
+const groupOrder: SettingsSection["group"][] = ["Empresa", "Operação", "Financeiro", "Sistema", "Ajuda"];
 
 export function SettingsSideNav() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -92,9 +76,6 @@ export function ComingSoon({ title, desc }: { title: string; desc: string }) {
       <Sparkles className="mx-auto mb-3 h-8 w-8 text-primary" />
       <h3 className="font-display text-lg font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
-      <p className="mt-4 text-xs text-muted-foreground">
-        Estrutura pronta — em breve as opções detalhadas ficam disponíveis nesta seção.
-      </p>
     </div>
   );
 }
