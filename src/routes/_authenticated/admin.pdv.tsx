@@ -224,7 +224,6 @@ function PDVPage() {
 
   const filtered = useMemo(() => {
     let list = (products.data ?? []) as any[];
-    if (tab === "favoritos") list = list.filter((p) => p.favorito);
     if (tab === "recentes") {
       const map = new Map(list.map((p) => [p.id, p]));
       list = recent.map((id) => map.get(id)).filter(Boolean);
