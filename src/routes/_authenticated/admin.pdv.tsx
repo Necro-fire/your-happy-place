@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { ProductImage } from "@/components/ProductImage";
 import { dialog } from "@/components/ui/app-dialog";
+import { useAppSettings, useActivePaymentMethods, useSettingsSection, methodToDbEnum, type PaymentMethod } from "@/hooks/use-app-settings";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
   validateSearch: (search: Record<string, unknown>) => ({
