@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { maskPhone, maskCEP, maskCPFOrCNPJ } from "@/lib/masks";
-import { Loader2, Search, Upload, Trash2, Copy, ExternalLink } from "lucide-react";
+import { Loader2, Search, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
