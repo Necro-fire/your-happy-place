@@ -372,11 +372,7 @@ function PDVPage() {
     saveHeld(list); setHeld(list);
   }
 
-  async function toggleFavorito(p: any, e: React.MouseEvent) {
-    e.stopPropagation();
-    await supabase.from("products").update({ favorito: !p.favorito }).eq("id", p.id);
-    qc.invalidateQueries({ queryKey: ["admin-products-pdv"] });
-  }
+
 
   function printReceipt(order: { id: string; numero: number }) {
     const w = window.open("", "_blank", "width=380,height=600");
