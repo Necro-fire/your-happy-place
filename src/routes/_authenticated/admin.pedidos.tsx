@@ -77,19 +77,10 @@ function PedidosPage() {
       const patch: any = { status };
       if (status === "entregue" || status === "finalizado") patch.finalizado_em = new Date().toISOString();
       if (status === "cancelado") { patch.cancelado_em = new Date().toISOString(); if (motivo) patch.motivo_cancelamento = motivo; }
-      // Buscar pedido antes de atualizar para saber se precisa estornar no caixa
-      const { data: prev } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
       await supabase.from("orders").update(patch).eq("id", id);
-      if (status === "cancelado" && prev && prev.status !== "cancelado" && (prev.status === "finalizado" || prev.status === "entregue") && Number(prev.total) > 0) {
-        const { data: session } = await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle();
-        if (session) {
-          await supabase.from("cash_movements").insert({
-            session_id: session.id, tipo: "saida", valor: Number(prev.total),
-            descricao: `Estorno venda #${prev.numero}${motivo ? ` — ${motivo}` : ""}`,
-            forma_pagamento: prev.forma_pagamento ?? "dinheiro",
-            order_id: prev.id,
-          });
-        }
+      if (status === "cancelado") {
+        // Remove qualquer entrada do caixa vinculada a esse pedido
+        await supabase.from("cash_movements").delete().eq("order_id", id);
       }
     },
     onSuccess: () => qc.invalidateQueries(),
