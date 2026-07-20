@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { fetchMyRoles, landingRouteFor } from "@/hooks/use-role";
+import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -77,6 +78,26 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     toast.success("Enviamos um email com instruções.");
     setForgotMode(false);
+  }
+
+  async function signInWithGoogle() {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setLoading(false);
+        return toast.error(result.error.message || "Falha ao entrar com Google");
+      }
+      if (result.redirected) return;
+      const roles = await fetchMyRoles();
+      setLoading(false);
+      navigate({ to: landingRouteFor(roles) });
+    } catch (e: any) {
+      setLoading(false);
+      toast.error(e?.message || "Falha ao entrar com Google");
+    }
   }
 
   return (
@@ -184,6 +205,21 @@ function AuthPage() {
                   </Button>
                 </form>
               ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={signInWithGoogle}
+                    disabled={loading}
+                    className="group mb-4 flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-background/70 px-4 text-sm font-semibold text-foreground shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevated disabled:opacity-60"
+                  >
+                    <GoogleIcon className="h-5 w-5" />
+                    Continuar com Google
+                  </button>
+                  <div className="mb-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+                    <span className="h-px flex-1 bg-border/70" />
+                    ou
+                    <span className="h-px flex-1 bg-border/70" />
+                  </div>
                 <Tabs defaultValue="login" className="w-full">
                   <TabsList className="mb-5 grid w-full grid-cols-2 rounded-xl bg-muted/70 p-1">
                     <TabsTrigger value="login" className="rounded-lg data-[state=active]:shadow-soft">
@@ -316,6 +352,7 @@ function AuthPage() {
                     </form>
                   </TabsContent>
                 </Tabs>
+                </>
               )}
             </div>
 
@@ -373,6 +410,17 @@ function Field({
         )}
       </div>
     </div>
+  );
+}
+
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12S6.7 21.6 12 21.6c6.9 0 9.4-4.9 9.4-9.3 0-.6-.06-1.1-.14-1.6H12z"/>
+      <path fill="#4285F4" d="M21.4 12.3c0-.6-.06-1.1-.14-1.6H12v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1v.02c3.3 0 6-1.9 7.6-4.4.9-1.4 1.4-3 1.4-2z"/>
+      <path fill="#FBBC05" d="M5.4 14.1c-.2-.6-.3-1.3-.3-2.1s.1-1.5.3-2.1V7.4H2.7A9.6 9.6 0 0 0 2.4 12c0 1.6.4 3.1 1 4.4l2.7-2.3z"/>
+      <path fill="#34A853" d="M12 21.6c2.6 0 4.7-.9 6.3-2.3l-3-2.3c-.8.6-1.9 1-3.3 1-2.5 0-4.7-1.7-5.5-4l-2.7 2.1c1.6 3.2 4.9 5.5 8.2 5.5z"/>
+    </svg>
   );
 }
 
