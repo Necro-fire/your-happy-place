@@ -23,39 +23,39 @@ const groups: Group[] = [
   {
     id: "vendas", label: "Vendas", icon: ShoppingCart,
     items: [
-      { title: "PDV", url: "/admin/pdv", icon: Calculator },
-      { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList },
-      { title: "Mesas", url: "/admin/mesas", icon: Coffee },
-      { title: "Histórico de vendas", url: "/admin/vendas", icon: BarChart3 },
+      { title: "PDV", url: "/admin/pdv", icon: Calculator, module: "pdv" },
+      { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList, module: "pedidos" },
+      { title: "Mesas", url: "/admin/mesas", icon: Coffee, module: "mesas" },
+      { title: "Histórico de vendas", url: "/admin/vendas", icon: BarChart3, module: "vendas" },
       { title: "Cardápio Público", url: "/", icon: Globe, external: true },
     ],
   },
   {
     id: "financeiro", label: "Financeiro", icon: DollarSign,
     items: [
-      { title: "Caixa", url: "/admin/caixa", icon: Wallet },
+      { title: "Caixa", url: "/admin/caixa", icon: Wallet, module: "caixa" },
     ],
   },
   {
     id: "estoque", label: "Estoque", icon: Boxes,
     items: [
-      { title: "Produtos e Categorias", url: "/admin/catalogo", icon: Package },
-      { title: "Estoque", url: "/admin/estoque", icon: Boxes },
+      { title: "Produtos e Categorias", url: "/admin/catalogo", icon: Package, module: "catalogo" },
+      { title: "Estoque", url: "/admin/estoque", icon: Boxes, module: "estoque" },
     ],
   },
   {
     id: "atendimento", label: "Atendimento", icon: ConciergeBell,
     items: [
-      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat },
-      { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode },
+      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat, module: "kds" },
+      { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode, module: "qrcodes" },
     ],
   },
   {
     id: "gestao", label: "Gestão", icon: Building2,
     items: [
-      { title: "Usuários", url: "/admin/usuarios", icon: Users },
-      { title: "Configurações", url: "/admin/configuracoes", icon: Settings },
-      { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy },
+      { title: "Usuários", url: "/admin/usuarios", icon: Users, module: "usuarios" },
+      { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "configuracoes" },
+      { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy, module: "suporte" },
     ],
   },
 ];
