@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fmtMoney, statusLabel, statusColor } from "@/lib/format";
 import { Coffee, Clock, RefreshCw } from "lucide-react";
+import { useTenant } from "@/lib/tenant-session";
 
 export const Route = createFileRoute("/mesa/$numero/pedidos")({
   head: ({ params }) => ({ meta: [{ title: `Mesa ${params.numero} — Meus pedidos` }] }),
@@ -16,10 +17,13 @@ export const Route = createFileRoute("/mesa/$numero/pedidos")({
 
 function MesaPedidosPage() {
   const { numero } = Route.useParams();
+  const tenant = useTenant();
+  const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
 
   const mesa = useQuery({
-    queryKey: ["mesa-lookup", numero],
-    queryFn: async () => (await supabase.from("restaurant_tables").select("id, numero").eq("numero", Number(numero)).maybeSingle()).data,
+    queryKey: ["mesa-lookup", numero, tenant?.tenant_id],
+    enabled: !!tenant?.tenant_id,
+    queryFn: async () => (await supabase.from("restaurant_tables").select("id, numero").eq("numero", Number(numero)).eq("tenant_id" as any, tenant!.tenant_id).maybeSingle()).data,
   });
 
   const orders = useQuery({
@@ -78,7 +82,7 @@ function MesaPedidosPage() {
         {list.length === 0 ? (
           <Card className="p-10 text-center">
             <p className="text-sm text-muted-foreground">Nenhum pedido nesta mesa ainda.</p>
-            <Button asChild className="mt-4"><Link to="/">Abrir cardápio</Link></Button>
+            <Button asChild className="mt-4"><Link to={menuTo as any}>Abrir cardápio</Link></Button>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -118,7 +122,7 @@ function MesaPedidosPage() {
           </div>
         )}
 
-        <Button asChild variant="outline" className="mt-6 w-full"><Link to="/">Ver cardápio</Link></Button>
+        <Button asChild variant="outline" className="mt-6 w-full"><Link to={menuTo as any}>Ver cardápio</Link></Button>
       </div>
     </PublicLayout>
   );
