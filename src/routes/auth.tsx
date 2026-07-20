@@ -80,6 +80,26 @@ function AuthPage() {
     setForgotMode(false);
   }
 
+  async function signInWithGoogle() {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setLoading(false);
+        return toast.error(result.error.message || "Falha ao entrar com Google");
+      }
+      if (result.redirected) return;
+      const roles = await fetchMyRoles();
+      setLoading(false);
+      navigate({ to: landingRouteFor(roles) });
+    } catch (e: any) {
+      setLoading(false);
+      toast.error(e?.message || "Falha ao entrar com Google");
+    }
+  }
+
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[radial-gradient(1200px_600px_at_-10%_-20%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent),radial-gradient(900px_500px_at_110%_120%,color-mix(in_oklab,var(--primary-glow)_18%,transparent),transparent)]">
       {/* Ambient doodles */}
