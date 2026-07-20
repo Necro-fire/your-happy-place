@@ -50,6 +50,10 @@ function CardapioPage() {
   const menu = useQuery({
     queryKey: ["public-menu", tenantId],
     enabled: !!tenantId,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_menu", { _tenant_id: tenantId! } as any);
       if (error) throw error;
@@ -60,6 +64,7 @@ function CardapioPage() {
       };
     },
   });
+
 
   const categories = { data: menu.data?.categories ?? [], isLoading: menu.isLoading };
   const products = { data: menu.data?.products ?? [], isLoading: menu.isLoading };
