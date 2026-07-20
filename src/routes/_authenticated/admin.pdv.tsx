@@ -389,7 +389,8 @@ function PDVPage() {
   });
 
   return (
-    <div className="grid h-[calc(100vh-7rem)] gap-4 lg:grid-cols-[1fr_400px]">
+    <div className="grid gap-4 lg:h-[calc(100dvh-7rem)] lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+
       {/* ============ ESQUERDA: catálogo ============ */}
       <div className="flex flex-col gap-3 overflow-hidden">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
