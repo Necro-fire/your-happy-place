@@ -63,6 +63,19 @@ function KDSPage() {
     qc.invalidateQueries({ queryKey: ["kds-orders"] });
   }
 
+  async function retrocede(order: any, prev: string, prevLabel: string) {
+    const ok = await dialog.confirm({
+      title: "Retroceder pedido",
+      description: `Tem certeza de que deseja retornar o pedido #${order.numero} para o status "${prevLabel}"?\n\nEssa ação atualizará o pedido para a etapa anterior.`,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+    });
+    if (!ok) return;
+    await supabase.from("orders").update({ status: prev, finalizado_em: null }).eq("id", order.id);
+    toast.success(`Pedido #${order.numero} retornado para ${prevLabel}`);
+    qc.invalidateQueries({ queryKey: ["kds-orders"] });
+  }
+
   return (
     <div className="space-y-4">
       <div>
