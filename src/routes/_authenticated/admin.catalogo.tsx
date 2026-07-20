@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { fmtMoney } from "@/lib/format";
 import { smartFilter } from "@/lib/search";
 import { ProductImage } from "@/components/ProductImage";
+import { ProductImageUploader } from "@/components/ProductImageUploader";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
@@ -217,7 +218,10 @@ function ProductDialog({ value, categories, onClose }: any) {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>URL da imagem (opcional)</Label><Input value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} /></div>
+          <div>
+            <Label>Imagem do produto</Label>
+            <ProductImageUploader value={form.imagem_url || null} onChange={(v) => setForm({ ...form, imagem_url: v ?? "" })} />
+          </div>
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 text-sm">
               <Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} />Ativo
