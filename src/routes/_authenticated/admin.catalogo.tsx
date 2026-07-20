@@ -64,13 +64,78 @@ function ProdutosTab() {
     onSuccess: () => { qc.invalidateQueries(); toast.success("Produto excluído"); },
   });
 
+  const f = useFilters("catalogo", { sort: "az" });
+  const { state, setState, reset, activeChips, presets, savePreset, applyPreset, removePreset } = f;
+
+  const catOptions = useMemo(
+    () => (categories.data ?? []).map((c: any) => ({ value: c.id, label: c.nome })),
+    [categories.data],
+  );
+
+  const filtered = useMemo(() => {
+    let list = smartFilter(products.data ?? [], state.q, [
+      (p: any) => p.nome,
+      (p: any) => p.descricao,
+      (p: any) => p.categories?.nome,
+    ]);
+    if (state.categories.length > 0) list = list.filter((p: any) => state.categories.includes(p.category_id));
+    if (state.valueMin != null) list = list.filter((p: any) => Number(p.preco_promo ?? p.preco) >= state.valueMin!);
+    if (state.valueMax != null) list = list.filter((p: any) => Number(p.preco_promo ?? p.preco) <= state.valueMax!);
+    const ativo = state.extras.ativo as string | undefined;
+    if (ativo === "sim") list = list.filter((p: any) => p.ativo);
+    if (ativo === "nao") list = list.filter((p: any) => !p.ativo);
+    switch (state.sort) {
+      case "za": list = [...list].sort((a, b) => (b.nome ?? "").localeCompare(a.nome ?? "")); break;
+      case "high": list = [...list].sort((a, b) => Number(b.preco_promo ?? b.preco) - Number(a.preco_promo ?? a.preco)); break;
+      case "low": list = [...list].sort((a, b) => Number(a.preco_promo ?? a.preco) - Number(b.preco_promo ?? b.preco)); break;
+      case "az":
+      default: list = [...list].sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? ""));
+    }
+    return list;
+  }, [products.data, state]);
+
   return (
     <>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <FiltersDrawer
+          sections={{
+            search: true,
+            categories: catOptions,
+            valueRange: true,
+            sort: [
+              { value: "az", label: "A-Z" },
+              { value: "za", label: "Z-A" },
+              { value: "high", label: "Maior preço" },
+              { value: "low", label: "Menor preço" },
+            ],
+          }}
+          state={state}
+          setState={setState as any}
+          reset={reset}
+          presets={presets}
+          onSavePreset={savePreset}
+          onApplyPreset={applyPreset}
+          onRemovePreset={removePreset}
+          activeCount={activeChips.length}
+          extras={
+            <div>
+              <Label className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Ativo</Label>
+              <Select value={(state.extras.ativo as string) ?? "todos"} onValueChange={(v) => setState((s) => ({ ...s, extras: { ...s.extras, ativo: v === "todos" ? undefined : v } }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="sim">Ativos</SelectItem>
+                  <SelectItem value="nao">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          }
+        />
         <Button onClick={() => setEdit({})}><Plus className="h-4 w-4" />Novo produto</Button>
       </div>
+      <FilterChips chips={activeChips} onClearAll={reset} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {(products.data ?? []).map((p: any) => (
+        {filtered.map((p: any) => (
           <Card key={p.id} className="flex gap-3 p-3">
             <ProductImage src={p.imagem_url} alt={p.nome} className="h-20 w-20 shrink-0 rounded-lg" />
             <div className="flex-1">
