@@ -880,27 +880,32 @@ function PDVPage() {
 }
 
 /* ============ Grade de produtos reutilizável ============ */
-function ProductGrid({ list, onAdd, onFav, empty }: { list: any[]; onAdd: (p: any) => void; onFav: (p: any, e: React.MouseEvent) => void; empty?: string }) {
+function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => void; empty?: string }) {
   if (list.length === 0) {
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{empty ?? "Nenhum produto encontrado"}</div>;
   }
   return (
     <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
-      {list.map((p) => (
-        <button key={p.id} onClick={() => onAdd(p)} className="group relative rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20">
-          <button onClick={(e) => onFav(p, e)} className="absolute right-2 top-2 opacity-70 hover:opacity-100" title="Favorito">
-            <Star className={`h-4 w-4 ${p.favorito ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+      {list.map((p) => {
+        const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
+        return (
+          <button
+            key={p.id}
+            onClick={() => onAdd(p)}
+            disabled={indisponivel}
+            className="group relative flex flex-col rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <div className="line-clamp-2 text-sm font-medium">{p.nome}</div>
+            {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
+            <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+            {p.controla_estoque && (
+              <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
+                {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+              </div>
+            )}
           </button>
-          <div className="line-clamp-2 pr-6 text-sm font-medium">{p.nome}</div>
-          {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-          <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-          {p.controla_estoque && (
-            <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-              estoque: {p.estoque_atual} {p.unidade}
-            </div>
-          )}
-        </button>
-      ))}
+        );
+      })}
     </div>
   );
 }
