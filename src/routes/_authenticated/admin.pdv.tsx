@@ -775,7 +775,6 @@ function PDVPage() {
               key: newLineKey(p.id, undefined, comps, observacoes), product_id: p.id, nome: p.nome,
               preco, base_preco: base, quantidade: qty, desconto: 0, complementos: comps, observacoes,
             }]);
-            }]);
             setComplementModal(null);
           }}
         />
