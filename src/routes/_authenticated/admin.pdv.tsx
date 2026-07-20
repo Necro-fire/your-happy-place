@@ -20,6 +20,7 @@ import {
   MapPin, User, Phone, StickyNote as NoteIcon, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
   validateSearch: (search: Record<string, unknown>) => ({

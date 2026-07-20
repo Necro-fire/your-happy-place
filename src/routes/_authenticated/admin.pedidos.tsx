@@ -12,6 +12,7 @@ import {
 } from "@/lib/format";
 import { Printer, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
 import { useFilters } from "@/components/filters/useFilters";
 

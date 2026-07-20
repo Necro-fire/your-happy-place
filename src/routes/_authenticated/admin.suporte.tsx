@@ -17,6 +17,7 @@ import {
   Plus, Edit, Trash2, Copy, ExternalLink, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/suporte")({
