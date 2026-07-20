@@ -100,7 +100,7 @@ function PDVPage() {
   const [cepLoading, setCepLoading] = useState(false);
 
   // pagamento misto + troco
-  const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ forma: "dinheiro", valor: 0 }]);
+  const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ methodId: "dinheiro", valor: 0 }]);
   const [recebido, setRecebido] = useState(0); // para calcular troco quando 1ª forma é dinheiro
   const [pessoas, setPessoas] = useState(1);
 
