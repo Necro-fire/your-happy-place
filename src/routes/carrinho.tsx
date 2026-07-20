@@ -4,6 +4,7 @@ import { PublicLayout } from "@/components/public/PublicLayout";
 import { ProductImage } from "@/components/ProductImage";
 import { useCart } from "@/lib/cart";
 import { useMesaSession } from "@/lib/mesa-session";
+import { useTenant } from "@/lib/tenant-session";
 import { fmtMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, Coffee } from "lucide-react";
@@ -18,35 +19,41 @@ export const Route = createFileRoute("/carrinho")({
 function CartPage() {
   const { items, setQty, remove, subtotal, clear } = useCart();
   const { mesa } = useMesaSession();
+  const tenant = useTenant();
   const navigate = useNavigate();
   const [sending, setSending] = useState(false);
+  const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
 
   async function sendToMesa() {
     if (!mesa || items.length === 0) return;
+    if (!tenant?.tenant_id) { toast.error("Sessão da loja expirou. Abra o cardápio novamente."); return; }
     setSending(true);
     // Procura pedido aberto da mesa
     const { data: existing } = await supabase
       .from("orders").select("id, subtotal")
       .eq("mesa_id", mesa.mesa_id)
+      .eq("tenant_id" as any, tenant.tenant_id)
       .not("status", "in", "(finalizado,cancelado)")
       .maybeSingle();
 
     let orderId = existing?.id as string | undefined;
     if (!orderId) {
       const { data: created, error } = await supabase.from("orders").insert({
+        tenant_id: tenant.tenant_id,
         cliente_nome: `Mesa ${mesa.numero}`, origem: "mesa", tipo: "local",
         status: "novo", mesa_id: mesa.mesa_id, subtotal, total: subtotal,
-      }).select("id").single();
+      } as any).select("id").single();
       if (error || !created) { setSending(false); toast.error("Erro ao enviar pedido"); return; }
       orderId = created.id;
       await supabase.from("restaurant_tables").update({ status: "ocupada" }).eq("id", mesa.mesa_id);
     }
 
     const payload = items.map((i) => ({
+      tenant_id: tenant.tenant_id,
       order_id: orderId!, product_id: i.product_id, produto_nome: i.nome,
       quantidade: i.quantidade, preco_unitario: i.preco, subtotal: i.preco * i.quantidade,
     }));
-    await supabase.from("order_items").insert(payload);
+    await supabase.from("order_items").insert(payload as any);
 
     // Recalcula total
     const { data: allItems } = await supabase.from("order_items").select("subtotal").eq("order_id", orderId!);
@@ -56,7 +63,7 @@ function CartPage() {
     clear();
     setSending(false);
     toast.success("Pedido enviado para a cozinha!");
-    navigate({ to: "/" });
+    navigate({ to: menuTo });
   }
 
   return (
