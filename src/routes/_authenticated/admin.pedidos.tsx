@@ -193,7 +193,7 @@ function PedidosPage() {
         </div>
       </div>
 
-      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
+      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
     </div>
   );
 }
