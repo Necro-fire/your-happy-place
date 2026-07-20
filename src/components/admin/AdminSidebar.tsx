@@ -110,7 +110,7 @@ export function AdminSidebar() {
         )}
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="p-0 px-2 pt-1">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
