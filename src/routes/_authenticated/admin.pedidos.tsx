@@ -236,7 +236,7 @@ function PedidosPage() {
       </div>
 
 
-      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
+      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} onRetrocede={(o: any) => { const p = prevStatus(o); if (p) confirmarRetroceder(o, p); }} />}
     </div>
   );
 }
