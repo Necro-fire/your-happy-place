@@ -187,6 +187,7 @@ function PedidosPage() {
                 <div className="flex min-h-[200px] flex-col gap-2 rounded-2xl border border-dashed border-border/50 bg-muted/20 p-2">
                   {items.map((o) => {
                     const next = nextStatus(col.key, o);
+                    const prev = prevStatus(o);
                     return (
                       <div
                         key={o.id}
