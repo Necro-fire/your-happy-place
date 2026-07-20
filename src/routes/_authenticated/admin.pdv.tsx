@@ -303,8 +303,7 @@ function PDVPage() {
   }
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade - i.desconto, 0);
-  const total = Math.max(0, subtotal - descOrder + (atendimento === "delivery" ? Number(taxa) : 0));
-  const perPessoa = pessoas > 1 ? total / pessoas : total;
+  const total = Math.max(0, subtotal + (atendimento === "delivery" ? Number(taxa) : 0));
 
   // Sync pagamentos com total
   useEffect(() => {
@@ -351,41 +350,13 @@ function PDVPage() {
     setCheckout(true);
   }
 
-  async function cancelSale() {
-    if (cart.length === 0) return;
-    if (!(await dialog.confirm({ title: "Cancelar venda?", description: "A venda em andamento será descartada.", destructive: true, confirmText: "Cancelar venda", cancelText: "Voltar" }))) return;
-    resetSale();
-    toast.info("Venda cancelada");
-  }
-
   function resetSale() {
-    setCart([]); setDescOrder(0); setClienteNome(""); setClienteTel(""); setObs(""); setTaxa(0); setHorario("");
-    setMesaId(""); setAtendimento(null); setCheckout(false); setPessoas(1); setRecebido(0);
+    setCart([]); setClienteNome(""); setClienteTel(""); setObs(""); setTaxa(0); setHorario("");
+    setMesaId(""); setAtendimento(null); setCheckout(false); setRecebido(0);
     setEnd({ cep: "", rua: "", numero: "", bairro: "", cidade: "", estado: "", complemento: "", referencia: "" });
     setPagamentos([{ methodId: "dinheiro", valor: 0 }]);
     setExistingOrderId(null); setExistingOrderNumero(null);
     if (search.mesa || search.order) navigate({ to: "/admin/pdv", search: {} as any, replace: true });
-  }
-
-  function suspendSale() {
-    if (cart.length === 0) { toast.error("Sem itens"); return; }
-    const label = holdName.trim() || `Venda ${new Date().toLocaleTimeString("pt-BR")}`;
-    const list = loadHeld();
-    list.push({ id: crypto.randomUUID(), label, cart, atendimento, savedAt: new Date().toISOString() });
-    saveHeld(list); setHeld(list); setHoldName("");
-    toast.success(`Venda suspensa: ${label}`);
-    resetSale();
-  }
-
-  function resumeSale(h: Held) {
-    setCart(h.cart); setAtendimento(h.atendimento);
-    const list = loadHeld().filter((x) => x.id !== h.id);
-    saveHeld(list); setHeld(list); setHeldOpen(false);
-  }
-
-  function removeHeld(id: string) {
-    const list = loadHeld().filter((x) => x.id !== id);
-    saveHeld(list); setHeld(list);
   }
 
 
