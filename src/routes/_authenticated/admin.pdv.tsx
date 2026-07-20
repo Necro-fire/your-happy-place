@@ -369,9 +369,9 @@ function PDVPage() {
     setCheckout(true);
   }
 
-  function cancelSale() {
+  async function cancelSale() {
     if (cart.length === 0) return;
-    if (!confirm("Cancelar a venda em andamento?")) return;
+    if (!(await dialog.confirm({ title: "Cancelar venda?", description: "A venda em andamento será descartada.", destructive: true, confirmText: "Cancelar venda", cancelText: "Voltar" }))) return;
     resetSale();
     toast.info("Venda cancelada");
   }
