@@ -129,14 +129,21 @@ function KDSPage() {
                           ⚠ {o.observacoes}
                         </p>
                       )}
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className="mt-3 flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">{fmtMoney(o.total)}</span>
-                        {col.next && (
-                          <Button size="sm" onClick={() => advance(o, col.next)}>
-                            {col.next === "finalizado" ? "Entregar" : col.next === "pronto" ? "Marcar pronto" : "Iniciar"}
-                            <ArrowRight className="h-3 w-3" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {col.prev && (
+                            <Button size="sm" variant="outline" title={`Retroceder para ${col.prevLabel}`} onClick={() => retrocede(o, col.prev!, col.prevLabel!)}>
+                              <Undo2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {col.next && (
+                            <Button size="sm" onClick={() => advance(o, col.next)}>
+                              {col.next === "finalizado" ? "Entregar" : col.next === "pronto" ? "Marcar pronto" : "Iniciar"}
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </article>
                   );
