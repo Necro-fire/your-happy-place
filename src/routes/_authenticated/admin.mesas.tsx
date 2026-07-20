@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,443 +6,484 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { fmtMoney, fmtDate } from "@/lib/format";
-import { Coffee, Plus, Trash2, ArrowRightLeft, QrCode, CalendarClock, Link2, History, UserCog, Map as MapIcon, LayoutGrid } from "lucide-react";
+import { Coffee, Plus, Trash2, Pencil, ShoppingCart, PlayCircle, ArrowRight, CircleDot } from "lucide-react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
 
 export const Route = createFileRoute("/_authenticated/admin/mesas")({
   component: MesasPage,
 });
 
+type MesaStatus = "livre" | "em_atendimento" | "fechamento_pendente";
+
+const STATUS_META: Record<MesaStatus, { label: string; dot: string; card: string; badge: string }> = {
+  livre: {
+    label: "Livre",
+    dot: "bg-emerald-500",
+    card: "border-emerald-500/40 bg-emerald-500/5",
+    badge: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  },
+  em_atendimento: {
+    label: "Em atendimento",
+    dot: "bg-amber-500",
+    card: "border-amber-500/50 bg-amber-500/10",
+    badge: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  },
+  fechamento_pendente: {
+    label: "Fechamento pendente",
+    dot: "bg-rose-500",
+    card: "border-rose-500/50 bg-rose-500/10",
+    badge: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+  },
+};
+
 function tempoOcupacao(desde?: string | null) {
   if (!desde) return null;
   const ms = Date.now() - new Date(desde).getTime();
   const min = Math.floor(ms / 60000);
-  if (min < 60) return `${min}min`;
-  const h = Math.floor(min / 60); const r = min % 60;
+  if (min < 1) return "há instantes";
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const r = min % 60;
   return `${h}h${r.toString().padStart(2, "0")}`;
 }
 
-function statusInfo(mesa: any, ocupada: boolean) {
-  if (mesa.status === "reservada") return { label: "Reservada", cls: "border-warning bg-warning/10 text-warning-foreground" };
-  if (mesa.mesa_pai_id) return { label: "Unida", cls: "border-chart-4 bg-chart-4/10 text-chart-4" };
-  if (ocupada) return { label: "Ocupada", cls: "border-primary bg-primary/10 text-primary" };
-  return { label: "Livre", cls: "border-success/40 bg-success/5 text-success" };
+function computeStatus(order: any | undefined): MesaStatus {
+  if (!order) return "livre";
+  if (order.status === "pronto") return "fechamento_pendente";
+  return "em_atendimento";
 }
 
 function MesasPage() {
   const qc = useQueryClient();
-  const [selected, setSelected] = useState<any | null>(null);
-  const [qrMesa, setQrMesa] = useState<any | null>(null);
-  const [reserva, setReserva] = useState<any | null>(null);
-  const [view, setView] = useState<"grid" | "mapa">("grid");
   const [, setTick] = useState(0);
+  const [selected, setSelected] = useState<any | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => { const t = setInterval(() => setTick((x) => x + 1), 60000); return () => clearInterval(t); }, []);
+  useEffect(() => {
+    const t = setInterval(() => setTick((x) => x + 1), 30_000);
+    return () => clearInterval(t);
+  }, []);
 
   const tables = useQuery({
     queryKey: ["tables"],
-    queryFn: async () => (await supabase.from("restaurant_tables").select("*").order("numero")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("restaurant_tables").select("*").order("numero")).data ?? [],
   });
 
   const openOrders = useQuery({
-    queryKey: ["mesa-orders"],
+    queryKey: ["mesa-open-orders"],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*, order_items(*)")
-        .eq("origem", "mesa").not("status", "in", "(finalizado,cancelado)");
+      const { data } = await supabase
+        .from("orders")
+        .select("id, numero, mesa_id, status, total, subtotal, created_at, garcom_id, cliente_nome, observacoes, order_items(id, produto_nome, quantidade, preco_unitario, subtotal, observacoes, complementos)")
+        .eq("origem", "mesa")
+        .not("status", "in", "(finalizado,cancelado)")
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
 
   useEffect(() => {
-    const ch = supabase.channel("mesas")
-      .on("postgres_changes", { event: "*", schema: "public", table: "restaurant_tables" }, () => qc.invalidateQueries({ queryKey: ["tables"] }))
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => qc.invalidateQueries({ queryKey: ["mesa-orders"] }))
+    const ch = supabase
+      .channel("mesas-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "restaurant_tables" }, () =>
+        qc.invalidateQueries({ queryKey: ["tables"] }),
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () =>
+        qc.invalidateQueries({ queryKey: ["mesa-open-orders"] }),
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "order_items" }, () =>
+        qc.invalidateQueries({ queryKey: ["mesa-open-orders"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [qc]);
-
-  const addTable = useMutation({
-    mutationFn: async () => {
-      const max = Math.max(0, ...(tables.data ?? []).map((t) => t.numero));
-      await supabase.from("restaurant_tables").insert({ numero: max + 1, capacidade: 4 });
-    },
-    onSuccess: () => qc.invalidateQueries(),
-  });
 
   const orderByMesa = useMemo(() => {
     const m: Record<string, any> = {};
-    (openOrders.data ?? []).forEach((o) => { if (o.mesa_id) m[o.mesa_id] = o; });
+    (openOrders.data ?? []).forEach((o) => {
+      if (o.mesa_id && !m[o.mesa_id]) m[o.mesa_id] = o;
+    });
     return m;
   }, [openOrders.data]);
 
+  const rows = useMemo(
+    () =>
+      (tables.data ?? []).map((m) => {
+        const order = orderByMesa[m.id];
+        const status = computeStatus(order);
+        return { mesa: m, order, status };
+      }),
+    [tables.data, orderByMesa],
+  );
+
+  const counts = useMemo(() => {
+    const total = rows.length;
+    let livre = 0, em = 0, fech = 0;
+    for (const r of rows) {
+      if (r.status === "livre") livre++;
+      else if (r.status === "em_atendimento") em++;
+      else fech++;
+    }
+    return { total, livre, em, fech };
+  }, [rows]);
+
+  const removeTable = useMutation({
+    mutationFn: async (id: string) => {
+      const has = (openOrders.data ?? []).some((o) => o.mesa_id === id);
+      if (has) throw new Error("Não é possível excluir uma mesa com pedido aberto.");
+      const { error } = await supabase.from("restaurant_tables").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Mesa excluída");
+      qc.invalidateQueries({ queryKey: ["tables"] });
+      setSelected(null);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold">Mesas</h1>
-          <p className="text-sm text-muted-foreground">{(tables.data ?? []).length} mesa(s) — atualização em tempo real</p>
+          <p className="text-sm text-muted-foreground">
+            Status das mesas em tempo real — integrado ao PDV.
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-md border border-border bg-card p-0.5">
-            <button onClick={() => setView("grid")} className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs ${view === "grid" ? "bg-primary text-primary-foreground" : ""}`}><LayoutGrid className="h-3.5 w-3.5" /> Grade</button>
-            <button onClick={() => setView("mapa")} className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs ${view === "mapa" ? "bg-primary text-primary-foreground" : ""}`}><MapIcon className="h-3.5 w-3.5" /> Mapa</button>
-          </div>
-          <Button onClick={() => addTable.mutate()}><Plus className="h-4 w-4" />Adicionar mesa</Button>
-        </div>
+        <Button onClick={() => setCreating(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar mesa
+        </Button>
       </div>
 
-      {view === "grid" ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {(tables.data ?? []).map((m) => {
-            const order = orderByMesa[m.id];
-            const ocupada = m.status === "ocupada" || !!order;
-            const info = statusInfo(m, ocupada);
-            const tempo = tempoOcupacao(m.ocupada_em ?? order?.created_at);
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <StatCard label="Total de mesas" value={counts.total} dot="bg-primary" />
+        <StatCard label="Livres" value={counts.livre} dot="bg-emerald-500" />
+        <StatCard label="Em atendimento" value={counts.em} dot="bg-amber-500" />
+        <StatCard label="Aguardando fechamento" value={counts.fech} dot="bg-rose-500" />
+      </div>
+
+      {rows.length === 0 ? (
+        <Card className="p-10 text-center text-sm text-muted-foreground">
+          Nenhuma mesa cadastrada. Clique em <strong>Adicionar mesa</strong> para começar.
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {rows.map(({ mesa, order, status }) => {
+            const meta = STATUS_META[status];
+            const tempo = tempoOcupacao(order?.created_at);
             return (
-              <div key={m.id} className={`relative rounded-xl border-2 p-4 text-left transition ${info.cls}`}>
-                <div className="absolute right-2 top-2 flex gap-1">
-                  <button onClick={(e) => { e.stopPropagation(); setReserva(m); }} title="Reservar" className="rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground"><CalendarClock className="h-4 w-4" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); setQrMesa(m); }} title="QR Code" className="rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground"><QrCode className="h-4 w-4" /></button>
+              <button
+                key={mesa.id}
+                type="button"
+                onClick={() => setSelected({ mesa, order, status })}
+                className={`group flex flex-col items-start gap-1.5 rounded-xl border-2 p-4 text-left transition hover:shadow-md ${meta.card}`}
+              >
+                <div className="flex w-full items-start justify-between">
+                  <Coffee className="h-5 w-5 opacity-70" />
+                  <span className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${meta.dot}`} />
                 </div>
-                <button type="button" onClick={() => setSelected({ mesa: m, order })} className="block w-full text-left">
-                  <Coffee className="mb-2 h-6 w-6" />
-                  <div className="font-display text-2xl font-bold">Mesa {m.numero}</div>
-                  <div className="text-xs text-muted-foreground">{m.capacidade} lugares</div>
-                  <div className="mt-1 text-xs font-medium">{info.label}</div>
-                  {tempo && ocupada && <div className="mt-0.5 text-xs opacity-70">⏱ {tempo}</div>}
-                  {m.reserva_nome && m.status === "reservada" && <div className="mt-0.5 truncate text-xs">👤 {m.reserva_nome}</div>}
-                  {order && <div className="mt-1 text-sm font-semibold">{fmtMoney(order.total)}</div>}
-                </button>
-              </div>
+                <div className="font-display text-2xl font-bold leading-none">
+                  Mesa {mesa.numero}
+                </div>
+                <div className="text-xs font-medium">{meta.label}</div>
+                {order && (
+                  <>
+                    <div className="text-xs text-muted-foreground">Pedido #{order.numero}</div>
+                    <div className="text-sm font-semibold">{fmtMoney(order.total)}</div>
+                    {tempo && <div className="text-[11px] text-muted-foreground">⏱ {tempo}</div>}
+                  </>
+                )}
+              </button>
             );
           })}
         </div>
-      ) : (
-        <MapaView tables={tables.data ?? []} orderByMesa={orderByMesa} onOpen={(m: any) => setSelected({ mesa: m, order: orderByMesa[m.id] })} onQr={setQrMesa} onReserva={setReserva} />
       )}
 
-      {qrMesa && <QrDialog mesa={qrMesa} onClose={() => setQrMesa(null)} />}
-      {reserva && <ReservaDialog mesa={reserva} onClose={() => { setReserva(null); qc.invalidateQueries(); }} />}
-      {selected && <MesaDialog mesa={selected.mesa} order={selected.order} tables={tables.data ?? []} onClose={() => { setSelected(null); qc.invalidateQueries(); }} />}
+      {creating && (
+        <MesaFormDialog
+          onClose={() => setCreating(false)}
+          nextNumero={Math.max(0, ...rows.map((r) => r.mesa.numero)) + 1}
+        />
+      )}
+      {editing && <MesaFormDialog mesa={editing} onClose={() => setEditing(null)} />}
+      {selected && (
+        <MesaDetailDialog
+          data={selected}
+          onClose={() => setSelected(null)}
+          onEdit={() => {
+            setEditing(selected.mesa);
+            setSelected(null);
+          }}
+          onDelete={() => removeTable.mutate(selected.mesa.id)}
+        />
+      )}
     </div>
   );
 }
 
-function MapaView({ tables, orderByMesa, onOpen, onQr, onReserva }: any) {
-  const qc = useQueryClient();
-  async function moveTable(id: string, x: number, y: number) {
-    await supabase.from("restaurant_tables").update({ pos_x: x, pos_y: y }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["tables"] });
-  }
-  function onDragEnd(e: React.DragEvent, id: string) {
-    const rect = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect();
-    const x = Math.max(0, Math.round(e.clientX - rect.left - 50));
-    const y = Math.max(0, Math.round(e.clientY - rect.top - 50));
-    moveTable(id, x, y);
-  }
+function StatCard({ label, value, dot }: { label: string; value: number; dot: string }) {
   return (
-    <div className="relative min-h-[500px] w-full overflow-auto rounded-lg border-2 border-dashed border-border bg-muted/20 p-4">
-      <p className="mb-2 text-xs text-muted-foreground">Arraste as mesas para posicionar no mapa. Clique para abrir a comanda.</p>
-      <div className="relative min-h-[500px] w-full">
-        {tables.map((m: any, idx: number) => {
-          const order = orderByMesa[m.id];
-          const ocupada = m.status === "ocupada" || !!order;
-          const info = statusInfo(m, ocupada);
-          const px = m.pos_x || ((idx % 6) * 110);
-          const py = m.pos_y || (Math.floor(idx / 6) * 110);
-          return (
-            <div
-              key={m.id}
-              draggable
-              onDragEnd={(e) => onDragEnd(e, m.id)}
-              className={`absolute flex h-24 w-24 cursor-move flex-col items-center justify-center rounded-lg border-2 text-center shadow ${info.cls}`}
-              style={{ left: px, top: py }}
-            >
-              <div className="absolute -right-1 -top-1 flex gap-0.5">
-                <button onClick={(e) => { e.stopPropagation(); onReserva(m); }} className="rounded bg-background p-0.5 shadow"><CalendarClock className="h-3 w-3" /></button>
-                <button onClick={(e) => { e.stopPropagation(); onQr(m); }} className="rounded bg-background p-0.5 shadow"><QrCode className="h-3 w-3" /></button>
-              </div>
-              <button onClick={() => onOpen(m)} className="flex h-full w-full flex-col items-center justify-center">
-                <div className="font-display text-lg font-bold">M{m.numero}</div>
-                <div className="text-[10px]">{info.label}</div>
-                {order && <div className="text-[10px] font-semibold">{fmtMoney(order.total)}</div>}
-              </button>
-            </div>
-          );
-        })}
+    <Card className="p-3">
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex h-2 w-2 rounded-full ${dot}`} />
+        <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
       </div>
-    </div>
+      <div className="mt-1 font-display text-2xl font-bold">{value}</div>
+    </Card>
   );
 }
 
-function QrDialog({ mesa, onClose }: any) {
-  const url = typeof window !== "undefined" ? `${window.location.origin}/mesa/${mesa.numero}` : "";
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>QR Code — Mesa {mesa.numero}</DialogTitle></DialogHeader>
-        <div className="flex flex-col items-center gap-3">
-          <div className="rounded-lg bg-white p-4"><QRCodeSVG value={url} size={220} /></div>
-          <p className="text-center text-xs text-muted-foreground break-all">{url}</p>
-          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(url); toast.success("Link copiado"); }}>Copiar link</Button>
-          <Button variant="outline" size="sm" onClick={() => window.print()}>Imprimir</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+function MesaFormDialog({
+  mesa,
+  nextNumero,
+  onClose,
+}: {
+  mesa?: any;
+  nextNumero?: number;
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const [numero, setNumero] = useState<string>(String(mesa?.numero ?? nextNumero ?? 1));
+  const [observacoes, setObservacoes] = useState<string>(mesa?.observacoes ?? "");
+  const [capacidade, setCapacidade] = useState<string>(String(mesa?.capacidade ?? 4));
 
-function ReservaDialog({ mesa, onClose }: any) {
-  const [nome, setNome] = useState(mesa.reserva_nome ?? "");
-  const [tel, setTel] = useState(mesa.reserva_telefone ?? "");
-  const [hora, setHora] = useState(mesa.reserva_horario ? new Date(mesa.reserva_horario).toISOString().slice(0, 16) : "");
-  async function salvar() {
-    if (!nome || !hora) { toast.error("Nome e horário obrigatórios"); return; }
-    await supabase.from("restaurant_tables").update({ status: "reservada", reserva_nome: nome, reserva_telefone: tel || null, reserva_horario: new Date(hora).toISOString() }).eq("id", mesa.id);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "reserva_criada", details: { nome, telefone: tel, horario: hora } });
-    toast.success("Reserva criada"); onClose();
-  }
-  async function cancelar() {
-    await supabase.from("restaurant_tables").update({ status: "livre", reserva_nome: null, reserva_telefone: null, reserva_horario: null }).eq("id", mesa.id);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "reserva_cancelada", details: {} });
-    toast.success("Reserva cancelada"); onClose();
-  }
+  const save = useMutation({
+    mutationFn: async () => {
+      const num = Number(numero);
+      if (!num || num < 1) throw new Error("Informe um número válido.");
+      const payload: any = {
+        numero: num,
+        capacidade: Math.max(1, Number(capacidade) || 1),
+        observacoes: observacoes || null,
+      };
+      if (mesa) {
+        const { error } = await supabase.from("restaurant_tables").update(payload).eq("id", mesa.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("restaurant_tables").insert({ ...payload, status: "livre" });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(mesa ? "Mesa atualizada" : "Mesa adicionada");
+      qc.invalidateQueries({ queryKey: ["tables"] });
+      onClose();
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>Reservar Mesa {mesa.numero}</DialogTitle></DialogHeader>
-        <div className="space-y-2">
-          <div><Label>Nome *</Label><Input value={nome} onChange={(e) => setNome(e.target.value)} /></div>
-          <div><Label>Telefone</Label><Input value={tel} onChange={(e) => setTel(e.target.value)} /></div>
-          <div><Label>Horário *</Label><Input type="datetime-local" value={hora} onChange={(e) => setHora(e.target.value)} /></div>
-          <div className="flex gap-2 pt-2">
-            {mesa.status === "reservada" && <Button variant="outline" size="sm" onClick={cancelar}>Cancelar reserva</Button>}
-            <div className="flex-1" />
-            <Button size="sm" onClick={salvar}>Salvar</Button>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{mesa ? `Editar mesa ${mesa.numero}` : "Nova mesa"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Número da mesa *</Label>
+            <Input type="number" min={1} value={numero} onChange={(e) => setNumero(e.target.value)} />
+          </div>
+          <div>
+            <Label>Capacidade (lugares)</Label>
+            <Input type="number" min={1} value={capacidade} onChange={(e) => setCapacidade(e.target.value)} />
+          </div>
+          <div>
+            <Label>Observações</Label>
+            <Textarea
+              rows={2}
+              value={observacoes}
+              onChange={(e) => setObservacoes(e.target.value)}
+              placeholder="Ex.: mesa da varanda, próxima da janela..."
+            />
           </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            {mesa ? "Salvar alterações" : "Adicionar mesa"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function MesaDialog({ mesa, order, tables, onClose }: any) {
-  const qc = useQueryClient();
-  const [tab, setTab] = useState<string>(order ? "comanda" : "add");
-  const [transferTo, setTransferTo] = useState<string>("");
-  const [joinTo, setJoinTo] = useState<string>("");
-  const [garcom, setGarcom] = useState<string>(mesa.garcom_id ?? "");
-  const products = useQuery({ queryKey: ["admin-products-pdv"], queryFn: async () => (await supabase.from("products").select("*").eq("ativo", true).eq("disponivel", true).order("nome")).data ?? [] });
-  const staff = useQuery({ queryKey: ["staff-list"], queryFn: async () => {
-    const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["garcom", "admin", "operador", "proprietario", "gerente"]);
-    if (!roles?.length) return [];
-    const ids = [...new Set(roles.map((r) => r.user_id))];
-    const { data: profs } = await supabase.from("profiles").select("id, nome, email").in("id", ids);
-    return profs ?? [];
-  }});
-  const history = useQuery({ queryKey: ["mesa-history", mesa.id], queryFn: async () => (await supabase.from("table_history").select("*").eq("mesa_id", mesa.id).order("created_at", { ascending: false }).limit(30)).data ?? [] });
+function MesaDetailDialog({
+  data,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  data: { mesa: any; order: any | undefined; status: MesaStatus };
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { mesa, order, status } = data;
+  const navigate = useNavigate();
+  const meta = STATUS_META[status];
+  const tempo = tempoOcupacao(order?.created_at);
 
-  async function addItem(p: any) {
-    let currentOrder = order;
-    if (!currentOrder) {
-      const { data } = await supabase.from("orders").insert({
-        cliente_nome: `Mesa ${mesa.numero}`, origem: "mesa", tipo: "local", status: "em_preparo",
-        mesa_id: mesa.id, subtotal: 0, total: 0, garcom_id: garcom || null,
-      }).select().single();
-      currentOrder = { ...data, order_items: [] };
-      await supabase.from("restaurant_tables").update({ status: "ocupada", ocupada_em: new Date().toISOString() }).eq("id", mesa.id);
-      await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "aberta", details: { garcom_id: garcom || null } });
-    }
-    const preco = Number(p.preco_promo ?? p.preco);
-    await supabase.from("order_items").insert({
-      order_id: currentOrder.id, product_id: p.id, produto_nome: p.nome,
-      quantidade: 1, preco_unitario: preco, subtotal: preco,
-    });
-    await recalcTotal(currentOrder.id);
-    qc.invalidateQueries();
-    toast.success("Adicionado");
+  const responsavel = useQuery({
+    queryKey: ["mesa-garcom", order?.garcom_id],
+    enabled: !!order?.garcom_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("nome, email")
+        .eq("id", order.garcom_id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  function novoPedido() {
+    navigate({ to: "/admin/pdv", search: { mesa: mesa.id } as any });
   }
 
-  async function recalcTotal(orderId: string) {
-    const { data: items } = await supabase.from("order_items").select("subtotal").eq("order_id", orderId);
-    const subtotal = (items ?? []).reduce((s, i) => s + Number(i.subtotal), 0);
-    await supabase.from("orders").update({ subtotal, total: subtotal }).eq("id", orderId);
-  }
-
-  async function removeItem(itemId: string) {
-    await supabase.from("order_items").delete().eq("id", itemId);
-    if (order) await recalcTotal(order.id);
-    qc.invalidateQueries();
-  }
-
-  async function closeBill(forma: string) {
+  function continuarPedido() {
     if (!order) return;
-    await supabase.from("orders").update({ status: "finalizado", forma_pagamento: forma as any, finalizado_em: new Date().toISOString() }).eq("id", order.id);
-    await supabase.from("restaurant_tables").update({ status: "livre", ocupada_em: null, garcom_id: null }).eq("id", mesa.id);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "fechada", details: { forma, total: order.total } });
-    const { data: session } = await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle();
-    if (session) {
-      await supabase.from("cash_movements").insert({ session_id: session.id, tipo: "venda", valor: order.total, descricao: `Mesa ${mesa.numero} #${order.numero}`, forma_pagamento: forma as any, order_id: order.id });
-    }
-    toast.success("Conta fechada"); onClose();
+    navigate({ to: "/admin/pdv", search: { mesa: mesa.id, order: order.id } as any });
   }
 
-  async function transfer() {
-    if (!order || !transferTo) return;
-    await supabase.from("orders").update({ mesa_id: transferTo }).eq("id", order.id);
-    await supabase.from("restaurant_tables").update({ status: "ocupada", ocupada_em: new Date().toISOString() }).eq("id", transferTo);
-    const { data: rest } = await supabase.from("orders").select("id").eq("mesa_id", mesa.id).not("status", "in", "(finalizado,cancelado)");
-    if ((rest ?? []).length === 0) await supabase.from("restaurant_tables").update({ status: "livre", ocupada_em: null }).eq("id", mesa.id);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "transferida", details: { para: transferTo } });
-    toast.success("Mesa transferida"); onClose();
-  }
-
-  async function juntar() {
-    if (!joinTo) return;
-    await supabase.from("restaurant_tables").update({ mesa_pai_id: mesa.id }).eq("id", joinTo);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "juntada", details: { com: joinTo } });
-    toast.success("Mesas unidas"); onClose();
-  }
-
-  async function desunir() {
-    await supabase.from("restaurant_tables").update({ mesa_pai_id: null }).eq("mesa_pai_id", mesa.id);
-    toast.success("Mesas separadas"); onClose();
-  }
-
-  async function trocarGarcom(userId: string) {
-    setGarcom(userId);
-    await supabase.from("restaurant_tables").update({ garcom_id: userId || null }).eq("id", mesa.id);
-    if (order) await supabase.from("orders").update({ garcom_id: userId || null }).eq("id", order.id);
-    await supabase.from("table_history").insert({ mesa_id: mesa.id, action: "garcom_trocado", details: { garcom_id: userId } });
-    toast.success("Garçom atualizado");
-  }
-
-  const tempo = tempoOcupacao(mesa.ocupada_em ?? order?.created_at);
+  const items = (order?.order_items ?? []) as any[];
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex flex-wrap items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
+            <Coffee className="h-5 w-5" />
             Mesa {mesa.numero}
-            {tempo && <span className="text-xs font-normal text-muted-foreground">⏱ {tempo}</span>}
+            <span className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${meta.badge}`}>
+              <CircleDot className="h-3 w-3" /> {meta.label}
+            </span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 p-2 text-xs">
-          <UserCog className="h-4 w-4" />
-          <span>Garçom:</span>
-          <Select value={garcom} onValueChange={trocarGarcom}>
-            <SelectTrigger className="h-8 w-56"><SelectValue placeholder="Sem garçom" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Sem garçom</SelectItem>
-              {(staff.data ?? []).map((s: any) => <SelectItem key={s.id} value={s.id}>{s.nome ?? s.email}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        <section className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3 text-sm sm:grid-cols-4">
+            <Info label="Capacidade" value={`${mesa.capacidade ?? "—"} lugares`} />
+            <Info
+              label="Aberta em"
+              value={order?.created_at ? fmtDate(order.created_at) : "—"}
+            />
+            <Info label="Tempo de ocupação" value={tempo ?? "—"} />
+            <Info
+              label="Responsável"
+              value={responsavel.data?.nome ?? (order?.cliente_nome ?? "—")}
+            />
+          </div>
 
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="comanda" className="flex-1">Comanda</TabsTrigger>
-            <TabsTrigger value="add" className="flex-1">Adicionar</TabsTrigger>
-            <TabsTrigger value="acoes" className="flex-1">Ações</TabsTrigger>
-            <TabsTrigger value="hist" className="flex-1"><History className="mr-1 h-3.5 w-3.5" />Histórico</TabsTrigger>
-          </TabsList>
+          {mesa.observacoes && (
+            <div className="rounded-lg border bg-card p-3 text-sm">
+              <div className="text-xs font-medium text-muted-foreground">Observações da mesa</div>
+              <div>{mesa.observacoes}</div>
+            </div>
+          )}
+        </section>
 
-          <TabsContent value="comanda" className="space-y-2">
-            {!order && <p className="py-6 text-center text-sm text-muted-foreground">Sem itens. Adicione produtos na aba "Adicionar".</p>}
+        <section className="mt-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="font-semibold">Pedido atual</h3>
             {order && (
-              <>
-                <div className="space-y-1">
-                  {(order.order_items ?? []).map((it: any) => (
-                    <div key={it.id} className="flex items-center justify-between rounded border border-border p-2 text-sm">
-                      <span>{it.quantidade}× {it.produto_nome}</span>
-                      <div className="flex items-center gap-2">
-                        <span>{fmtMoney(it.subtotal)}</span>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(it.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between border-t pt-2 font-display text-xl font-bold">
-                  <span>Total</span><span className="text-primary">{fmtMoney(order.total)}</span>
-                </div>
-                <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
-                  Dividir: <strong className="text-foreground">{fmtMoney(order.total / 2)}</strong> (2x) ·
-                  <strong className="text-foreground"> {fmtMoney(order.total / 3)}</strong> (3x) ·
-                  <strong className="text-foreground"> {fmtMoney(order.total / 4)}</strong> (4x)
-                </div>
-                <div className="pt-2">
-                  <Select value="" onValueChange={(v) => closeBill(v)}>
-                    <SelectTrigger><SelectValue placeholder="Fechar conta com..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="pix">Pix</SelectItem>
-                      <SelectItem value="credito">Crédito</SelectItem>
-                      <SelectItem value="debito">Débito</SelectItem>
-                      <SelectItem value="multiplo">Misto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
+              <span className="text-xs text-muted-foreground">
+                #{order.numero} · {items.length} item(s)
+              </span>
             )}
-          </TabsContent>
-
-          <TabsContent value="add" className="max-h-96 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {(products.data ?? []).map((p) => (
-                <button key={p.id} onClick={() => addItem(p)} className="rounded-lg border border-border bg-card p-2 text-left hover:border-primary">
-                  <div className="line-clamp-2 text-xs font-medium">{p.nome}</div>
-                  <div className="text-sm font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-                </button>
+          </div>
+          {!order ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              Nenhum pedido aberto.
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              O pedido está aberto mas ainda não possui itens.
+            </div>
+          ) : (
+            <div className="divide-y rounded-lg border bg-card">
+              {items.map((it: any) => (
+                <div key={it.id} className="flex items-start justify-between gap-3 p-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {it.quantidade}x {it.produto_nome}
+                    </div>
+                    {Array.isArray(it.complementos) && it.complementos.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        + {it.complementos.map((c: any) => c.nome).join(", ")}
+                      </div>
+                    )}
+                    {it.observacoes && (
+                      <div className="text-xs text-muted-foreground">📝 {it.observacoes}</div>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-xs text-muted-foreground">{fmtMoney(it.preco_unitario)} un.</div>
+                    <div className="font-semibold">{fmtMoney(it.subtotal)}</div>
+                  </div>
+                </div>
               ))}
+              <div className="flex items-center justify-between p-3 text-sm">
+                <span className="text-muted-foreground">Total parcial</span>
+                <span className="font-display text-lg font-bold text-primary">
+                  {fmtMoney(order.total)}
+                </span>
+              </div>
             </div>
-          </TabsContent>
+          )}
+        </section>
 
-          <TabsContent value="acoes" className="space-y-3">
-            <div className="rounded-lg border border-border p-3">
-              <Label className="text-xs">Transferir mesa</Label>
-              <div className="mt-1 flex gap-2">
-                <Select value={transferTo} onValueChange={setTransferTo}>
-                  <SelectTrigger className="flex-1"><SelectValue placeholder="Mesa destino" /></SelectTrigger>
-                  <SelectContent>
-                    {tables.filter((t: any) => t.id !== mesa.id).map((t: any) => <SelectItem key={t.id} value={t.id}>Mesa {t.numero}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" onClick={transfer} disabled={!transferTo || !order}><ArrowRightLeft className="h-4 w-4" />Transferir</Button>
-              </div>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <Label className="text-xs">Unir com outra mesa</Label>
-              <div className="mt-1 flex gap-2">
-                <Select value={joinTo} onValueChange={setJoinTo}>
-                  <SelectTrigger className="flex-1"><SelectValue placeholder="Mesa a unir" /></SelectTrigger>
-                  <SelectContent>
-                    {tables.filter((t: any) => t.id !== mesa.id && !t.mesa_pai_id).map((t: any) => <SelectItem key={t.id} value={t.id}>Mesa {t.numero}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" onClick={juntar} disabled={!joinTo}><Link2 className="h-4 w-4" />Unir</Button>
-              </div>
-              <Button variant="ghost" size="sm" className="mt-2" onClick={desunir}>Desfazer união desta mesa</Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="hist" className="space-y-1 text-xs">
-            {(history.data ?? []).length === 0 && <p className="py-4 text-center text-muted-foreground">Sem histórico ainda.</p>}
-            {(history.data ?? []).map((h: any) => (
-              <div key={h.id} className="flex items-center justify-between rounded border border-border p-2">
-                <span className="font-medium">{h.action}</span>
-                <span className="text-muted-foreground">{fmtDate(h.created_at)}</span>
-              </div>
-            ))}
-          </TabsContent>
-        </Tabs>
+        <DialogFooter className="mt-4 flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (order) {
+                  toast.error("Não é possível excluir uma mesa com pedido aberto.");
+                  return;
+                }
+                if (confirm(`Excluir mesa ${mesa.numero}?`)) onDelete();
+              }}
+            >
+              <Trash2 className="mr-1 h-3.5 w-3.5" /> Excluir
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            {order ? (
+              <Button onClick={continuarPedido}>
+                <PlayCircle className="mr-1 h-4 w-4" /> Continuar atendimento no PDV
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button onClick={novoPedido}>
+                <ShoppingCart className="mr-1 h-4 w-4" /> Novo pedido no PDV
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="truncate font-medium">{value}</div>
+    </div>
   );
 }
