@@ -33,7 +33,7 @@ const STATUS_META: Record<MesaStatus, { label: string; dot: string; card: string
     badge: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
   },
   fechamento_pendente: {
-    label: "Fechamento pendente",
+    label: "Aguardando pagamento",
     dot: "bg-rose-500",
     card: "border-rose-500/50 bg-rose-500/10",
     badge: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
@@ -350,9 +350,14 @@ function MesaDetailDialog({
     navigate({ to: "/admin/pdv", search: { mesa: mesa.id } as any });
   }
 
-  function continuarPedido() {
+  function pdvAdicionar() {
     if (!order) return;
     navigate({ to: "/admin/pdv", search: { mesa: mesa.id, order: order.id } as any });
+  }
+
+  function pdvFinalizar() {
+    if (!order) return;
+    navigate({ to: "/admin/pdv", search: { mesa: mesa.id, order: order.id, action: "finalize" } as any });
   }
 
   const items = (order?.order_items ?? []) as any[];
@@ -461,12 +466,17 @@ function MesaDetailDialog({
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Excluir
             </Button>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {order ? (
-              <Button onClick={continuarPedido}>
-                <PlayCircle className="mr-1 h-4 w-4" /> Continuar atendimento no PDV
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
+              <>
+                <Button variant="outline" onClick={pdvAdicionar}>
+                  <ShoppingCart className="mr-1 h-4 w-4" /> Adicionar itens no PDV
+                </Button>
+                <Button onClick={pdvFinalizar}>
+                  <PlayCircle className="mr-1 h-4 w-4" /> Finalizar venda no PDV
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </>
             ) : (
               <Button onClick={novoPedido}>
                 <ShoppingCart className="mr-1 h-4 w-4" /> Novo pedido no PDV

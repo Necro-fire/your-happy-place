@@ -10,7 +10,7 @@ import {
   fmtMoney, fmtTime, fmtDate, statusLabel, statusColor,
   paymentLabel, tipoLabel, tipoColor, tipoDot, origemLabel,
 } from "@/lib/format";
-import { Printer, Truck } from "lucide-react";
+import { Printer, Truck, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
@@ -193,18 +193,23 @@ function PedidosPage() {
         </div>
       </div>
 
-      {detail && <OrderDetail order={detail} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
+      {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
     </div>
   );
 }
 
-function OrderDetail({ order, onClose, onUpdate }: any) {
+function OrderDetail({ order, list, onNavigate, onClose, onUpdate }: any) {
+  const idx = (list ?? []).findIndex((o: any) => o.id === order.id);
+  const prev = idx > 0 ? list[idx - 1] : null;
+  const next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            <Button size="icon" variant="ghost" className="h-7 w-7" disabled={!prev} onClick={() => prev && onNavigate(prev)} title="Anterior"><ChevronLeft className="h-4 w-4" /></Button>
             Pedido #{order.numero}
+            <Button size="icon" variant="ghost" className="h-7 w-7" disabled={!next} onClick={() => next && onNavigate(next)} title="Próximo"><ChevronRight className="h-4 w-4" /></Button>
             <Badge className={tipoColor[order.tipo]}>{tipoLabel[order.tipo]}</Badge>
             <Badge className={statusColor[order.status]}>{statusLabel[order.status]}</Badge>
           </DialogTitle>

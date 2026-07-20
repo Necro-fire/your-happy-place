@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/admin/pdv")({
   validateSearch: (search: Record<string, unknown>) => ({
     mesa: typeof search.mesa === "string" ? search.mesa : undefined,
     order: typeof search.order === "string" ? search.order : undefined,
+    action: search.action === "finalize" ? "finalize" as const : undefined,
   }),
   component: PDVPage,
 });
@@ -182,6 +183,17 @@ function PDVPage() {
     return () => { cancelled = true; };
   }, [search.mesa, search.order]);
 
+  // Auto-open checkout when arriving via "Finalizar venda" from Mesas
+  const [autoFinalizeDone, setAutoFinalizeDone] = useState(false);
+  useEffect(() => {
+    if (search.action !== "finalize") return;
+    if (autoFinalizeDone) return;
+    if (cart.length === 0) return;
+    setAutoFinalizeDone(true);
+    setTimeout(() => openCheckout(), 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.length, search.action]);
+
 
 
   // queries
@@ -192,8 +204,13 @@ function PDVPage() {
   });
   const products = useQuery({
     queryKey: ["admin-products-pdv"],
-    queryFn: async () => (await supabase.from("products").select("*").eq("ativo", true).eq("disponivel", true).order("nome")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("*").eq("ativo", true).order("nome")).data ?? [],
     staleTime: 60_000,
+  });
+  const cashSession = useQuery({
+    queryKey: ["pdv-cash-session"],
+    queryFn: async () => (await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle()).data,
+    refetchInterval: 15_000,
   });
   const combos = useQuery({
     queryKey: ["admin-combos-pdv"],
@@ -339,6 +356,7 @@ function PDVPage() {
   function openCheckout() {
     if (!atendimento) { toast.error("Selecione o tipo de atendimento"); return; }
     if (cart.length === 0) { toast.error("Adicione itens"); return; }
+    if (!cashSession.data) { toast.error("Abra o caixa antes de finalizar vendas"); return; }
     if (atendimento === "mesa" && !mesaId) { toast.error("Selecione a mesa"); return; }
     if (atendimento === "delivery") {
       if (!clienteNome || !clienteTel) { toast.error("Nome e telefone são obrigatórios"); return; }
@@ -494,6 +512,11 @@ function PDVPage() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
+      {!cashSession.data && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline">Operações → Caixa</a> para finalizar vendas.
+        </div>
+      )}
 
       {/* ============ CABEÇALHO: identificação da venda ============ */}
       <Card className="p-3 lg:p-4">
