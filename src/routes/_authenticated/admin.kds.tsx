@@ -71,7 +71,7 @@ function KDSPage() {
       cancelText: "Cancelar",
     });
     if (!ok) return;
-    await supabase.from("orders").update({ status: prev, finalizado_em: null }).eq("id", order.id);
+    await supabase.from("orders").update({ status: prev as any, finalizado_em: null }).eq("id", order.id);
     toast.success(`Pedido #${order.numero} retornado para ${prevLabel}`);
     qc.invalidateQueries({ queryKey: ["kds-orders"] });
   }
