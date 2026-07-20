@@ -37,20 +37,18 @@ function SupportPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold">Central de Suporte</h1>
-        <p className="text-sm text-muted-foreground">Atendimento guiado, base de conhecimento e métricas.</p>
+        <h1 className="font-display text-2xl font-bold">Central de Suporte Oficial</h1>
+        <p className="text-sm text-muted-foreground">
+          Atendimento guiado pela equipe da plataforma. Encontre soluções rápidas ou fale diretamente com o suporte oficial.
+        </p>
       </div>
       <Tabs defaultValue="atendimento" className="w-full">
         <TabsList className="flex-wrap">
-          <TabsTrigger value="atendimento">Atendimento</TabsTrigger>
-          <TabsTrigger value="base">Base de Conhecimento</TabsTrigger>
-          <TabsTrigger value="historico">Histórico</TabsTrigger>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="atendimento">Como podemos ajudar?</TabsTrigger>
+          <TabsTrigger value="historico">Meus chamados</TabsTrigger>
         </TabsList>
         <TabsContent value="atendimento" className="mt-4"><Atendimento /></TabsContent>
-        <TabsContent value="base" className="mt-4"><Base /></TabsContent>
         <TabsContent value="historico" className="mt-4"><Historico /></TabsContent>
-        <TabsContent value="dashboard" className="mt-4"><DashboardSup /></TabsContent>
       </Tabs>
     </div>
   );
