@@ -20,6 +20,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AppDialogHost } from "@/components/ui/app-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { initTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -87,6 +88,8 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+
+  useEffect(() => { initTheme(); }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
