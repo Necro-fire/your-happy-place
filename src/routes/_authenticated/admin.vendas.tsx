@@ -1,99 +1,128 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fmtMoney, fmtDate, statusLabel, statusColor, paymentLabel, origemLabel, tipoLabel, tipoColor, fmtPhone } from "@/lib/format";
 import { smartFilter } from "@/lib/search";
+import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
+import { useFilters } from "@/components/filters/useFilters";
 
 export const Route = createFileRoute("/_authenticated/admin/vendas")({
   component: VendasPage,
 });
 
+const STATUS_OPTIONS = Object.entries(statusLabel).map(([value, label]) => ({ value, label }));
+const CATEGORY_OPTIONS = [
+  { value: "local", label: "Mesa" },
+  { value: "entrega", label: "Entrega" },
+  { value: "retirada", label: "Retirada" },
+];
+const SORT_OPTIONS = [
+  { value: "recent", label: "Mais recentes" },
+  { value: "old", label: "Mais antigos" },
+  { value: "high", label: "Maior valor" },
+  { value: "low", label: "Menor valor" },
+];
+
 function VendasPage() {
-  const [status, setStatus] = useState<string>("todos");
-  const [origem, setOrigem] = useState<string>("todos");
-  const [pgto, setPgto] = useState<string>("todos");
-  const [tipo, setTipo] = useState<string>("todos");
-  const [data, setData] = useState<string>("");
-  const [busca, setBusca] = useState("");
+  const f = useFilters("vendas", { sort: "recent" });
+  const { state, setState, reset, activeChips, dateRange, presets, savePreset, applyPreset, removePreset } = f;
+
+  const origem = (state.extras.origem as string) ?? "todos";
+  const pgto = (state.extras.pgto as string) ?? "todos";
 
   const list = useQuery({
-    queryKey: ["vendas", status, origem, pgto, tipo, data],
+    queryKey: ["vendas", state.status, state.categories, origem, pgto, dateRange.start?.toISOString(), dateRange.end?.toISOString()],
     queryFn: async () => {
       let q = supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(500);
-      if (status !== "todos") q = q.eq("status", status as any);
+      if (state.status.length === 1) q = q.eq("status", state.status[0] as any);
+      else if (state.status.length > 1) q = q.in("status", state.status as any);
+      if (state.categories.length === 1) q = q.eq("tipo", state.categories[0] as any);
+      else if (state.categories.length > 1) q = q.in("tipo", state.categories as any);
       if (origem !== "todos") q = q.eq("origem", origem as any);
       if (pgto !== "todos") q = q.eq("forma_pagamento", pgto as any);
-      if (tipo !== "todos") q = q.eq("tipo", tipo as any);
-      if (data) {
-        const start = `${data}T00:00:00.000Z`;
-        const end = `${data}T23:59:59.999Z`;
-        q = q.gte("created_at", start).lte("created_at", end);
-      }
+      if (dateRange.start) q = q.gte("created_at", dateRange.start.toISOString());
+      if (dateRange.end) q = q.lte("created_at", dateRange.end.toISOString());
       const { data: rows } = await q;
       return rows ?? [];
     },
   });
 
-  const filtered = smartFilter(list.data ?? [], busca, [
-    (o: any) => `#${o.numero}`,
-    (o: any) => o.numero,
-    (o: any) => o.cliente_nome,
-    (o: any) => o.cliente_telefone,
-  ]);
+  const filtered = useMemo(() => {
+    let rows = smartFilter(list.data ?? [], state.q, [
+      (o: any) => `#${o.numero}`,
+      (o: any) => o.numero,
+      (o: any) => o.cliente_nome,
+      (o: any) => o.cliente_telefone,
+    ]);
+    if (state.valueMin != null) rows = rows.filter((o) => Number(o.total) >= state.valueMin!);
+    if (state.valueMax != null) rows = rows.filter((o) => Number(o.total) <= state.valueMax!);
+    switch (state.sort) {
+      case "old": rows = [...rows].reverse(); break;
+      case "high": rows = [...rows].sort((a, b) => Number(b.total) - Number(a.total)); break;
+      case "low": rows = [...rows].sort((a, b) => Number(a.total) - Number(b.total)); break;
+    }
+    return rows;
+  }, [list.data, state.q, state.valueMin, state.valueMax, state.sort]);
 
   const total = filtered.reduce((s, o) => s + Number(o.total), 0);
 
-
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold">Vendas</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} venda(s) — total {fmtMoney(total)}</p>
         </div>
+        <FiltersDrawer
+          sections={{
+            search: true,
+            period: true,
+            status: STATUS_OPTIONS,
+            categories: CATEGORY_OPTIONS,
+            valueRange: true,
+            sort: SORT_OPTIONS,
+          }}
+          state={state}
+          setState={setState as any}
+          reset={reset}
+          presets={presets}
+          onSavePreset={savePreset}
+          onApplyPreset={applyPreset}
+          onRemovePreset={removePreset}
+          activeCount={activeChips.length}
+          extras={
+            <div className="grid gap-3">
+              <div>
+                <Label className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Origem</Label>
+                <Select value={origem} onValueChange={(v) => setState((s) => ({ ...s, extras: { ...s.extras, origem: v } }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas as origens</SelectItem>
+                    {Object.entries(origemLabel).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Forma de pagamento</Label>
+                <Select value={pgto} onValueChange={(v) => setState((s) => ({ ...s, extras: { ...s.extras, pgto: v } }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas</SelectItem>
+                    {Object.entries(paymentLabel).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          }
+        />
       </div>
 
-      <Card className="p-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-          <Input placeholder="Buscar nº/cliente/tel" value={busca} onChange={(e) => setBusca(e.target.value)} />
-          <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
-          <Select value={tipo} onValueChange={setTipo}>
-            <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas categorias</SelectItem>
-              <SelectItem value="local">Mesa</SelectItem>
-              <SelectItem value="entrega">Entrega</SelectItem>
-              <SelectItem value="retirada">Retirada</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              {Object.entries(statusLabel).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={origem} onValueChange={setOrigem}>
-            <SelectTrigger><SelectValue placeholder="Origem" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas as origens</SelectItem>
-              {Object.entries(origemLabel).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={pgto} onValueChange={setPgto}>
-            <SelectTrigger><SelectValue placeholder="Pagamento" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos pagamentos</SelectItem>
-              {Object.entries(paymentLabel).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </Card>
+      <FilterChips chips={activeChips} onClearAll={reset} />
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
