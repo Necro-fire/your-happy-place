@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { maskPhone, maskCEP, onlyDigits } from "@/lib/masks";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Finalizar pedido — Padaria" }] }),
@@ -29,6 +30,7 @@ function CheckoutPage() {
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
   const [bairro, setBairro] = useState("");
+  const [cep, setCep] = useState("");
   const [horarioRetirada, setHorarioRetirada] = useState("");
   const [obs, setObs] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,8 +50,10 @@ function CheckoutPage() {
     e.preventDefault();
     if (items.length === 0) return toast.error("Carrinho vazio");
     if (!nome.trim() || !telefone.trim()) return toast.error("Preencha nome e telefone");
+    if (onlyDigits(telefone).length < 10) return toast.error("Telefone inválido");
     if (tipo === "entrega" && !endereco.trim()) return toast.error("Endereço obrigatório para entrega");
     if (tipo === "entrega" && !bairro.trim()) return toast.error("Bairro obrigatório para entrega");
+    if (tipo === "entrega" && cep && onlyDigits(cep).length !== 8) return toast.error("CEP inválido");
 
     setLoading(true);
     const { data: order, error } = await supabase
@@ -133,7 +137,7 @@ function CheckoutPage() {
             </div>
             <div>
               <Label htmlFor="tel">Telefone *</Label>
-              <Input id="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
+              <Input id="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} placeholder="(11) 99999-9999" inputMode="tel" maxLength={15} required />
             </div>
             {tipo === "entrega" && (
               <>
@@ -141,9 +145,15 @@ function CheckoutPage() {
                   <Label htmlFor="end">Endereço (rua, número, complemento) *</Label>
                   <Textarea id="end" value={endereco} onChange={(e) => setEndereco(e.target.value)} rows={2} required />
                 </div>
-                <div>
-                  <Label htmlFor="bairro">Bairro *</Label>
-                  <Input id="bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} required />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="bairro">Bairro *</Label>
+                    <Input id="bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="cep">CEP</Label>
+                    <Input id="cep" value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} placeholder="00000-000" inputMode="numeric" maxLength={9} />
+                  </div>
                 </div>
               </>
             )}
