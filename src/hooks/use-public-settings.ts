@@ -48,13 +48,9 @@ export function usePublicSettings(tenantIdArg?: string | null) {
     queryKey: ["public-settings", tenantId],
     enabled: !!tenantId,
     queryFn: async (): Promise<PublicSettings> => {
-      let query = supabase
-        .from("settings")
-        .select("nome_estabelecimento, nome_fantasia, descricao, logo_url, telefone, whatsapp, email, endereco, cidade, estado, cep, config, tenant_id" as any);
-      if (tenantId) query = query.eq("tenant_id", tenantId) as any;
-      const { data } = await query.maybeSingle();
-      const s: any = data ?? {};
-      const design: DesignConfig = { ...EMPTY_DESIGN, ...((s.config as any)?.design ?? {}) };
+      const { data } = await (supabase as any).rpc("get_public_menu_settings", { _tenant_id: tenantId });
+      const s: any = Array.isArray(data) ? data[0] ?? {} : data ?? {};
+      const design: DesignConfig = { ...EMPTY_DESIGN, ...((s.design as any) ?? {}) };
       return {
         nome: s.nome_fantasia || s.nome_estabelecimento || "Estabelecimento",
         descricao: s.descricao ?? null,
