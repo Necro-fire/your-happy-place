@@ -40,9 +40,12 @@ import { Route as AuthenticatedAdminCatalogoRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminCaixaRouteImport } from './routes/_authenticated/admin.caixa'
 import { Route as AuthenticatedAdminConfiguracoesIndexRouteImport } from './routes/_authenticated/admin.configuracoes.index'
 import { Route as AuthenticatedAdminConfiguracoesUsuariosRouteImport } from './routes/_authenticated/admin.configuracoes.usuarios'
+import { Route as AuthenticatedAdminConfiguracoesSuporteRouteImport } from './routes/_authenticated/admin.configuracoes.suporte'
 import { Route as AuthenticatedAdminConfiguracoesSegurancaRouteImport } from './routes/_authenticated/admin.configuracoes.seguranca'
 import { Route as AuthenticatedAdminConfiguracoesPdvRouteImport } from './routes/_authenticated/admin.configuracoes.pdv'
+import { Route as AuthenticatedAdminConfiguracoesPagamentosRouteImport } from './routes/_authenticated/admin.configuracoes.pagamentos'
 import { Route as AuthenticatedAdminConfiguracoesNotificacoesRouteImport } from './routes/_authenticated/admin.configuracoes.notificacoes'
+import { Route as AuthenticatedAdminConfiguracoesIntegracoesRouteImport } from './routes/_authenticated/admin.configuracoes.integracoes'
 import { Route as AuthenticatedAdminConfiguracoesImpressoesRouteImport } from './routes/_authenticated/admin.configuracoes.impressoes'
 import { Route as AuthenticatedAdminConfiguracoesFinanceiroRouteImport } from './routes/_authenticated/admin.configuracoes.financeiro'
 import { Route as AuthenticatedAdminConfiguracoesEstoqueRouteImport } from './routes/_authenticated/admin.configuracoes.estoque'
@@ -218,6 +221,12 @@ const AuthenticatedAdminConfiguracoesUsuariosRoute =
     path: '/usuarios',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesSuporteRoute =
+  AuthenticatedAdminConfiguracoesSuporteRouteImport.update({
+    id: '/suporte',
+    path: '/suporte',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesSegurancaRoute =
   AuthenticatedAdminConfiguracoesSegurancaRouteImport.update({
     id: '/seguranca',
@@ -230,10 +239,22 @@ const AuthenticatedAdminConfiguracoesPdvRoute =
     path: '/pdv',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesPagamentosRoute =
+  AuthenticatedAdminConfiguracoesPagamentosRouteImport.update({
+    id: '/pagamentos',
+    path: '/pagamentos',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesNotificacoesRoute =
   AuthenticatedAdminConfiguracoesNotificacoesRouteImport.update({
     id: '/notificacoes',
     path: '/notificacoes',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesIntegracoesRoute =
+  AuthenticatedAdminConfiguracoesIntegracoesRouteImport.update({
+    id: '/integracoes',
+    path: '/integracoes',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
 const AuthenticatedAdminConfiguracoesImpressoesRoute =
@@ -315,9 +336,12 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
   '/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
+  '/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
+  '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
   '/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
+  '/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/admin/configuracoes/': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -354,9 +378,12 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
   '/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
+  '/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
+  '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
   '/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
+  '/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -398,9 +425,12 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/_authenticated/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
   '/_authenticated/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
+  '/_authenticated/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/_authenticated/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
+  '/_authenticated/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/_authenticated/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
   '/_authenticated/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
+  '/_authenticated/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/_authenticated/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/_authenticated/admin/configuracoes/': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -442,9 +472,12 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
     | '/admin/configuracoes/impressoes'
+    | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/notificacoes'
+    | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/pdv'
     | '/admin/configuracoes/seguranca'
+    | '/admin/configuracoes/suporte'
     | '/admin/configuracoes/usuarios'
     | '/admin/configuracoes/'
   fileRoutesByTo: FileRoutesByTo
@@ -481,9 +514,12 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
     | '/admin/configuracoes/impressoes'
+    | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/notificacoes'
+    | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/pdv'
     | '/admin/configuracoes/seguranca'
+    | '/admin/configuracoes/suporte'
     | '/admin/configuracoes/usuarios'
     | '/admin/configuracoes'
   id:
@@ -524,9 +560,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes/estoque'
     | '/_authenticated/admin/configuracoes/financeiro'
     | '/_authenticated/admin/configuracoes/impressoes'
+    | '/_authenticated/admin/configuracoes/integracoes'
     | '/_authenticated/admin/configuracoes/notificacoes'
+    | '/_authenticated/admin/configuracoes/pagamentos'
     | '/_authenticated/admin/configuracoes/pdv'
     | '/_authenticated/admin/configuracoes/seguranca'
+    | '/_authenticated/admin/configuracoes/suporte'
     | '/_authenticated/admin/configuracoes/usuarios'
     | '/_authenticated/admin/configuracoes/'
   fileRoutesById: FileRoutesById
@@ -762,6 +801,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesUsuariosRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/suporte': {
+      id: '/_authenticated/admin/configuracoes/suporte'
+      path: '/suporte'
+      fullPath: '/admin/configuracoes/suporte'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesSuporteRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/seguranca': {
       id: '/_authenticated/admin/configuracoes/seguranca'
       path: '/seguranca'
@@ -776,11 +822,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesPdvRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/pagamentos': {
+      id: '/_authenticated/admin/configuracoes/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/admin/configuracoes/pagamentos'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesPagamentosRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/notificacoes': {
       id: '/_authenticated/admin/configuracoes/notificacoes'
       path: '/notificacoes'
       fullPath: '/admin/configuracoes/notificacoes'
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
+    '/_authenticated/admin/configuracoes/integracoes': {
+      id: '/_authenticated/admin/configuracoes/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin/configuracoes/integracoes'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesIntegracoesRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
     '/_authenticated/admin/configuracoes/impressoes': {
@@ -843,9 +903,12 @@ interface AuthenticatedAdminConfiguracoesRouteChildren {
   AuthenticatedAdminConfiguracoesEstoqueRoute: typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   AuthenticatedAdminConfiguracoesFinanceiroRoute: typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
   AuthenticatedAdminConfiguracoesImpressoesRoute: typeof AuthenticatedAdminConfiguracoesImpressoesRoute
+  AuthenticatedAdminConfiguracoesIntegracoesRoute: typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   AuthenticatedAdminConfiguracoesNotificacoesRoute: typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
+  AuthenticatedAdminConfiguracoesPagamentosRoute: typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   AuthenticatedAdminConfiguracoesPdvRoute: typeof AuthenticatedAdminConfiguracoesPdvRoute
   AuthenticatedAdminConfiguracoesSegurancaRoute: typeof AuthenticatedAdminConfiguracoesSegurancaRoute
+  AuthenticatedAdminConfiguracoesSuporteRoute: typeof AuthenticatedAdminConfiguracoesSuporteRoute
   AuthenticatedAdminConfiguracoesUsuariosRoute: typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   AuthenticatedAdminConfiguracoesIndexRoute: typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -866,12 +929,18 @@ const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfigurac
       AuthenticatedAdminConfiguracoesFinanceiroRoute,
     AuthenticatedAdminConfiguracoesImpressoesRoute:
       AuthenticatedAdminConfiguracoesImpressoesRoute,
+    AuthenticatedAdminConfiguracoesIntegracoesRoute:
+      AuthenticatedAdminConfiguracoesIntegracoesRoute,
     AuthenticatedAdminConfiguracoesNotificacoesRoute:
       AuthenticatedAdminConfiguracoesNotificacoesRoute,
+    AuthenticatedAdminConfiguracoesPagamentosRoute:
+      AuthenticatedAdminConfiguracoesPagamentosRoute,
     AuthenticatedAdminConfiguracoesPdvRoute:
       AuthenticatedAdminConfiguracoesPdvRoute,
     AuthenticatedAdminConfiguracoesSegurancaRoute:
       AuthenticatedAdminConfiguracoesSegurancaRoute,
+    AuthenticatedAdminConfiguracoesSuporteRoute:
+      AuthenticatedAdminConfiguracoesSuporteRoute,
     AuthenticatedAdminConfiguracoesUsuariosRoute:
       AuthenticatedAdminConfiguracoesUsuariosRoute,
     AuthenticatedAdminConfiguracoesIndexRoute:
