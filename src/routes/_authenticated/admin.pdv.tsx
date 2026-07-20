@@ -56,9 +56,6 @@ const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; 
   { key: "delivery", label: "Delivery", icon: Bike,         tipo: "entrega",  origem: "pdv"  },
 ];
 
-const PGTO_LABEL: Record<Pgto, string> = {
-  dinheiro: "Dinheiro", pix: "Pix", credito: "Crédito", debito: "Débito", vale: "Vale", credito_cliente: "Crédito cliente",
-};
 
 const HELD_KEY = "pdv_held_v1";
 const RECENT_KEY = "pdv_recent_v1";
