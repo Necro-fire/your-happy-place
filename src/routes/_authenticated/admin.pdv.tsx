@@ -795,7 +795,7 @@ function PDVPage() {
 
         <div className="mt-2 grid grid-cols-3 gap-1">
           <Button variant="outline" size="sm" onClick={suspendSale} disabled={cart.length === 0}><Pause className="mr-1 h-3 w-3" />Suspender</Button>
-          <Button variant="outline" size="sm" onClick={() => { const n = prompt("Dividir por quantas pessoas?", String(pessoas)); if (n) setPessoas(Math.max(1, Number(n) || 1)); }}>
+          <Button variant="outline" size="sm" onClick={async () => { const n = await dialog.prompt({ title: "Dividir conta", description: "Dividir por quantas pessoas?", defaultValue: String(pessoas), placeholder: "Ex: 2" }); if (n) setPessoas(Math.max(1, Number(n) || 1)); }}>
             <Split className="mr-1 h-3 w-3" />Dividir
           </Button>
           <Button variant="outline" size="sm" onClick={cancelSale} disabled={cart.length === 0}><XCircle className="mr-1 h-3 w-3" />Cancelar</Button>
