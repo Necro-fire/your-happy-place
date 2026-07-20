@@ -371,7 +371,7 @@ function PDVPage() {
       if (!end.cep || !end.rua || !end.numero || !end.bairro || !end.cidade || !end.estado) { toast.error("Preencha o endereço"); return; }
     }
     if (atendimento === "retirada" && !clienteNome) { toast.error("Nome do cliente é obrigatório"); return; }
-    setPagamentos([{ forma: "dinheiro", valor: total }]);
+    setPagamentos([{ methodId: defaultMethodId(), valor: total }]);
     setRecebido(0);
     setCheckout(true);
   }
