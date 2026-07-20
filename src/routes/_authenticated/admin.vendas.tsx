@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,10 @@ const SORT_OPTIONS = [
   { value: "high", label: "Maior valor" },
   { value: "low", label: "Menor valor" },
 ];
+
+type PayMethod = Database["public"]["Enums"]["pay_method"];
+
+const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 function VendasPage() {
   const [detail, setDetail] = useState<any | null>(null);
@@ -205,26 +210,77 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
     mutationFn: async (item: any) => {
       const o = q.data;
       if (!o) throw new Error("Venda não encontrada");
-      const valor = Number(item.subtotal);
+      if (o.status === "cancelado") throw new Error("Venda já cancelada");
+      const valor = roundCurrency(Number(item.subtotal ?? 0));
+      if (!Number.isFinite(valor) || valor <= 0) throw new Error("Valor do item inválido");
+
+      const novoSubtotal = roundCurrency(Math.max(0, Number(o.subtotal ?? 0) - valor));
+      const novoTotal = roundCurrency(Math.max(0, Number(o.total ?? 0) - valor));
+      const itensRestantes = (o.order_items ?? []).filter((row: any) => row.id !== item.id);
+      const cancelarVenda = itensRestantes.length === 0 || novoTotal <= 0;
+
+      const { data: movimentos, error: movErr } = await supabase
+        .from("cash_movements")
+        .select("id, session_id, valor, forma_pagamento")
+        .eq("order_id", o.id)
+        .in("tipo", ["venda", "entrada"]);
+      if (movErr) throw movErr;
+
       const { error: dErr } = await supabase.from("order_items").delete().eq("id", item.id);
       if (dErr) throw dErr;
-      const novoSubtotal = Math.max(0, Number(o.subtotal) - valor);
-      const novoTotal = Math.max(0, Number(o.total) - valor);
-      await supabase.from("orders").update({ subtotal: novoSubtotal, total: novoTotal }).eq("id", o.id);
-      // Ajusta o caixa: remove entradas antigas dessa venda e reinsere pelo novo total
-      await supabase.from("cash_movements").delete().eq("order_id", o.id).eq("tipo", "entrada");
-      const { data: session } = await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle();
-      if (session && novoTotal > 0) {
-        await supabase.from("cash_movements").insert({
-          session_id: session.id, tipo: "entrada", valor: novoTotal,
-          descricao: `Venda #${o.numero} (ajustada após cancelamento de item)`,
-          forma_pagamento: o.forma_pagamento ?? "dinheiro",
-          order_id: o.id,
-        });
+
+      const orderPatch: any = { subtotal: novoSubtotal, total: novoTotal };
+      if (cancelarVenda) {
+        orderPatch.status = "cancelado";
+        orderPatch.cancelado_em = new Date().toISOString();
       }
-      // Se removeu o último item, cancela a venda inteira
-      if (novoTotal === 0) {
-        await supabase.from("orders").update({ status: "cancelado", cancelado_em: new Date().toISOString() }).eq("id", o.id);
+      const { error: orderErr } = await supabase.from("orders").update(orderPatch).eq("id", o.id);
+      if (orderErr) throw orderErr;
+
+      if (cancelarVenda) {
+        const { error: cashDeleteErr } = await supabase.from("cash_movements").delete().eq("order_id", o.id);
+        if (cashDeleteErr) throw cashDeleteErr;
+        return;
+      }
+
+      const receita = movimentos ?? [];
+      if (receita.length === 0) return;
+
+      const grupos = new Map<string, { session_id: string; forma_pagamento: PayMethod | null; valor: number }>();
+      for (const mov of receita) {
+        const key = `${mov.session_id}:${mov.forma_pagamento ?? ""}`;
+        const atual = grupos.get(key) ?? { session_id: mov.session_id, forma_pagamento: mov.forma_pagamento, valor: 0 };
+        atual.valor += Number(mov.valor ?? 0);
+        grupos.set(key, atual);
+      }
+
+      const base = Array.from(grupos.values()).filter((mov) => mov.valor > 0);
+      if (base.length === 0) return;
+
+      const ids = receita.map((mov) => mov.id);
+      const { error: deleteCashErr } = await supabase.from("cash_movements").delete().in("id", ids);
+      if (deleteCashErr) throw deleteCashErr;
+
+      const totalMovimentos = base.reduce((sum, mov) => sum + mov.valor, 0);
+      let acumulado = 0;
+      const ajustados = base.map((mov, index) => {
+        const valorAjustado = index === base.length - 1
+          ? roundCurrency(novoTotal - acumulado)
+          : roundCurrency((novoTotal * mov.valor) / totalMovimentos);
+        acumulado = roundCurrency(acumulado + valorAjustado);
+        return {
+          session_id: mov.session_id,
+          tipo: "venda" as const,
+          valor: Math.max(0, valorAjustado),
+          descricao: `Venda #${o.numero} (ajustada após cancelamento de item)`,
+          forma_pagamento: mov.forma_pagamento,
+          order_id: o.id,
+        };
+      }).filter((mov) => mov.valor > 0);
+
+      if (ajustados.length > 0) {
+        const { error: insertCashErr } = await supabase.from("cash_movements").insert(ajustados);
+        if (insertCashErr) throw insertCashErr;
       }
     },
     onSuccess: () => { toast.success("Item cancelado"); qc.invalidateQueries(); },
