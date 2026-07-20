@@ -10,6 +10,6 @@ export async function logMaster(action: string, entity?: string, entity_id?: str
     action,
     entity: entity ?? null,
     entity_id: entity_id ?? null,
-    detalhes,
+    detalhes: payload,
   });
 }
