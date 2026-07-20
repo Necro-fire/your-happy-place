@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function logMaster(action: string, entity?: string, entity_id?: string, detalhes: Record<string, unknown> = {}) {
+  const payload = detalhes as unknown as Record<string, string | number | boolean | null>;
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return;
   await supabase.from("master_logs").insert({
