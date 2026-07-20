@@ -151,20 +151,20 @@ function MesasPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold">Mesas</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">Mesas</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Status das mesas em tempo real — integrado ao PDV.
           </p>
         </div>
-        <Button onClick={() => setCreating(true)}>
+        <Button className="rounded-xl shadow-sm" onClick={() => setCreating(true)}>
           <Plus className="mr-1 h-4 w-4" /> Adicionar mesa
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Total de mesas" value={counts.total} dot="bg-primary" />
         <StatCard label="Livres" value={counts.livre} dot="bg-emerald-500" />
         <StatCard label="Em atendimento" value={counts.em} dot="bg-amber-500" />
@@ -172,9 +172,13 @@ function MesasPage() {
       </div>
 
       {rows.length === 0 ? (
-        <Card className="p-10 text-center text-sm text-muted-foreground">
-          Nenhuma mesa cadastrada. Clique em <strong>Adicionar mesa</strong> para começar.
-        </Card>
+        <div className="rounded-2xl border border-dashed border-border/70 bg-card/50 p-12 text-center">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-muted/60">
+            <Coffee className="h-7 w-7 text-muted-foreground/70" />
+          </div>
+          <div className="mt-3 text-sm font-semibold">Nenhuma mesa cadastrada</div>
+          <div className="mt-1 text-xs text-muted-foreground">Clique em <strong>Adicionar mesa</strong> para começar.</div>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {rows.map(({ mesa, order, status }) => {
@@ -185,22 +189,24 @@ function MesasPage() {
                 key={mesa.id}
                 type="button"
                 onClick={() => setSelected({ mesa, order, status })}
-                className={`group flex flex-col items-start gap-1.5 rounded-xl border-2 p-4 text-left transition hover:shadow-md ${meta.card}`}
+                className={`group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-2xl border bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${meta.card}`}
               >
-                <div className="flex w-full items-start justify-between">
+                <span className={`absolute inset-x-0 top-0 h-1 ${meta.dot}`} />
+                <div className="flex w-full items-start justify-between pt-1">
                   <Coffee className="h-5 w-5 opacity-70" />
-                  <span className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${meta.dot}`} />
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${meta.badge}`}>{meta.label}</span>
                 </div>
-                <div className="font-display text-2xl font-bold leading-none">
+                <div className="text-2xl font-bold leading-none tracking-tight">
                   Mesa {mesa.numero}
                 </div>
-                <div className="text-xs font-medium">{meta.label}</div>
-                {order && (
+                {order ? (
                   <>
-                    <div className="text-xs text-muted-foreground">Pedido #{order.numero}</div>
-                    <div className="text-sm font-semibold">{fmtMoney(order.total)}</div>
+                    <div className="text-[11px] text-muted-foreground">Pedido #{order.numero}</div>
+                    <div className="text-sm font-bold text-primary">{fmtMoney(order.total)}</div>
                     {tempo && <div className="text-[11px] text-muted-foreground">⏱ {tempo}</div>}
                   </>
+                ) : (
+                  <div className="text-[11px] text-muted-foreground">Pronta para uso</div>
                 )}
               </button>
             );
@@ -232,13 +238,13 @@ function MesasPage() {
 
 function StatCard({ label, value, dot }: { label: string; value: number; dot: string }) {
   return (
-    <Card className="p-3">
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="flex items-center gap-2">
         <span className={`inline-flex h-2 w-2 rounded-full ${dot}`} />
-        <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
       </div>
-      <div className="mt-1 font-display text-2xl font-bold">{value}</div>
-    </Card>
+      <div className="mt-1.5 text-2xl font-bold tracking-tight">{value}</div>
+    </div>
   );
 }
 

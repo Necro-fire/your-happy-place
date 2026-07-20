@@ -511,51 +511,55 @@ function PDVPage() {
   });
 
   return (
-    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-7rem)]">
       {!cashSession.data && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          <strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline">Operações → Caixa</a> para finalizar vendas.
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-sm text-destructive">
+          <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-destructive" />
+          <span><strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline underline-offset-2">Operações → Caixa</a> para finalizar vendas.</span>
         </div>
       )}
 
-      {/* ============ CABEÇALHO: identificação da venda ============ */}
-      <Card className="p-3 lg:p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="grid min-w-[260px] flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
-            {tiposAtivos.map((a) => {
-              const Icon = a.icon; const active = atendimento === a.key;
-              return (
-                <button key={a.key} type="button" onClick={() => onSelectAtendimento(a.key)}
-                  className={`flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition ${active ? "border-primary bg-primary text-primary-foreground shadow" : "border-border bg-card hover:border-primary/40"}`}>
-                  <Icon className="h-4 w-4" /> {a.label}
-                </button>
-              );
-            })}
-          </div>
-          {atendimento && atendimento !== "balcao" && (
-            <Button variant="outline" size="sm" onClick={openAttendModal}>
-              <Pencil className="mr-1 h-3 w-3" /> Editar dados
-            </Button>
-          )}
+      {/* ============ CABEÇALHO: segmented service type + inline context ============ */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-card px-3 py-2.5 shadow-sm">
+        <div className="inline-flex flex-wrap gap-1 rounded-xl border border-border/60 bg-muted/40 p-1">
+          {tiposAtivos.map((a) => {
+            const Icon = a.icon; const active = atendimento === a.key;
+            return (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => onSelectAtendimento(a.key)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Icon className="h-4 w-4" /> {a.label}
+              </button>
+            );
+          })}
         </div>
 
         {atendimento && atendimento !== "balcao" && (
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             {atendimento === "mesa" && (
-              <span className="flex items-center gap-1"><Coffee className="h-3 w-3" /> Mesa: <b className="text-foreground">{(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero ?? "—"}</b></span>
+              <span className="inline-flex items-center gap-1"><Coffee className="h-3 w-3" /> Mesa <b className="text-foreground">{(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero ?? "—"}</b></span>
             )}
-            {clienteNome && <span className="flex items-center gap-1"><User className="h-3 w-3" /> <b className="text-foreground">{clienteNome}</b></span>}
-            {clienteTel && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {clienteTel}</span>}
+            {clienteNome && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> <b className="text-foreground">{clienteNome}</b></span>}
+            {clienteTel && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {clienteTel}</span>}
             {atendimento === "delivery" && end.rua && (
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {end.rua}{end.numero ? `, ${end.numero}` : ""}{end.bairro ? ` — ${end.bairro}` : ""}</span>
+              <span className="inline-flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" /> {end.rua}{end.numero ? `, ${end.numero}` : ""}{end.bairro ? ` — ${end.bairro}` : ""}</span>
             )}
             {atendimento === "retirada" && horario && (
-              <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(horario).toLocaleString("pt-BR")}</span>
+              <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(horario).toLocaleString("pt-BR")}</span>
             )}
-            {obs && <span className="flex items-center gap-1"><NoteIcon className="h-3 w-3" /> {obs}</span>}
+            {obs && <span className="inline-flex items-center gap-1 truncate"><NoteIcon className="h-3 w-3 shrink-0" /> {obs}</span>}
           </div>
         )}
-      </Card>
+
+        {atendimento && atendimento !== "balcao" && (
+          <Button variant="outline" size="sm" className="rounded-lg" onClick={openAttendModal}>
+            <Pencil className="mr-1 h-3 w-3" /> Editar dados
+          </Button>
+        )}
+      </div>
 
       {/* ============ MODAL: dados do atendimento ============ */}
       {attendModalOpen && atendimento && atendimento !== "balcao" && (
@@ -679,84 +683,107 @@ function PDVPage() {
       <div className="flex flex-col gap-3 overflow-hidden">
 
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1">
-            <Barcode className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onSearchKey}
-              className="pl-9" placeholder="Buscar por nome, código ou código de barras (Enter para adicionar)" />
+              className="h-10 rounded-xl border-transparent bg-muted/60 pl-9 focus-visible:border-primary focus-visible:bg-background" placeholder="Buscar produto, código ou código de barras (Enter para adicionar)" />
           </div>
-          <Select value={cat ?? "all"} onValueChange={(v) => setCat(v === "all" ? null : v)}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas categorias</SelectItem>
-              {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          
+          <div className="inline-flex rounded-xl border border-border/60 bg-muted/40 p-1">
+            <button type="button" onClick={() => setTab("produtos")}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${tab === "produtos" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              <Package className="h-3.5 w-3.5" /> Produtos
+            </button>
+            <button type="button" onClick={() => setTab("combos")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${tab === "combos" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              Combos
+            </button>
+          </div>
         </div>
 
+        {/* Categorias como pills roláveis */}
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 no-scrollbar">
+          <button type="button" onClick={() => setCat(null)}
+            className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${cat === null ? "border-transparent bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>Todas</button>
+          {(categories.data ?? []).map((c: any) => (
+            <button key={c.id} type="button" onClick={() => setCat(c.id)}
+              className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${cat === c.id ? "border-transparent bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>{c.nome}</button>
+          ))}
+        </div>
 
-
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
-            <TabsTrigger value="combos">Combos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} />
-          </TabsContent>
-          <TabsContent value="combos" className="mt-2 flex-1 overflow-hidden">
-            <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {tab === "produtos" ? (
+            <div className="mt-1 flex-1 overflow-hidden">
+              <ProductGrid list={filtered} onAdd={addProduct} />
+            </div>
+          ) : (
+            <div className="mt-1 grid h-full auto-rows-max grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
               {filteredCombos.map((cb) => (
-                <button key={cb.id} onClick={() => addCombo(cb)} className="rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20">
-                  <div className="line-clamp-2 text-sm font-medium">🍽️ {cb.nome}</div>
-                  <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(cb.preco))}</div>
+                <button key={cb.id} onClick={() => addCombo(cb)} className="rounded-2xl border border-border bg-card p-3 text-left transition hover:border-primary/40 hover:shadow-sm">
+                  <div className="line-clamp-2 text-sm font-semibold">🍽️ {cb.nome}</div>
+                  <div className="mt-1 text-base font-bold text-primary">{fmtMoney(Number(cb.preco))}</div>
                 </button>
               ))}
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
 
       {/* ============ DIREITA: comanda ============ */}
-      <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <ShoppingCart className="h-4 w-4" />
-          <h2 className="font-semibold">Comanda</h2>
-          {existingOrderNumero && (
-            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-              Continuando pedido #{existingOrderNumero}
-            </span>
-          )}
-          {atendimento && <span className="ml-auto text-xs text-muted-foreground">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</span>}
+      <div className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm lg:min-h-0">
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-bold tracking-tight">Comanda</h2>
+            {existingOrderNumero && (
+              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                Continuando #{existingOrderNumero}
+              </span>
+            )}
+          </div>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            {cart.length} {cart.length === 1 ? "item" : "itens"}
+          </span>
         </div>
 
-
-        <div className="flex-1 space-y-1 overflow-y-auto">
-          {cart.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">Sem itens</div>}
+        <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+          {cart.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/60">
+                <ShoppingCart className="h-7 w-7 text-muted-foreground/70" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Carrinho vazio</p>
+                <p className="mt-1 text-xs text-muted-foreground">Toque em um produto para iniciar o pedido</p>
+              </div>
+            </div>
+          )}
           {cart.map((i) => (
-            <div key={i.key} className="rounded-md border border-border p-2 text-sm">
+            <div key={i.key} className="rounded-xl border border-border/60 bg-background/60 p-2.5 text-sm transition hover:border-border">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium leading-tight">{i.nome}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="truncate font-semibold leading-tight">{i.nome}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
                     {fmtMoney(i.preco)} {i.desconto > 0 && <span className="ml-1 text-destructive">-{fmtMoney(i.desconto)}</span>}
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-sm font-semibold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
+                <div className="shrink-0 text-right text-sm font-bold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
               </div>
-              <div className="mt-2 flex flex-wrap items-center justify-end gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: Math.max(1, x.quantidade - 1) } : x))}><Minus className="h-3 w-3" /></Button>
-                <span className="w-6 text-center">{i.quantidade}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: x.quantidade + 1 } : x))}><Plus className="h-3 w-3" /></Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setLineEdit(i)} title="Editar"><StickyNote className="h-3 w-3" /></Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.filter((x) => x.key !== i.key))} title="Remover"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5">
+                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: Math.max(1, x.quantidade - 1) } : x))}><Minus className="h-3 w-3" /></button>
+                  <span className="w-6 text-center text-xs font-semibold">{i.quantidade}</span>
+                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: x.quantidade + 1 } : x))}><Plus className="h-3 w-3" /></button>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setLineEdit(i)} title="Editar"><StickyNote className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => setCart((c) => c.filter((x) => x.key !== i.key))} title="Remover"><Trash2 className="h-3 w-3" /></Button>
+                </div>
               </div>
 
               {(i.complementos.length > 0 || i.observacoes) && (
-                <div className="mt-1 space-y-0.5 pl-1 text-xs text-muted-foreground">
+                <div className="mt-1.5 space-y-0.5 border-t border-border/60 pt-1.5 pl-1 text-xs text-muted-foreground">
                   {i.complementos.length > 0 && <div>+ {i.complementos.map((c) => c.nome).join(", ")}</div>}
                   {i.observacoes && <div>📝 {i.observacoes}</div>}
                 </div>
@@ -765,23 +792,23 @@ function PDVPage() {
           ))}
         </div>
 
-        <div className="space-y-2 border-t pt-3 text-sm">
-          <div className="flex justify-between"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
+        <div className="space-y-2 border-t border-border/60 bg-muted/30 px-4 py-3">
+          <div className="flex justify-between text-xs text-muted-foreground"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
           {atendimento === "delivery" && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Taxa entrega</span>
-              <Input type="number" min={0} value={taxa} onChange={(e) => setTaxa(Number(e.target.value))} className="h-8 w-24 text-right" />
+              <Input type="number" min={0} value={taxa} onChange={(e) => setTaxa(Number(e.target.value))} className="h-8 w-24 rounded-lg text-right" />
             </div>
           )}
-          <div className="flex justify-between border-t pt-2 font-display text-xl font-bold">
-            <span>Total</span><span className="text-primary">{fmtMoney(total)}</span>
+          <div className="flex items-end justify-between border-t border-border/60 pt-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</span>
+            <span className="text-2xl font-bold tracking-tight text-primary">{fmtMoney(total)}</span>
           </div>
+          <Button size="lg" className="mt-1 h-12 w-full rounded-xl text-base font-bold shadow-sm shadow-primary/20" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
+            {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
+          </Button>
         </div>
-
-        <Button size="lg" className="mt-2" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
-          {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
-        </Button>
-      </Card>
+      </div>
       </div>
 
       {/* ============ Modal: complementos ============ */}
@@ -903,30 +930,44 @@ function PDVPage() {
 /* ============ Grade de produtos reutilizável ============ */
 function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => void; empty?: string }) {
   if (list.length === 0) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{empty ?? "Nenhum produto encontrado"}</div>;
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center">
+        <div className="grid h-14 w-14 place-items-center rounded-full bg-muted/60">
+          <Package className="h-6 w-6 text-muted-foreground/70" />
+        </div>
+        <div className="text-sm font-semibold">{empty ?? "Nenhum produto encontrado"}</div>
+        <div className="text-xs text-muted-foreground">Ajuste a busca ou selecione outra categoria</div>
+      </div>
+    );
   }
   return (
     <div className="h-full overflow-y-auto pr-1">
-      <div className="grid auto-rows-max grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid auto-rows-max grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {list.map((p) => {
           const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
+          const emPromo = p.preco_promo != null && Number(p.preco_promo) < Number(p.preco);
           return (
             <button
               key={p.id}
               onClick={() => onAdd(p)}
               disabled={indisponivel}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
             >
               <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
-                <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full" />
+                <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full transition group-hover:scale-105" />
+                {emPromo && <span className="absolute left-2 top-2 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground shadow">PROMO</span>}
+                {indisponivel && <span className="absolute right-2 top-2 rounded-full bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow">Esgotado</span>}
               </div>
-              <div className="flex flex-col gap-1 p-2">
-                <div className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-tight">{p.nome}</div>
+              <div className="flex flex-col gap-0.5 p-2.5">
+                <div className="line-clamp-2 min-h-[2.4rem] text-[13px] font-semibold leading-tight">{p.nome}</div>
                 {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-                <div className="font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-                {p.controla_estoque && (
+                <div className="mt-0.5 flex items-baseline gap-1.5">
+                  <div className="text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+                  {emPromo && <div className="text-[11px] text-muted-foreground line-through">{fmtMoney(Number(p.preco))}</div>}
+                </div>
+                {p.controla_estoque && !indisponivel && (
                   <div className={`text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-                    {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+                    estoque: {p.estoque_atual} {p.unidade}
                   </div>
                 )}
               </div>
