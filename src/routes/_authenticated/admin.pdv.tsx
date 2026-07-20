@@ -692,7 +692,7 @@ function PDVPage() {
               {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={reprintLast} title="Reimprimir último"><Printer className="h-4 w-4" /></Button>
+          
         </div>
 
 
