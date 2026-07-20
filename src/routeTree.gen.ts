@@ -32,7 +32,13 @@ import { Route as AuthenticatedAdminCatalogoRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminCaixaRouteImport } from './routes/_authenticated/admin.caixa'
 import { Route as AuthenticatedAdminConfiguracoesIndexRouteImport } from './routes/_authenticated/admin.configuracoes.index'
 import { Route as AuthenticatedAdminConfiguracoesUsuariosRouteImport } from './routes/_authenticated/admin.configuracoes.usuarios'
+import { Route as AuthenticatedAdminConfiguracoesSistemaRouteImport } from './routes/_authenticated/admin.configuracoes.sistema'
+import { Route as AuthenticatedAdminConfiguracoesPedidosRouteImport } from './routes/_authenticated/admin.configuracoes.pedidos'
+import { Route as AuthenticatedAdminConfiguracoesPdvRouteImport } from './routes/_authenticated/admin.configuracoes.pdv'
 import { Route as AuthenticatedAdminConfiguracoesEmpresaRouteImport } from './routes/_authenticated/admin.configuracoes.empresa'
+import { Route as AuthenticatedAdminConfiguracoesDeliveryRouteImport } from './routes/_authenticated/admin.configuracoes.delivery'
+import { Route as AuthenticatedAdminConfiguracoesAuditoriaRouteImport } from './routes/_authenticated/admin.configuracoes.auditoria'
+import { Route as AuthenticatedAdminConfiguracoesAparenciaRouteImport } from './routes/_authenticated/admin.configuracoes.aparencia'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -156,10 +162,46 @@ const AuthenticatedAdminConfiguracoesUsuariosRoute =
     path: '/usuarios',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesSistemaRoute =
+  AuthenticatedAdminConfiguracoesSistemaRouteImport.update({
+    id: '/sistema',
+    path: '/sistema',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesPedidosRoute =
+  AuthenticatedAdminConfiguracoesPedidosRouteImport.update({
+    id: '/pedidos',
+    path: '/pedidos',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesPdvRoute =
+  AuthenticatedAdminConfiguracoesPdvRouteImport.update({
+    id: '/pdv',
+    path: '/pdv',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesEmpresaRoute =
   AuthenticatedAdminConfiguracoesEmpresaRouteImport.update({
     id: '/empresa',
     path: '/empresa',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesDeliveryRoute =
+  AuthenticatedAdminConfiguracoesDeliveryRouteImport.update({
+    id: '/delivery',
+    path: '/delivery',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesAuditoriaRoute =
+  AuthenticatedAdminConfiguracoesAuditoriaRouteImport.update({
+    id: '/auditoria',
+    path: '/auditoria',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesAparenciaRoute =
+  AuthenticatedAdminConfiguracoesAparenciaRouteImport.update({
+    id: '/aparencia',
+    path: '/aparencia',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
 
@@ -184,7 +226,13 @@ export interface FileRoutesByFullPath {
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
+  '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/delivery': typeof AuthenticatedAdminConfiguracoesDeliveryRoute
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
+  '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/admin/configuracoes/pedidos': typeof AuthenticatedAdminConfiguracoesPedidosRoute
+  '/admin/configuracoes/sistema': typeof AuthenticatedAdminConfiguracoesSistemaRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/admin/configuracoes/': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -207,7 +255,13 @@ export interface FileRoutesByTo {
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
+  '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/delivery': typeof AuthenticatedAdminConfiguracoesDeliveryRoute
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
+  '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/admin/configuracoes/pedidos': typeof AuthenticatedAdminConfiguracoesPedidosRoute
+  '/admin/configuracoes/sistema': typeof AuthenticatedAdminConfiguracoesSistemaRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -234,7 +288,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/admin/vendas': typeof AuthenticatedAdminVendasRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
+  '/_authenticated/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/_authenticated/admin/configuracoes/delivery': typeof AuthenticatedAdminConfiguracoesDeliveryRoute
   '/_authenticated/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
+  '/_authenticated/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/_authenticated/admin/configuracoes/pedidos': typeof AuthenticatedAdminConfiguracoesPedidosRoute
+  '/_authenticated/admin/configuracoes/sistema': typeof AuthenticatedAdminConfiguracoesSistemaRoute
   '/_authenticated/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   '/_authenticated/admin/configuracoes/': typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
@@ -261,7 +321,13 @@ export interface FileRouteTypes {
     | '/admin/usuarios'
     | '/admin/vendas'
     | '/admin/'
+    | '/admin/configuracoes/aparencia'
+    | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/delivery'
     | '/admin/configuracoes/empresa'
+    | '/admin/configuracoes/pdv'
+    | '/admin/configuracoes/pedidos'
+    | '/admin/configuracoes/sistema'
     | '/admin/configuracoes/usuarios'
     | '/admin/configuracoes/'
   fileRoutesByTo: FileRoutesByTo
@@ -284,7 +350,13 @@ export interface FileRouteTypes {
     | '/admin/usuarios'
     | '/admin/vendas'
     | '/admin'
+    | '/admin/configuracoes/aparencia'
+    | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/delivery'
     | '/admin/configuracoes/empresa'
+    | '/admin/configuracoes/pdv'
+    | '/admin/configuracoes/pedidos'
+    | '/admin/configuracoes/sistema'
     | '/admin/configuracoes/usuarios'
     | '/admin/configuracoes'
   id:
@@ -310,7 +382,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/admin/vendas'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/configuracoes/aparencia'
+    | '/_authenticated/admin/configuracoes/auditoria'
+    | '/_authenticated/admin/configuracoes/delivery'
     | '/_authenticated/admin/configuracoes/empresa'
+    | '/_authenticated/admin/configuracoes/pdv'
+    | '/_authenticated/admin/configuracoes/pedidos'
+    | '/_authenticated/admin/configuracoes/sistema'
     | '/_authenticated/admin/configuracoes/usuarios'
     | '/_authenticated/admin/configuracoes/'
   fileRoutesById: FileRoutesById
@@ -490,6 +568,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesUsuariosRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/sistema': {
+      id: '/_authenticated/admin/configuracoes/sistema'
+      path: '/sistema'
+      fullPath: '/admin/configuracoes/sistema'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesSistemaRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
+    '/_authenticated/admin/configuracoes/pedidos': {
+      id: '/_authenticated/admin/configuracoes/pedidos'
+      path: '/pedidos'
+      fullPath: '/admin/configuracoes/pedidos'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesPedidosRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
+    '/_authenticated/admin/configuracoes/pdv': {
+      id: '/_authenticated/admin/configuracoes/pdv'
+      path: '/pdv'
+      fullPath: '/admin/configuracoes/pdv'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesPdvRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/empresa': {
       id: '/_authenticated/admin/configuracoes/empresa'
       path: '/empresa'
@@ -497,19 +596,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesEmpresaRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/delivery': {
+      id: '/_authenticated/admin/configuracoes/delivery'
+      path: '/delivery'
+      fullPath: '/admin/configuracoes/delivery'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesDeliveryRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
+    '/_authenticated/admin/configuracoes/auditoria': {
+      id: '/_authenticated/admin/configuracoes/auditoria'
+      path: '/auditoria'
+      fullPath: '/admin/configuracoes/auditoria'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
+    '/_authenticated/admin/configuracoes/aparencia': {
+      id: '/_authenticated/admin/configuracoes/aparencia'
+      path: '/aparencia'
+      fullPath: '/admin/configuracoes/aparencia'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesAparenciaRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
   }
 }
 
 interface AuthenticatedAdminConfiguracoesRouteChildren {
+  AuthenticatedAdminConfiguracoesAparenciaRoute: typeof AuthenticatedAdminConfiguracoesAparenciaRoute
+  AuthenticatedAdminConfiguracoesAuditoriaRoute: typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  AuthenticatedAdminConfiguracoesDeliveryRoute: typeof AuthenticatedAdminConfiguracoesDeliveryRoute
   AuthenticatedAdminConfiguracoesEmpresaRoute: typeof AuthenticatedAdminConfiguracoesEmpresaRoute
+  AuthenticatedAdminConfiguracoesPdvRoute: typeof AuthenticatedAdminConfiguracoesPdvRoute
+  AuthenticatedAdminConfiguracoesPedidosRoute: typeof AuthenticatedAdminConfiguracoesPedidosRoute
+  AuthenticatedAdminConfiguracoesSistemaRoute: typeof AuthenticatedAdminConfiguracoesSistemaRoute
   AuthenticatedAdminConfiguracoesUsuariosRoute: typeof AuthenticatedAdminConfiguracoesUsuariosRoute
   AuthenticatedAdminConfiguracoesIndexRoute: typeof AuthenticatedAdminConfiguracoesIndexRoute
 }
 
 const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfiguracoesRouteChildren =
   {
+    AuthenticatedAdminConfiguracoesAparenciaRoute:
+      AuthenticatedAdminConfiguracoesAparenciaRoute,
+    AuthenticatedAdminConfiguracoesAuditoriaRoute:
+      AuthenticatedAdminConfiguracoesAuditoriaRoute,
+    AuthenticatedAdminConfiguracoesDeliveryRoute:
+      AuthenticatedAdminConfiguracoesDeliveryRoute,
     AuthenticatedAdminConfiguracoesEmpresaRoute:
       AuthenticatedAdminConfiguracoesEmpresaRoute,
+    AuthenticatedAdminConfiguracoesPdvRoute:
+      AuthenticatedAdminConfiguracoesPdvRoute,
+    AuthenticatedAdminConfiguracoesPedidosRoute:
+      AuthenticatedAdminConfiguracoesPedidosRoute,
+    AuthenticatedAdminConfiguracoesSistemaRoute:
+      AuthenticatedAdminConfiguracoesSistemaRoute,
     AuthenticatedAdminConfiguracoesUsuariosRoute:
       AuthenticatedAdminConfiguracoesUsuariosRoute,
     AuthenticatedAdminConfiguracoesIndexRoute:
