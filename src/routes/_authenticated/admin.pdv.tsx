@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/admin/pdv")({
   validateSearch: (search: Record<string, unknown>) => ({
     mesa: typeof search.mesa === "string" ? search.mesa : undefined,
     order: typeof search.order === "string" ? search.order : undefined,
+    action: search.action === "finalize" ? "finalize" as const : undefined,
   }),
   component: PDVPage,
 });
@@ -344,6 +345,7 @@ function PDVPage() {
   function openCheckout() {
     if (!atendimento) { toast.error("Selecione o tipo de atendimento"); return; }
     if (cart.length === 0) { toast.error("Adicione itens"); return; }
+    if (!cashSession.data) { toast.error("Abra o caixa antes de finalizar vendas"); return; }
     if (atendimento === "mesa" && !mesaId) { toast.error("Selecione a mesa"); return; }
     if (atendimento === "delivery") {
       if (!clienteNome || !clienteTel) { toast.error("Nome e telefone são obrigatórios"); return; }
