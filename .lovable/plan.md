@@ -1,95 +1,79 @@
-# Sistema Universal de Gestão e Vendas — Pizzaria (Fase 1 completa)
+## Objetivo
 
-Vou construir a estrutura completa de todos os módulos solicitados, com profundidade real nos fluxos principais (vendas/pedidos/PDV/mesas/caixa) e cardápio público funcional ponta-a-ponta. Estética inspirada em pizzaria artesanal (tons quentes, terracota/tomate, off-white, tipografia com personalidade).
+Transformar o sistema (hoje single-tenant global) em **multi-tenant real**: cada usuário/empresa opera em um tenant isolado, com um único cardápio automático e URL pública exclusiva `/menu/:codigo`. A rota `/` deixa de exibir cardápio e passa a ser landing com CTA de login.
 
-## Stack & Backend
+## Escopo confirmado
 
-- TanStack Start + React 19 + Tailwind v4 (já configurado)
-- **Lovable Cloud** (Supabase) para: autenticação admin, banco Postgres com RLS, realtime para pedidos chegando no admin
-- shadcn/ui customizado via design system (tokens em `src/styles.css`)
-- Fontes: Outfit (headings) + Inter (body) via @fontsource
-- Paleta: terracota `#C2410C`, creme `#FBF7F0`, carvão `#1C1917`, oliva `#65A30D` (sucesso), âmbar (atenção)
+- Isolamento em **todos** os módulos administrativos (produtos, categorias, pedidos, PDV, caixa, estoque, financeiro, clientes, funcionários, mesas, etc.).
+- URL pública no formato `/menu/:codigo` (código curto autogerado, ex.: `AB12CD`).
+- `/` vira landing pública com botão "Entrar" (sem cardápio agregado).
 
-## Modelagem do banco (resumo)
+## Arquitetura
 
+### 1. Tenants
+- Já existe a tabela `tenants` (usada pelo Master). Reaproveitar como container de empresa.
+- Adicionar coluna `owner_user_id uuid` (o usuário dono) e `menu_codigo text unique` (código de 6 chars, gerado auto: `AB12CD`).
+- Trigger em `auth.users` (via `handle_new_user` já existente) cria automaticamente: 1 tenant + 1 profile + role `owner` + settings-shell inicial.
+
+### 2. Coluna `tenant_id` em todas as tabelas de domínio
+Aplicar `tenant_id uuid not null references tenants(id) on delete cascade` em:
+`products, categories, complement_groups, complements, combos, combo_items, product_complement_groups, orders, order_items, order_payments, cash_sessions, cash_movements, stock_movements, suppliers, customers, clients, employees, restaurant_tables, table_history, financeiro_movimentos, producao_orders, service_orders, support_tickets, support_ratings, settings, company_settings, role_permissions, audit_logs`.
+
+Estratégia de backfill: cria 1 tenant "Legacy" para o owner atual (`pa123@gmail.com`) e migra todas as linhas existentes para ele.
+
+### 3. RLS por tenant
+Função `SECURITY DEFINER`:
+```sql
+current_tenant_id() → uuid  -- lê do user_roles.tenant_id do auth.uid()
 ```
-profiles (id→auth.users, nome, papel)
-user_roles (id, user_id, role: admin|operador|caixa)  -- separado, com has_role()
-categories (id, nome, ordem, ativo, icone)
-products (id, category_id, nome, descricao, preco, preco_promo, imagem_url, ativo, disponivel)
-customers (id, nome, telefone, endereco_json)
-orders (id, numero, cliente_id?, origem: pdv|mesa|online, status, tipo: retirada|local|entrega,
-        subtotal, desconto, taxa_entrega, total, forma_pgto, observacoes, mesa_id?, criado_em)
-order_items (id, order_id, product_id, qtd, preco_unit, subtotal, observacoes)
-tables (id, numero, capacidade, status: livre|ocupada|reservada)
-cash_sessions (id, aberto_por, aberto_em, fechado_em, saldo_inicial, saldo_final, status)
-cash_movements (id, session_id, tipo: entrada|saida|sangria|reforço|venda, valor, descricao, criado_em)
-settings (singleton: nome_estabelecimento, horario, banner_url, taxa_entrega_padrao, etc.)
-```
+Substituir todas as policies das tabelas acima por: `USING (tenant_id = current_tenant_id())`. Master (role `master`) mantém acesso via `has_role(auth.uid(),'master')`.
 
-RLS: tabelas operacionais exigem usuário autenticado com role `admin`/`operador`/`caixa` (via `has_role`); `categories`/`products` legíveis publicamente (TO anon SELECT) para o cardápio; `orders` insert público (cliente final cria pedido sem login).
+`user_roles` ganha `tenant_id` para permitir que um usuário pertença a um tenant específico como owner/staff.
 
-## Rotas
+### 4. Cardápio público `/menu/:codigo`
+- Nova rota `src/routes/menu.$codigo.tsx` (SSR-on, público).
+- Server function `getPublicMenu(codigo)` com client publishable + policies `TO anon` restritas: SELECT em `products/categories/settings` filtrado por `tenants.menu_codigo = :codigo` e apenas `ativo=true`.
+- Herda todo o design/carrossel/banner do cardápio atual, mas escopado ao tenant.
 
-### Públicas (cliente final)
-- `/` — cardápio público (banner, info loja, busca, filtro categoria, grid de produtos)
-- `/produto/$id` — detalhe + adicionar ao carrinho
-- `/carrinho` — itens, observações, totais
-- `/checkout` — dados, tipo de pedido (retirada/local/entrega), forma de pgto
-- `/pedido/$numero` — confirmação + acompanhamento
+### 5. Landing `/`
+Substituir cardápio agregado por landing simples: hero, feature chips, botões "Entrar" e "Ver cardápio de exemplo". Zero fetch de produtos globais.
 
-Carrinho persistido em `localStorage`.
+### 6. Fluxos admin
+- Frontend: nenhuma UI nova. Todas as queries continuam iguais — a RLS faz o filtro. Remover apenas `.eq('owner'...)` residuais se existirem.
+- Master panel: lista tenants (já funciona) e permite ver `menu_codigo`.
+- Configurações → Empresa: mostra o `menu_codigo` e link "Copiar URL pública".
 
-### Admin (sob `_authenticated/`)
-- `/auth` — login + recuperar senha + reset-password
-- `/admin` — Dashboard (KPIs, gráficos Recharts)
-- `/admin/vendas` — listagem com filtros (data, cliente, pgto, status, origem)
-- `/admin/catalogo` — produtos + categorias (CRUD, upload imagem via storage)
-- `/admin/pedidos` — kanban por status + realtime + impressão
-- `/admin/pdv` — tela de venda balcão
-- `/admin/mesas` — grid de mesas, abrir/fechar/dividir/transferir
-- `/admin/caixa` — abertura, movimentos, fechamento, histórico
-- `/admin/configuracoes` — dados do estabelecimento, horário, taxa entrega
+## Migração de dados
 
-## Design System
+1. Criar tenant "Empresa Principal" com `owner_user_id = pa123@gmail.com`.
+2. `UPDATE ... SET tenant_id = <esse tenant>` em todas as tabelas existentes.
+3. Depois do backfill, aplicar `NOT NULL` nas colunas `tenant_id`.
+4. Gerar `menu_codigo` para o tenant existente.
 
-- Tokens semânticos em `src/styles.css` (oklch): `--primary` terracota, `--accent` âmbar, surfaces creme, gradientes quentes, sombras suaves
-- Variants em Button (`hero`, `pdv`, `danger`), Card (`product`, `order-status`)
-- Layout admin com sidebar shadcn (collapsible="icon") + header com SidebarTrigger
-- Layout público sem sidebar, header limpo com nome/horário/carrinho
+## Impacto no que já está construído
 
-## Detalhes funcionais relevantes
+- **Preservado 100%**: Dashboard, PDV, Caixa, Pedidos, Vendas, Estoque, Financeiro, Produtos, Categorias, Clientes, Funcionários, Mesas, KDS, QR codes, Configurações, Suporte, Design da Empresa, Assinatura, Aparência.
+- **Alterado**: rota `/` (vira landing), rotas públicas antigas de cardápio agregado desativadas — cardápio real vive em `/menu/:codigo`.
+- **Removido/ajustado**: fetches globais em `src/routes/index.tsx`, `carrinho.tsx`, `checkout.tsx` (checkout público passa a exigir contexto de tenant — via `sessionStorage` ao entrar no menu do tenant).
 
-- **Realtime**: admin/pedidos assina canal Postgres → novos pedidos chegam sem refresh, com toast + som opcional
-- **Numeração de pedido**: sequência via função SQL `next_order_number()`
-- **PDV**: busca instant, atalhos de teclado, múltiplas formas de pagamento (split)
-- **Mesas**: cartões coloridos por status, modal de comanda, dividir conta por pessoa ou por item
-- **Caixa**: bloqueia operações financeiras se não houver sessão aberta; toda venda finalizada cria movimento `entrada` na sessão ativa
-- **Dashboard**: queries agregadas (hoje, mês, ticket médio, top 5 produtos, gráfico últimos 7 dias)
-- **Impressão de pedido**: layout 80mm via `window.print` + CSS `@media print`
+## Passos de implementação
 
-## Escopo "estrutural" (entregue funcional, mas mais enxuto)
+1. **Migration 1** — adicionar `owner_user_id` + `menu_codigo` em `tenants`; função `gen_menu_codigo()`; função `current_tenant_id()`; adicionar `tenant_id` em `user_roles`.
+2. **Migration 2** — adicionar `tenant_id` (nullable) em todas as tabelas de domínio + índices.
+3. **Migration 3** — criar tenant legado, backfill de todas as tabelas, `NOT NULL`.
+4. **Migration 4** — recriar policies RLS baseadas em `current_tenant_id()`; policies `TO anon` restritas para o cardápio público (via `menu_codigo`).
+5. **Migration 5** — atualizar `handle_new_user()` para provisionar tenant + role owner + settings iniciais em novos signups.
+6. **Frontend** — reescrever `src/routes/index.tsx` como landing; criar `src/routes/menu.$codigo.tsx` com fetch público; mover lógica atual de carrinho/checkout para usar `codigo` da URL; adicionar bloco "URL pública" em `admin.configuracoes.empresa.tsx`.
 
-- Recuperação de senha (fluxo Supabase padrão)
-- Upload de imagens via Supabase Storage
-- Configurações (form único)
-- Dividir conta (split simples; split avançado por item entra como melhoria)
+## Riscos
 
-## Fora do escopo desta fase (preparado pra evoluir)
+- Grande volume de policies alteradas — risco de quebrar leituras existentes; mitigado testando com o owner atual imediatamente após a migração.
+- Checkout público precisa carregar contexto de tenant a partir da URL; sem isso, pedidos anônimos ficariam sem tenant. Solução: `menu_codigo` é fonte de verdade no fluxo público e vai no payload do pedido.
 
-Estoque, fidelidade, cupons, cashback, QR mesa, multiempresa, WhatsApp, gateway de pagamento real, impressora térmica via API, mobile app. Schema e arquitetura já permitem adicionar sem refactor grande.
+## Fora de escopo
 
-## Ordem de execução
+- Convite/gestão de múltiplos funcionários por tenant via UI (já existe estrutura em `user_roles`; UI de convites fica para depois).
+- Domínios customizados por tenant.
+- Billing por tenant (o módulo Assinatura permanece como está).
 
-1. Habilitar Lovable Cloud + migration completa (tabelas, RLS, roles, função numeração, seeds de categorias/produtos pizzaria)
-2. Design system + layout admin/público + auth
-3. Catálogo admin (produtos/categorias) + upload imagens
-4. Catálogo público + carrinho + checkout + criação de pedido
-5. Pedidos admin (kanban + realtime + impressão)
-6. PDV
-7. Mesas
-8. Caixa + integração vendas→movimentos
-9. Dashboard + Vendas (listagem/filtros) + Configurações
-10. Seeds de demonstração (pizzas, bebidas, sobremesas)
-
-Vou implementar tudo em sequência. É um volume grande de código — vai consumir bastante crédito. Confirma que posso seguir?
+Confirma que posso executar?
