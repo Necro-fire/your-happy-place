@@ -17,7 +17,7 @@ type Stored = { mode: ThemeMode; palette?: Partial<Palette>; preset?: string };
 
 export const PRESETS: Record<string, { label: string; light: Palette; dark: Palette }> = {
   profissional: {
-    label: "Profissional",
+    label: "Profissional (padrão)",
     light: {
       primary: "oklch(0.45 0.10 250)",
       secondary: "oklch(0.94 0.02 250)",
