@@ -386,7 +386,7 @@ function PDVPage() {
       <div style="text-align:center;font-size:11px">${new Date().toLocaleString("pt-BR")}</div>
       <hr/>${linhas}<hr/>
       <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
-      ${descOrder ? `<div style="display:flex;justify-content:space-between"><span>Desconto</span><span>-${fmtMoney(descOrder)}</span></div>` : ""}
+      ${""}
       ${atendimento === "delivery" && taxa ? `<div style="display:flex;justify-content:space-between"><span>Taxa entrega</span><span>${fmtMoney(taxa)}</span></div>` : ""}
       <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:16px"><span>TOTAL</span><span>${fmtMoney(total)}</span></div>
       <hr/>${pgts}
@@ -418,7 +418,7 @@ function PDVPage() {
         cliente_telefone: clienteTel || null,
         origem: cfg.origem, tipo: cfg.tipo,
         status: atendimento === "mesa" ? "em_preparo" : "finalizado",
-        subtotal, desconto: descOrder,
+        subtotal, desconto: 0,
         taxa_entrega: atendimento === "delivery" ? Number(taxa) : 0,
         total, forma_pagamento, observacoes: obs || null,
       };
@@ -669,18 +669,15 @@ function PDVPage() {
               {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={() => { setHeldOpen(true); setHeld(loadHeld()); }} title="Vendas suspensas">
-            <Clock className="h-4 w-4" />
-            {held.length > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{held.length}</span>}
-          </Button>
           <Button variant="outline" size="icon" onClick={reprintLast} title="Reimprimir último"><Printer className="h-4 w-4" /></Button>
         </div>
 
+
+
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
             <TabsTrigger value="combos">Combos</TabsTrigger>
-            <TabsTrigger value="recentes"><Clock className="mr-1 h-3 w-3" />Recentes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
@@ -696,9 +693,6 @@ function PDVPage() {
               ))}
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
-          </TabsContent>
-          <TabsContent value="recentes" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} empty="Nenhum produto usado recentemente" />
           </TabsContent>
         </Tabs>
       </div>
@@ -750,10 +744,6 @@ function PDVPage() {
 
         <div className="space-y-2 border-t pt-3 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1"><Percent className="h-3 w-3" />Desconto</span>
-            <Input type="number" min={0} value={descOrder} onChange={(e) => setDescOrder(Number(e.target.value))} className="h-8 w-24 text-right" />
-          </div>
           {atendimento === "delivery" && (
             <div className="flex items-center justify-between">
               <span>Taxa entrega</span>
@@ -763,20 +753,8 @@ function PDVPage() {
           <div className="flex justify-between border-t pt-2 font-display text-xl font-bold">
             <span>Total</span><span className="text-primary">{fmtMoney(total)}</span>
           </div>
-          {pessoas > 1 && (
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Por pessoa ({pessoas})</span><span>{fmtMoney(perPessoa)}</span>
-            </div>
-          )}
         </div>
 
-        <div className="mt-2 grid grid-cols-3 gap-1">
-          <Button variant="outline" size="sm" onClick={suspendSale} disabled={cart.length === 0}><Pause className="mr-1 h-3 w-3" />Suspender</Button>
-          <Button variant="outline" size="sm" onClick={async () => { const n = await dialog.prompt({ title: "Dividir conta", description: "Dividir por quantas pessoas?", defaultValue: String(pessoas), placeholder: "Ex: 2" }); if (n) setPessoas(Math.max(1, Number(n) || 1)); }}>
-            <Split className="mr-1 h-3 w-3" />Dividir
-          </Button>
-          <Button variant="outline" size="sm" onClick={cancelSale} disabled={cart.length === 0}><XCircle className="mr-1 h-3 w-3" />Cancelar</Button>
-        </div>
         <Button size="lg" className="mt-2" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
           {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
         </Button>
@@ -797,7 +775,7 @@ function PDVPage() {
               key: newLineKey(p.id, undefined, comps, observacoes), product_id: p.id, nome: p.nome,
               preco, base_preco: base, quantidade: qty, desconto: 0, complementos: comps, observacoes,
             }]);
-            pushRecent(p.id);
+            }]);
             setComplementModal(null);
           }}
         />
