@@ -40,7 +40,7 @@ const groups: Group[] = [
     id: "estoque", label: "Estoque", icon: Boxes,
     items: [
       { title: "Produtos e Categorias", url: "/admin/catalogo", icon: Package },
-      { title: "Regras de estoque", url: "/admin/configuracoes/estoque", icon: Boxes },
+      { title: "Estoque", url: "/admin/estoque", icon: Boxes },
     ],
   },
   {
@@ -54,7 +54,6 @@ const groups: Group[] = [
     id: "gestao", label: "Gestão", icon: Building2,
     items: [
       { title: "Usuários", url: "/admin/usuarios", icon: Users },
-      { title: "Permissões", url: "/admin/configuracoes/usuarios", icon: Users },
       { title: "Configurações", url: "/admin/configuracoes", icon: Settings },
       { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy },
     ],
