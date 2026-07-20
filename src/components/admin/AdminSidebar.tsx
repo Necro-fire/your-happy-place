@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, ShoppingCart, Package, ClipboardList, Calculator, Coffee, Wallet,
-  Settings, LogOut, Croissant, LifeBuoy, ChefHat, Users, QrCode, ChevronDown, Search,
+  Settings, LogOut, Croissant, LifeBuoy, ChefHat, Users, QrCode, Search,
   DollarSign, Boxes, Building2, BarChart3, ConciergeBell, Globe,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,17 +79,6 @@ export function AdminSidebar() {
       .filter((g) => g.items.length > 0);
   }, [query]);
 
-  const initialOpen = useMemo(() => {
-    const map: Record<string, boolean> = {};
-    for (const g of groups) map[g.id] = g.items.some((i) => isActive(i.url, i.exact));
-    // Open Vendas by default if none active
-    if (!Object.values(map).some(Boolean)) map.vendas = true;
-    return map;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const [open, setOpen] = useState<Record<string, boolean>>(initialOpen);
-  const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
-
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -125,7 +114,7 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/admin", true)}>
+                <SidebarMenuButton asChild isActive={isActive("/admin", true)} tooltip="Dashboard">
                   <Link to="/admin" className="flex items-center gap-2">
                     <LayoutDashboard className="h-4 w-4" />
                     {!collapsed && <span>Dashboard</span>}
@@ -136,57 +125,43 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {filtered.map((g) => {
-          const groupActive = g.items.some((i) => isActive(i.url, i.exact));
-          const isOpen = query.trim() ? true : (open[g.id] ?? false);
-          return (
-            <SidebarGroup key={g.id}>
-              {!collapsed ? (
-                <button
-                  type="button"
-                  onClick={() => !query && toggle(g.id)}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors hover:bg-sidebar-accent/50",
-                    groupActive ? "text-primary" : "text-muted-foreground",
-                  )}
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <g.icon className="h-3.5 w-3.5" />
-                    {g.label}
-                  </span>
-                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
-                </button>
-              ) : (
-                <SidebarGroupLabel>
-                  <g.icon className="h-3.5 w-3.5" />
-                </SidebarGroupLabel>
-              )}
-              {(isOpen || collapsed) && (
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {g.items.map((item) => (
-                      <SidebarMenuItem key={item.url + item.title}>
-                        <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)} tooltip={item.title}>
-                          {item.external ? (
-                            <a href={item.url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </a>
-                          ) : (
-                            <Link to={item.url} className="flex items-center gap-2">
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-          );
-        })}
+        {filtered.map((g) => (
+          <SidebarGroup key={g.id}>
+            {!collapsed ? (
+              <SidebarGroupLabel
+                className={cn(
+                  "pointer-events-none select-none px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70",
+                )}
+              >
+                <g.icon className="mr-1.5 h-3 w-3 opacity-70" aria-hidden />
+                <span>{g.label}</span>
+              </SidebarGroupLabel>
+            ) : (
+              <div className="mx-2 my-1 h-px bg-sidebar-border/60" aria-hidden />
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {g.items.map((item) => (
+                  <SidebarMenuItem key={item.url + item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)} tooltip={item.title}>
+                      {item.external ? (
+                        <a href={item.url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </a>
+                      ) : (
+                        <Link to={item.url} className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </Link>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
