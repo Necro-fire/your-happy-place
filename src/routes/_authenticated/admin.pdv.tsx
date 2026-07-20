@@ -418,15 +418,24 @@ function PDVPage() {
   function printReceipt(order: { id: string; numero: number }) {
     const w = window.open("", "_blank", "width=380,height=600");
     if (!w) return;
+    const settings: any = settingsQ.data ?? {};
+    const nomeEmpresa: string = settings.nome_fantasia || settings.nome_estabelecimento || "";
+    const logoUrl: string | undefined = settings.logo_url || undefined;
+    const showLogo = ((settings.config?.impressoes ?? {}).mostrar_logo ?? true) && !!logoUrl;
+    const rodape: string = settings.config?.impressoes?.rodape || "Obrigado!";
     const linhas = cart.map((i) => {
       const c = i.complementos.length ? `<div style="font-size:11px;color:#666;padding-left:12px">+ ${i.complementos.map((x) => x.nome).join(", ")}</div>` : "";
       const o = i.observacoes ? `<div style="font-size:11px;color:#666;padding-left:12px">obs: ${i.observacoes}</div>` : "";
       return `<div style="display:flex;justify-content:space-between"><span>${i.quantidade}x ${i.nome}</span><span>${fmtMoney(i.preco * i.quantidade - i.desconto)}</span></div>${c}${o}`;
     }).join("");
-    const pgts = pagamentos.filter((p) => p.valor > 0).map((p) => `<div style="display:flex;justify-content:space-between"><span>${PGTO_LABEL[p.forma]}</span><span>${fmtMoney(p.valor)}</span></div>`).join("");
+    const pgts = pagamentos.filter((p) => p.valor > 0).map((p) => `<div style="display:flex;justify-content:space-between"><span>${methodLabel(p.methodId)}</span><span>${fmtMoney(p.valor)}</span></div>`).join("");
+    const header = `
+      ${showLogo ? `<div style="text-align:center;margin-bottom:6px"><img src="${logoUrl}" alt="logo" style="max-height:56px;max-width:100%"/></div>` : ""}
+      ${nomeEmpresa ? `<div style="text-align:center;font-weight:bold;font-size:14px">${nomeEmpresa}</div>` : ""}`;
     w.document.write(`<html><head><title>Pedido #${order.numero}</title>
       <style>body{font-family:monospace;padding:12px;font-size:13px}h2{text-align:center;margin:4px 0}hr{border:none;border-top:1px dashed #999;margin:8px 0}</style>
       </head><body>
+      ${header}
       <h2>Pedido #${order.numero}</h2>
       <div style="text-align:center;font-size:11px">${new Date().toLocaleString("pt-BR")}</div>
       <hr/>${linhas}<hr/>
@@ -436,8 +445,12 @@ function PDVPage() {
       <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:16px"><span>TOTAL</span><span>${fmtMoney(total)}</span></div>
       <hr/>${pgts}
       ${trocoDinheiro > 0 ? `<div style="display:flex;justify-content:space-between"><span>Troco</span><span>${fmtMoney(trocoDinheiro)}</span></div>` : ""}
-      <hr/><div style="text-align:center">Obrigado!</div>
-      <script>window.print();setTimeout(()=>window.close(),300)</script>
+      <hr/><div style="text-align:center">${rodape}</div>
+      <script>
+        const vias = ${Math.max(1, Number(impressoes.vias) || 1)};
+        const doPrint = ${impressoes.auto_print ? "true" : "false"};
+        if (doPrint) { for (let i=0;i<vias;i++) { window.print(); } setTimeout(()=>window.close(),300); }
+      </script>
       </body></html>`);
     w.document.close();
   }
