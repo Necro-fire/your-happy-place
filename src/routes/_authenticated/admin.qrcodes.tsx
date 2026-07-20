@@ -79,7 +79,7 @@ function QrCodesPage() {
 
   const filtered = useMemo(() => {
     const q = busca.trim().toLowerCase();
-    return (tables.data ?? []).filter((t) => !q || String(t.numero).includes(q) || (t.setor ?? "").toLowerCase().includes(q));
+    return (tables.data ?? []).filter((t) => !q || String(t.numero).includes(q));
   }, [tables.data, busca]);
 
   function serializeQr(id: string): string {
