@@ -138,7 +138,7 @@ function HomePage() {
             if (list.length === 0) return null;
             return (
               <section key={c.id} className="mb-10">
-                <h2 className="mb-4 font-display text-2xl font-bold">{c.icone} {c.nome}</h2>
+                <h2 className="mb-4 flex items-center gap-2 font-display text-2xl font-bold"><CategoryIcon name={c.icone} className="h-6 w-6" />{c.nome}</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {list.map((p) => {
                     const preco = p.preco_promo ?? p.preco;
