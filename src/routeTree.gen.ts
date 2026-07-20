@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminConfiguracoesDeliveryRouteImport } from './r
 import { Route as AuthenticatedAdminConfiguracoesDashboardRouteImport } from './routes/_authenticated/admin.configuracoes.dashboard'
 import { Route as AuthenticatedAdminConfiguracoesClientesRouteImport } from './routes/_authenticated/admin.configuracoes.clientes'
 import { Route as AuthenticatedAdminConfiguracoesCaixaRouteImport } from './routes/_authenticated/admin.configuracoes.caixa'
+import { Route as AuthenticatedAdminConfiguracoesBackupRouteImport } from './routes/_authenticated/admin.configuracoes.backup'
 import { Route as AuthenticatedAdminConfiguracoesAuditoriaRouteImport } from './routes/_authenticated/admin.configuracoes.auditoria'
 import { Route as AuthenticatedAdminConfiguracoesAreaPublicaRouteImport } from './routes/_authenticated/admin.configuracoes.area-publica'
 import { Route as AuthenticatedAdminConfiguracoesAparenciaRouteImport } from './routes/_authenticated/admin.configuracoes.aparencia'
@@ -291,6 +292,12 @@ const AuthenticatedAdminConfiguracoesCaixaRoute =
     path: '/caixa',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesBackupRoute =
+  AuthenticatedAdminConfiguracoesBackupRouteImport.update({
+    id: '/backup',
+    path: '/backup',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesAuditoriaRoute =
   AuthenticatedAdminConfiguracoesAuditoriaRouteImport.update({
     id: '/auditoria',
@@ -334,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
   '/admin/configuracoes/caixa': typeof AuthenticatedAdminConfiguracoesCaixaRoute
   '/admin/configuracoes/clientes': typeof AuthenticatedAdminConfiguracoesClientesRoute
   '/admin/configuracoes/dashboard': typeof AuthenticatedAdminConfiguracoesDashboardRoute
@@ -378,6 +386,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
   '/admin/configuracoes/caixa': typeof AuthenticatedAdminConfiguracoesCaixaRoute
   '/admin/configuracoes/clientes': typeof AuthenticatedAdminConfiguracoesClientesRoute
   '/admin/configuracoes/dashboard': typeof AuthenticatedAdminConfiguracoesDashboardRoute
@@ -426,6 +435,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/_authenticated/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/_authenticated/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  '/_authenticated/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
   '/_authenticated/admin/configuracoes/caixa': typeof AuthenticatedAdminConfiguracoesCaixaRoute
   '/_authenticated/admin/configuracoes/clientes': typeof AuthenticatedAdminConfiguracoesClientesRoute
   '/_authenticated/admin/configuracoes/dashboard': typeof AuthenticatedAdminConfiguracoesDashboardRoute
@@ -474,6 +484,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
     | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/backup'
     | '/admin/configuracoes/caixa'
     | '/admin/configuracoes/clientes'
     | '/admin/configuracoes/dashboard'
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
     | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/backup'
     | '/admin/configuracoes/caixa'
     | '/admin/configuracoes/clientes'
     | '/admin/configuracoes/dashboard'
@@ -565,6 +577,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes/aparencia'
     | '/_authenticated/admin/configuracoes/area-publica'
     | '/_authenticated/admin/configuracoes/auditoria'
+    | '/_authenticated/admin/configuracoes/backup'
     | '/_authenticated/admin/configuracoes/caixa'
     | '/_authenticated/admin/configuracoes/clientes'
     | '/_authenticated/admin/configuracoes/dashboard'
@@ -896,6 +909,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesCaixaRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/backup': {
+      id: '/_authenticated/admin/configuracoes/backup'
+      path: '/backup'
+      fullPath: '/admin/configuracoes/backup'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesBackupRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/auditoria': {
       id: '/_authenticated/admin/configuracoes/auditoria'
       path: '/auditoria'
@@ -924,6 +944,7 @@ interface AuthenticatedAdminConfiguracoesRouteChildren {
   AuthenticatedAdminConfiguracoesAparenciaRoute: typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   AuthenticatedAdminConfiguracoesAreaPublicaRoute: typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   AuthenticatedAdminConfiguracoesAuditoriaRoute: typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
+  AuthenticatedAdminConfiguracoesBackupRoute: typeof AuthenticatedAdminConfiguracoesBackupRoute
   AuthenticatedAdminConfiguracoesCaixaRoute: typeof AuthenticatedAdminConfiguracoesCaixaRoute
   AuthenticatedAdminConfiguracoesClientesRoute: typeof AuthenticatedAdminConfiguracoesClientesRoute
   AuthenticatedAdminConfiguracoesDashboardRoute: typeof AuthenticatedAdminConfiguracoesDashboardRoute
@@ -955,6 +976,8 @@ const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfigurac
       AuthenticatedAdminConfiguracoesAreaPublicaRoute,
     AuthenticatedAdminConfiguracoesAuditoriaRoute:
       AuthenticatedAdminConfiguracoesAuditoriaRoute,
+    AuthenticatedAdminConfiguracoesBackupRoute:
+      AuthenticatedAdminConfiguracoesBackupRoute,
     AuthenticatedAdminConfiguracoesCaixaRoute:
       AuthenticatedAdminConfiguracoesCaixaRoute,
     AuthenticatedAdminConfiguracoesClientesRoute:
