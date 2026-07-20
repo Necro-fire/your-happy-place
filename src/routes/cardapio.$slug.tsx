@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicLayout } from "@/components/public/PublicLayout";
@@ -46,6 +46,18 @@ function CardapioPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
   const { data: settings } = usePublicSettings(tenantId);
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!tenantId) return;
+    const ch = supabase
+      .channel(`public-menu-${tenantId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `tenant_id=eq.${tenantId}` }, () => qc.invalidateQueries({ queryKey: ["public-menu", tenantId] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories", filter: `tenant_id=eq.${tenantId}` }, () => qc.invalidateQueries({ queryKey: ["public-menu", tenantId] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "settings", filter: `tenant_id=eq.${tenantId}` }, () => qc.invalidateQueries({ queryKey: ["public-settings", tenantId] }))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [tenantId, qc]);
 
   const menu = useQuery({
     queryKey: ["public-menu", tenantId],
