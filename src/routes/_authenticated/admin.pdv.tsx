@@ -969,7 +969,7 @@ function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => v
             disabled={indisponivel}
             className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <div className="aspect-square w-full overflow-hidden bg-muted">
+            <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
               <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full" />
             </div>
             <div className="flex flex-1 flex-col p-2">
