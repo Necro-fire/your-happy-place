@@ -20,9 +20,11 @@ import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as MesaNumeroRouteImport } from './routes/mesa.$numero'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as MesaNumeroPedidosRouteImport } from './routes/mesa.$numero.pedidos'
 import { Route as AuthenticatedAdminVendasRouteImport } from './routes/_authenticated/admin.vendas'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
 import { Route as AuthenticatedAdminSuporteRouteImport } from './routes/_authenticated/admin.suporte'
+import { Route as AuthenticatedAdminQrcodesRouteImport } from './routes/_authenticated/admin.qrcodes'
 import { Route as AuthenticatedAdminPedidosRouteImport } from './routes/_authenticated/admin.pedidos'
 import { Route as AuthenticatedAdminPdvRouteImport } from './routes/_authenticated/admin.pdv'
 import { Route as AuthenticatedAdminMesasRouteImport } from './routes/_authenticated/admin.mesas'
@@ -110,6 +112,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const MesaNumeroPedidosRoute = MesaNumeroPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => MesaNumeroRoute,
+} as any)
 const AuthenticatedAdminVendasRoute =
   AuthenticatedAdminVendasRouteImport.update({
     id: '/vendas',
@@ -126,6 +133,12 @@ const AuthenticatedAdminSuporteRoute =
   AuthenticatedAdminSuporteRouteImport.update({
     id: '/suporte',
     path: '/suporte',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminQrcodesRoute =
+  AuthenticatedAdminQrcodesRouteImport.update({
+    id: '/qrcodes',
+    path: '/qrcodes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminPedidosRoute =
@@ -325,7 +338,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/mesa/$numero': typeof MesaNumeroRoute
+  '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
@@ -334,9 +347,11 @@ export interface FileRoutesByFullPath {
   '/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
+  '/admin/qrcodes': typeof AuthenticatedAdminQrcodesRoute
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
@@ -371,7 +386,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/mesa/$numero': typeof MesaNumeroRoute
+  '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
@@ -379,9 +394,11 @@ export interface FileRoutesByTo {
   '/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
+  '/admin/qrcodes': typeof AuthenticatedAdminQrcodesRoute
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
@@ -419,7 +436,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/mesa/$numero': typeof MesaNumeroRoute
+  '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/_authenticated/admin/caixa': typeof AuthenticatedAdminCaixaRoute
   '/_authenticated/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
@@ -428,9 +445,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/_authenticated/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/_authenticated/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
+  '/_authenticated/admin/qrcodes': typeof AuthenticatedAdminQrcodesRoute
   '/_authenticated/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/_authenticated/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
@@ -477,9 +496,11 @@ export interface FileRouteTypes {
     | '/admin/mesas'
     | '/admin/pdv'
     | '/admin/pedidos'
+    | '/admin/qrcodes'
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/mesa/$numero/pedidos'
     | '/admin/'
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
@@ -522,9 +543,11 @@ export interface FileRouteTypes {
     | '/admin/mesas'
     | '/admin/pdv'
     | '/admin/pedidos'
+    | '/admin/qrcodes'
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/mesa/$numero/pedidos'
     | '/admin'
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
@@ -570,9 +593,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/mesas'
     | '/_authenticated/admin/pdv'
     | '/_authenticated/admin/pedidos'
+    | '/_authenticated/admin/qrcodes'
     | '/_authenticated/admin/suporte'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/admin/vendas'
+    | '/mesa/$numero/pedidos'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/configuracoes/aparencia'
     | '/_authenticated/admin/configuracoes/area-publica'
@@ -609,7 +634,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  MesaNumeroRoute: typeof MesaNumeroRoute
+  MesaNumeroRoute: typeof MesaNumeroRouteWithChildren
   PedidoNumeroRoute: typeof PedidoNumeroRoute
 }
 
@@ -692,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/mesa/$numero/pedidos': {
+      id: '/mesa/$numero/pedidos'
+      path: '/pedidos'
+      fullPath: '/mesa/$numero/pedidos'
+      preLoaderRoute: typeof MesaNumeroPedidosRouteImport
+      parentRoute: typeof MesaNumeroRoute
+    }
     '/_authenticated/admin/vendas': {
       id: '/_authenticated/admin/vendas'
       path: '/vendas'
@@ -711,6 +743,13 @@ declare module '@tanstack/react-router' {
       path: '/suporte'
       fullPath: '/admin/suporte'
       preLoaderRoute: typeof AuthenticatedAdminSuporteRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/qrcodes': {
+      id: '/_authenticated/admin/qrcodes'
+      path: '/qrcodes'
+      fullPath: '/admin/qrcodes'
+      preLoaderRoute: typeof AuthenticatedAdminQrcodesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/pedidos': {
@@ -1035,6 +1074,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminMesasRoute: typeof AuthenticatedAdminMesasRoute
   AuthenticatedAdminPdvRoute: typeof AuthenticatedAdminPdvRoute
   AuthenticatedAdminPedidosRoute: typeof AuthenticatedAdminPedidosRoute
+  AuthenticatedAdminQrcodesRoute: typeof AuthenticatedAdminQrcodesRoute
   AuthenticatedAdminSuporteRoute: typeof AuthenticatedAdminSuporteRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedAdminVendasRoute: typeof AuthenticatedAdminVendasRoute
@@ -1050,6 +1090,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminMesasRoute: AuthenticatedAdminMesasRoute,
   AuthenticatedAdminPdvRoute: AuthenticatedAdminPdvRoute,
   AuthenticatedAdminPedidosRoute: AuthenticatedAdminPedidosRoute,
+  AuthenticatedAdminQrcodesRoute: AuthenticatedAdminQrcodesRoute,
   AuthenticatedAdminSuporteRoute: AuthenticatedAdminSuporteRoute,
   AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
   AuthenticatedAdminVendasRoute: AuthenticatedAdminVendasRoute,
@@ -1070,6 +1111,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface MesaNumeroRouteChildren {
+  MesaNumeroPedidosRoute: typeof MesaNumeroPedidosRoute
+}
+
+const MesaNumeroRouteChildren: MesaNumeroRouteChildren = {
+  MesaNumeroPedidosRoute: MesaNumeroPedidosRoute,
+}
+
+const MesaNumeroRouteWithChildren = MesaNumeroRoute._addFileChildren(
+  MesaNumeroRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1078,7 +1131,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  MesaNumeroRoute: MesaNumeroRoute,
+  MesaNumeroRoute: MesaNumeroRouteWithChildren,
   PedidoNumeroRoute: PedidoNumeroRoute,
 }
 export const routeTree = rootRouteImport
