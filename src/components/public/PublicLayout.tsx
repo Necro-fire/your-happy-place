@@ -38,12 +38,6 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 </Badge>
               )}
             </Link>
-            <Link
-              to="/auth"
-              className="hidden text-xs text-muted-foreground hover:text-foreground md:inline-flex"
-            >
-              Acesso padaria
-            </Link>
           </nav>
         </div>
       </header>
