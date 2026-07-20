@@ -16,25 +16,6 @@ const STORAGE_KEY = "app-theme-v1";
 type Stored = { mode: ThemeMode; palette?: Partial<Palette>; preset?: string };
 
 export const PRESETS: Record<string, { label: string; light: Palette; dark: Palette }> = {
-  padaria: {
-    label: "Padaria (padrão)",
-    light: {
-      primary: "oklch(0.42 0.075 55)",
-      secondary: "oklch(0.94 0.025 75)",
-      accent: "oklch(0.78 0.13 75)",
-      ring: "oklch(0.42 0.075 55)",
-      sidebar: "oklch(0.24 0.035 50)",
-      "sidebar-primary": "oklch(0.78 0.13 75)",
-    },
-    dark: {
-      primary: "oklch(0.72 0.14 70)",
-      secondary: "oklch(0.28 0.025 50)",
-      accent: "oklch(0.78 0.13 75)",
-      ring: "oklch(0.72 0.14 70)",
-      sidebar: "oklch(0.15 0.015 50)",
-      "sidebar-primary": "oklch(0.78 0.13 75)",
-    },
-  },
   profissional: {
     label: "Profissional",
     light: {
@@ -134,7 +115,7 @@ export function applyTheme(stored: Stored) {
   for (const cssVar of Object.values(VAR_MAP)) html.style.removeProperty(cssVar);
 
   // Apply preset baseline first, then user overrides
-  const presetKey = stored.preset && PRESETS[stored.preset] ? stored.preset : "padaria";
+  const presetKey = stored.preset && PRESETS[stored.preset] ? stored.preset : "profissional";
   const preset = PRESETS[presetKey][resolved];
   for (const [k, v] of Object.entries(preset) as [keyof Palette, string][]) {
     html.style.setProperty(VAR_MAP[k], v);

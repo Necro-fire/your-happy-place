@@ -57,7 +57,7 @@
 :root {
   --radius: 0.75rem;
 
-  /* Paleta padaria — marrom, bege, creme, dourado, branco */
+  /* Paleta base — sobrescrita em tempo real pelo tema selecionado */
   --background: oklch(0.985 0.015 80);          /* creme suave */
   --foreground: oklch(0.22 0.030 50);           /* marrom escuro */
 

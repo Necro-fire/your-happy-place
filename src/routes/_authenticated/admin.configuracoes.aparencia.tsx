@@ -73,13 +73,13 @@ function hexToOklch(hex: string): string {
 
 function AparenciaPage() {
   const [mode, setMode] = useState<ThemeMode>("light");
-  const [presetKey, setPresetKey] = useState<string>("padaria");
+  const [presetKey, setPresetKey] = useState<string>("profissional");
   const [palette, setPalette] = useState<Partial<Palette>>({});
 
   useEffect(() => {
     const s = loadStored();
     setMode(s.mode);
-    setPresetKey(s.preset || "padaria");
+    setPresetKey(s.preset || "profissional");
     setPalette(s.palette || {});
   }, []);
 
@@ -90,7 +90,7 @@ function AparenciaPage() {
 
   const resolved = resolveMode(mode);
   const effective = useMemo(() => {
-    const base = PRESETS[presetKey]?.[resolved] ?? PRESETS.padaria[resolved];
+    const base = PRESETS[presetKey]?.[resolved] ?? PRESETS.profissional[resolved];
     return { ...base, ...palette };
   }, [presetKey, palette, resolved]);
 
@@ -100,9 +100,9 @@ function AparenciaPage() {
   }
   function reset() {
     setMode("light");
-    setPresetKey("padaria");
+    setPresetKey("profissional");
     setPalette({});
-    saveStored({ mode: "light", preset: "padaria", palette: {} });
+    saveStored({ mode: "light", preset: "profissional", palette: {} });
     toast.success("Padrão restaurado");
   }
 
