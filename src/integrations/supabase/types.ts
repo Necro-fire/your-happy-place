@@ -1951,6 +1951,7 @@ export type Database = {
           observacoes: string | null
           owner_user_id: string | null
           plano: string
+          public_codigo: string | null
           segmento: string | null
           slug: string
           status: string
@@ -1977,6 +1978,7 @@ export type Database = {
           observacoes?: string | null
           owner_user_id?: string | null
           plano?: string
+          public_codigo?: string | null
           segmento?: string | null
           slug: string
           status?: string
@@ -2003,6 +2005,7 @@ export type Database = {
           observacoes?: string | null
           owner_user_id?: string | null
           plano?: string
+          public_codigo?: string | null
           segmento?: string | null
           slug?: string
           status?: string
@@ -2047,6 +2050,7 @@ export type Database = {
     Functions: {
       current_tenant_id: { Args: never; Returns: string }
       gen_menu_codigo: { Args: never; Returns: string }
+      gen_public_codigo: { Args: never; Returns: string }
       gen_tenant_slug: { Args: { base: string }; Returns: string }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
