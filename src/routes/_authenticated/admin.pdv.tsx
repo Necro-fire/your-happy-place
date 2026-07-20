@@ -20,6 +20,10 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mesa: typeof search.mesa === "string" ? search.mesa : undefined,
+    order: typeof search.order === "string" ? search.order : undefined,
+  }),
   component: PDVPage,
 });
 
@@ -74,10 +78,14 @@ function newLineKey(product_id: string | undefined, combo_id: string | undefined
 
 function PDVPage() {
   const qc = useQueryClient();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
   const [tab, setTab] = useState<"produtos" | "combos" | "favoritos" | "recentes">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
+  const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
   const [descOrder, setDescOrder] = useState(0);
   const [atendimento, setAtendimento] = useState<Atendimento | null>(null);
   const [mesaId, setMesaId] = useState<string>("");
@@ -106,6 +114,50 @@ function PDVPage() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setHeld(loadHeld()); }, []);
+
+  // Autoload mesa/order coming from /admin/mesas (Novo pedido / Continuar atendimento)
+  useEffect(() => {
+    if (!search.mesa) return;
+    setAtendimento("mesa");
+    setMesaId(search.mesa);
+
+    if (!search.order) return;
+    let cancelled = false;
+    (async () => {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("id, numero, observacoes, cliente_nome, cliente_telefone, order_items(id, product_id, combo_id, produto_nome, quantidade, preco_unitario, desconto, observacoes, complementos)")
+        .eq("id", search.order!)
+        .maybeSingle();
+      if (cancelled || !order) return;
+      setExistingOrderId(order.id);
+      setExistingOrderNumero(order.numero);
+      setClienteNome(order.cliente_nome ?? "");
+      setClienteTel(order.cliente_telefone ?? "");
+      setObs(order.observacoes ?? "");
+      const lines: CartLine[] = (order.order_items ?? []).map((it: any) => {
+        const comps = Array.isArray(it.complementos) ? it.complementos : [];
+        const preco = Number(it.preco_unitario);
+        return {
+          key: newLineKey(it.product_id, it.combo_id, comps, it.observacoes ?? ""),
+          product_id: it.product_id ?? undefined,
+          combo_id: it.combo_id ?? undefined,
+          nome: it.produto_nome,
+          preco,
+          base_preco: preco,
+          quantidade: Number(it.quantidade),
+          desconto: Number(it.desconto ?? 0),
+          observacoes: it.observacoes ?? undefined,
+          complementos: comps,
+        };
+      });
+      setCart(lines);
+      toast.success(`Retomando pedido #${order.numero}`);
+    })();
+    return () => { cancelled = true; };
+  }, [search.mesa, search.order]);
+
+
 
   // queries
   const categories = useQuery({
@@ -266,6 +318,8 @@ function PDVPage() {
     setMesaId(""); setAtendimento(null); setCheckout(false); setPessoas(1); setRecebido(0);
     setEnd({ cep: "", rua: "", numero: "", bairro: "", cidade: "", estado: "", complemento: "", referencia: "" });
     setPagamentos([{ forma: "dinheiro", valor: 0 }]);
+    setExistingOrderId(null); setExistingOrderNumero(null);
+    if (search.mesa || search.order) navigate({ to: "/admin/pdv", search: {} as any, replace: true });
   }
 
   function suspendSale() {
@@ -355,10 +409,24 @@ function PDVPage() {
       }
       if (atendimento !== "mesa") payload.finalizado_em = new Date().toISOString();
 
-      const { data: order, error } = await supabase.from("orders").insert(payload).select("id, numero").single();
-      if (error) throw error;
+      let order: { id: string; numero: number };
+      if (existingOrderId) {
+        // Atualiza pedido já vinculado à mesa (sem duplicar)
+        const { data: upd, error: uErr } = await supabase
+          .from("orders").update(payload).eq("id", existingOrderId)
+          .select("id, numero").single();
+        if (uErr) throw uErr;
+        order = upd!;
+        // Substitui itens
+        const { error: dErr } = await supabase.from("order_items").delete().eq("order_id", order.id);
+        if (dErr) throw dErr;
+      } else {
+        const { data: ins, error } = await supabase.from("orders").insert(payload).select("id, numero").single();
+        if (error) throw error;
+        order = ins!;
+      }
       const { error: oiErr } = await supabase.from("order_items").insert(cart.map((i) => ({
-        order_id: order!.id, product_id: i.product_id ?? null, combo_id: i.combo_id ?? null,
+        order_id: order.id, product_id: i.product_id ?? null, combo_id: i.combo_id ?? null,
         produto_nome: i.nome, quantidade: i.quantidade, preco_unitario: i.preco,
         desconto: i.desconto, subtotal: i.preco * i.quantidade - i.desconto,
         observacoes: i.observacoes ?? null, complementos: i.complementos,
@@ -372,11 +440,11 @@ function PDVPage() {
         if (session) {
           await supabase.from("cash_movements").insert(pagsValidos.map((p) => ({
             session_id: session.id, tipo: "venda", valor: p.valor,
-            descricao: `${cfg.label} #${order!.numero}`, forma_pagamento: p.forma, order_id: order!.id,
+            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: p.forma, order_id: order.id,
           })));
         }
       }
-      return order!;
+      return order;
     },
     onSuccess: (order) => {
       toast.success(`Venda #${order.numero} registrada`);
@@ -458,11 +526,17 @@ function PDVPage() {
 
       {/* ============ DIREITA: comanda ============ */}
       <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
           <h2 className="font-semibold">Comanda</h2>
+          {existingOrderNumero && (
+            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+              Continuando pedido #{existingOrderNumero}
+            </span>
+          )}
           {atendimento && <span className="ml-auto text-xs text-muted-foreground">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</span>}
         </div>
+
 
         <div className="flex-1 space-y-1 overflow-y-auto">
           {cart.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">Sem itens</div>}
