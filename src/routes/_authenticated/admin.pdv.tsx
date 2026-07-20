@@ -46,8 +46,7 @@ type CartLine = {
   complementos: Complemento[];
 };
 type Atendimento = "balcao" | "mesa" | "retirada" | "delivery";
-type Pgto = "pix" | "dinheiro" | "credito" | "debito" | "vale" | "credito_cliente";
-type PagamentoLinha = { forma: Pgto; valor: number };
+type PagamentoLinha = { methodId: string; valor: number };
 type Held = { id: string; label: string; cart: CartLine[]; atendimento: Atendimento | null; savedAt: string };
 
 const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; origem: string }[] = [
