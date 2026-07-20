@@ -465,7 +465,7 @@ function PDVPage() {
       if (Math.abs(totalPago - total) > 0.01) throw new Error(`Pagamento não confere. Faltam ${fmtMoney(restante)}`);
       const cfg = ATENDIMENTOS.find((a) => a.key === atendimento)!;
       const pagsValidos = pagamentos.filter((p) => p.valor > 0);
-      const forma_pagamento = pagsValidos.length > 1 ? "multiplo" : pagsValidos[0]?.forma ?? "dinheiro";
+      const forma_pagamento = pagsValidos.length > 1 ? "multiplo" : methodToDbEnum(findMethod(pagsValidos[0]?.methodId ?? "")?.tipo ?? "dinheiro");
 
       const payload: any = {
         cliente_nome: clienteNome || (atendimento === "mesa" ? `Mesa ${(mesas.data ?? []).find((m) => m.id === mesaId)?.numero ?? ""}` : "Balcão"),
