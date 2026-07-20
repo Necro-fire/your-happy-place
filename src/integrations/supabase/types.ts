@@ -2060,6 +2060,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      server_now: { Args: never; Returns: string }
       slugify: { Args: { txt: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
     }
