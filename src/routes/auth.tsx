@@ -352,6 +352,7 @@ function AuthPage() {
                     </form>
                   </TabsContent>
                 </Tabs>
+                </>
               )}
             </div>
 
