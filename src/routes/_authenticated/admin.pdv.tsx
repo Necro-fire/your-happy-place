@@ -457,7 +457,7 @@ function PDVPage() {
       </div>
 
       {/* ============ DIREITA: comanda ============ */}
-      <Card className="flex flex-col overflow-hidden p-4">
+      <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
         <div className="mb-3 flex items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
           <h2 className="font-semibold">Comanda</h2>
