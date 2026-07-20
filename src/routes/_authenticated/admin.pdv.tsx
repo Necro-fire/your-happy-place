@@ -499,7 +499,8 @@ function PDVPage() {
         </div>
 
         {atendimento && (
-          <div className="mt-3 grid gap-3">
+          <div className="mt-3 grid max-h-[34vh] gap-3 overflow-y-auto pr-1 lg:max-h-[220px]">
+
             {atendimento === "mesa" && (
               <div>
                 <Label className="flex items-center gap-1 text-xs"><Coffee className="h-3 w-3" /> Mesa *</Label>
