@@ -6,6 +6,7 @@ export type TenantSession = {
   codigo: string;
   slug?: string | null;
   nome?: string | null;
+  public_codigo?: string | null;
 };
 
 const KEY = "tenant_session_v1";
@@ -48,8 +49,11 @@ function toSession(data: any): TenantSession {
     codigo: data.menu_codigo,
     slug: data.slug ?? null,
     nome: data.nome,
+    public_codigo: data.public_codigo ?? null,
   };
 }
+
+const SELECT_COLS = "id, menu_codigo, slug, nome, public_codigo";
 
 /** Look up a tenant by menu code and cache it in the session. */
 export async function loadTenantByCodigo(codigo: string): Promise<TenantSession | null> {
@@ -57,7 +61,7 @@ export async function loadTenantByCodigo(codigo: string): Promise<TenantSession 
   if (!clean) return null;
   const { data } = await supabase
     .from("tenants" as any)
-    .select("id, menu_codigo, slug, nome")
+    .select(SELECT_COLS)
     .eq("menu_codigo", clean)
     .maybeSingle();
   if (!data) return null;
@@ -72,7 +76,7 @@ export async function loadTenantBySlug(slug: string): Promise<TenantSession | nu
   if (!clean) return null;
   const { data } = await supabase
     .from("tenants" as any)
-    .select("id, menu_codigo, slug, nome")
+    .select(SELECT_COLS)
     .eq("slug", clean)
     .maybeSingle();
   if (!data) return null;
@@ -81,10 +85,26 @@ export async function loadTenantBySlug(slug: string): Promise<TenantSession | nu
   return t;
 }
 
+/** Look up a tenant by public code (8-char alphanumeric) and cache it. */
+export async function loadTenantByPublicCodigo(codigo: string): Promise<TenantSession | null> {
+  const clean = (codigo || "").trim().toUpperCase();
+  if (!clean) return null;
+  const { data } = await supabase
+    .from("tenants" as any)
+    .select(SELECT_COLS)
+    .eq("public_codigo", clean)
+    .maybeSingle();
+  if (!data) return null;
+  const t = toSession(data);
+  setTenant(t);
+  return t;
+}
+
 /** Preferred public menu path for a tenant session (slug when available). */
-export function publicMenuHref(t: Pick<TenantSession, "slug" | "codigo"> | null | undefined): string {
+export function publicMenuHref(t: Pick<TenantSession, "slug" | "codigo" | "public_codigo"> | null | undefined): string {
   if (!t) return "/";
   if (t.slug) return `/cardapio/${t.slug}`;
+  if (t.public_codigo) return `/c/${t.public_codigo}`;
   if (t.codigo) return `/menu/${t.codigo}`;
   return "/";
 }

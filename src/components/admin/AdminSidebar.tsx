@@ -27,7 +27,7 @@ const groups: Group[] = [
       { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList, module: "pedidos" },
       { title: "Mesas", url: "/admin/mesas", icon: Coffee, module: "mesas" },
       { title: "Histórico de vendas", url: "/admin/vendas", icon: BarChart3, module: "vendas" },
-      { title: "Cardápio Público", url: "/", icon: Globe, external: true },
+      { title: "Cardápio Público", url: "/admin/cardapio-publico", icon: Globe },
     ],
   },
   {

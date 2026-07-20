@@ -20,6 +20,7 @@ import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as MesaNumeroRouteImport } from './routes/mesa.$numero'
 import { Route as MenuCodigoRouteImport } from './routes/menu.$codigo'
 import { Route as CardapioSlugRouteImport } from './routes/cardapio.$slug'
+import { Route as CCodigoRouteImport } from './routes/c.$codigo'
 import { Route as AuthenticatedMasterRouteImport } from './routes/_authenticated/master'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
@@ -39,6 +40,7 @@ import { Route as AuthenticatedAdminKdsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminEstoqueRouteImport } from './routes/_authenticated/admin.estoque'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin.configuracoes'
 import { Route as AuthenticatedAdminCatalogoRouteImport } from './routes/_authenticated/admin.catalogo'
+import { Route as AuthenticatedAdminCardapioPublicoRouteImport } from './routes/_authenticated/admin.cardapio-publico'
 import { Route as AuthenticatedAdminCaixaRouteImport } from './routes/_authenticated/admin.caixa'
 import { Route as AuthenticatedAdminConfiguracoesIndexRouteImport } from './routes/_authenticated/admin.configuracoes.index'
 import { Route as AuthenticatedAdminConfiguracoesUsuariosRouteImport } from './routes/_authenticated/admin.configuracoes.usuarios'
@@ -109,6 +111,11 @@ const MenuCodigoRoute = MenuCodigoRouteImport.update({
 const CardapioSlugRoute = CardapioSlugRouteImport.update({
   id: '/cardapio/$slug',
   path: '/cardapio/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCodigoRoute = CCodigoRouteImport.update({
+  id: '/c/$codigo',
+  path: '/c/$codigo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedMasterRoute = AuthenticatedMasterRouteImport.update({
@@ -215,6 +222,12 @@ const AuthenticatedAdminCatalogoRoute =
   AuthenticatedAdminCatalogoRouteImport.update({
     id: '/catalogo',
     path: '/catalogo',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCardapioPublicoRoute =
+  AuthenticatedAdminCardapioPublicoRouteImport.update({
+    id: '/cardapio-publico',
+    path: '/cardapio-publico',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminCaixaRoute = AuthenticatedAdminCaixaRouteImport.update({
@@ -328,11 +341,13 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/master': typeof AuthenticatedMasterRouteWithChildren
+  '/c/$codigo': typeof CCodigoRoute
   '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
+  '/admin/cardapio-publico': typeof AuthenticatedAdminCardapioPublicoRoute
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
@@ -374,11 +389,13 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/c/$codigo': typeof CCodigoRoute
   '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
+  '/admin/cardapio-publico': typeof AuthenticatedAdminCardapioPublicoRoute
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
   '/admin/kds': typeof AuthenticatedAdminKdsRoute
@@ -423,11 +440,13 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/master': typeof AuthenticatedMasterRouteWithChildren
+  '/c/$codigo': typeof CCodigoRoute
   '/cardapio/$slug': typeof CardapioSlugRoute
   '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/_authenticated/admin/caixa': typeof AuthenticatedAdminCaixaRoute
+  '/_authenticated/admin/cardapio-publico': typeof AuthenticatedAdminCardapioPublicoRoute
   '/_authenticated/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   '/_authenticated/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
@@ -473,11 +492,13 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/master'
+    | '/c/$codigo'
     | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/admin/caixa'
+    | '/admin/cardapio-publico'
     | '/admin/catalogo'
     | '/admin/configuracoes'
     | '/admin/estoque'
@@ -519,11 +540,13 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/c/$codigo'
     | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/admin/caixa'
+    | '/admin/cardapio-publico'
     | '/admin/catalogo'
     | '/admin/estoque'
     | '/admin/kds'
@@ -567,11 +590,13 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/master'
+    | '/c/$codigo'
     | '/cardapio/$slug'
     | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/_authenticated/admin/caixa'
+    | '/_authenticated/admin/cardapio-publico'
     | '/_authenticated/admin/catalogo'
     | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/estoque'
@@ -615,6 +640,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CCodigoRoute: typeof CCodigoRoute
   CardapioSlugRoute: typeof CardapioSlugRoute
   MenuCodigoRoute: typeof MenuCodigoRoute
   MesaNumeroRoute: typeof MesaNumeroRouteWithChildren
@@ -698,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/cardapio/$slug'
       fullPath: '/cardapio/$slug'
       preLoaderRoute: typeof CardapioSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$codigo': {
+      id: '/c/$codigo'
+      path: '/c/$codigo'
+      fullPath: '/c/$codigo'
+      preLoaderRoute: typeof CCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/master': {
@@ -831,6 +864,13 @@ declare module '@tanstack/react-router' {
       path: '/catalogo'
       fullPath: '/admin/catalogo'
       preLoaderRoute: typeof AuthenticatedAdminCatalogoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/cardapio-publico': {
+      id: '/_authenticated/admin/cardapio-publico'
+      path: '/cardapio-publico'
+      fullPath: '/admin/cardapio-publico'
+      preLoaderRoute: typeof AuthenticatedAdminCardapioPublicoRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/caixa': {
@@ -1017,6 +1057,7 @@ const AuthenticatedAdminConfiguracoesRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCaixaRoute: typeof AuthenticatedAdminCaixaRoute
+  AuthenticatedAdminCardapioPublicoRoute: typeof AuthenticatedAdminCardapioPublicoRoute
   AuthenticatedAdminCatalogoRoute: typeof AuthenticatedAdminCatalogoRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   AuthenticatedAdminEstoqueRoute: typeof AuthenticatedAdminEstoqueRoute
@@ -1033,6 +1074,8 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCaixaRoute: AuthenticatedAdminCaixaRoute,
+  AuthenticatedAdminCardapioPublicoRoute:
+    AuthenticatedAdminCardapioPublicoRoute,
   AuthenticatedAdminCatalogoRoute: AuthenticatedAdminCatalogoRoute,
   AuthenticatedAdminConfiguracoesRoute:
     AuthenticatedAdminConfiguracoesRouteWithChildren,
@@ -1101,6 +1144,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CCodigoRoute: CCodigoRoute,
   CardapioSlugRoute: CardapioSlugRoute,
   MenuCodigoRoute: MenuCodigoRoute,
   MesaNumeroRoute: MesaNumeroRouteWithChildren,
