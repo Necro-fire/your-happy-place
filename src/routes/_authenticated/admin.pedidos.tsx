@@ -10,7 +10,7 @@ import {
   fmtMoney, fmtTime, fmtDate, statusLabel, statusColor,
   paymentLabel, tipoLabel, tipoColor, tipoDot, origemLabel,
 } from "@/lib/format";
-import { Printer, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Printer, Truck, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
