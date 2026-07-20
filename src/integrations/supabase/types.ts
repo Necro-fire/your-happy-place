@@ -1539,7 +1539,7 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           horario_funcionamento?: string | null
-          id: number
+          id?: number
           inscricao_estadual?: string | null
           logo_url?: string | null
           nome_estabelecimento?: string
