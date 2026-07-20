@@ -77,13 +77,21 @@ export function AdminSidebar() {
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
+  const { canView } = usePermissions();
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return groups;
     return groups
-      .map((g) => ({ ...g, items: g.items.filter((i) => i.title.toLowerCase().includes(q)) }))
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((i) => {
+          if (i.module && !canView(i.module)) return false;
+          if (!q) return true;
+          return i.title.toLowerCase().includes(q);
+        }),
+      }))
       .filter((g) => g.items.length > 0);
-  }, [query]);
+  }, [query, canView]);
 
   async function signOut() {
     await qc.cancelQueries();
