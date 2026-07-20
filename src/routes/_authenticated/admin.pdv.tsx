@@ -183,6 +183,17 @@ function PDVPage() {
     return () => { cancelled = true; };
   }, [search.mesa, search.order]);
 
+  // Auto-open checkout when arriving via "Finalizar venda" from Mesas
+  const [autoFinalizeDone, setAutoFinalizeDone] = useState(false);
+  useEffect(() => {
+    if (search.action !== "finalize") return;
+    if (autoFinalizeDone) return;
+    if (cart.length === 0) return;
+    setAutoFinalizeDone(true);
+    setTimeout(() => openCheckout(), 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.length, search.action]);
+
 
 
   // queries
