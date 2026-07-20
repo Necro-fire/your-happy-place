@@ -115,7 +115,7 @@ export function applyTheme(stored: Stored) {
   for (const cssVar of Object.values(VAR_MAP)) html.style.removeProperty(cssVar);
 
   // Apply preset baseline first, then user overrides
-  const presetKey = stored.preset && PRESETS[stored.preset] ? stored.preset : "padaria";
+  const presetKey = stored.preset && PRESETS[stored.preset] ? stored.preset : "profissional";
   const preset = PRESETS[presetKey][resolved];
   for (const [k, v] of Object.entries(preset) as [keyof Palette, string][]) {
     html.style.setProperty(VAR_MAP[k], v);
