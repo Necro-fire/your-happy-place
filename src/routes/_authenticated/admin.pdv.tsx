@@ -16,7 +16,7 @@ import { fmtMoney } from "@/lib/format";
 import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
-  Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
+  Barcode, Clock, StickyNote, Printer, Package,
   MapPin, User, Phone, StickyNote as NoteIcon, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,31 +47,12 @@ type CartLine = {
 };
 type Atendimento = "balcao" | "mesa" | "retirada" | "delivery";
 type PagamentoLinha = { methodId: string; valor: number };
-type Held = { id: string; label: string; cart: CartLine[]; atendimento: Atendimento | null; savedAt: string };
-
 const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; origem: string }[] = [
   { key: "balcao",   label: "Balcão",   icon: Store,        tipo: "retirada", origem: "pdv"  },
   { key: "mesa",     label: "Mesa",     icon: Coffee,       tipo: "local",    origem: "mesa" },
   { key: "retirada", label: "Retirada", icon: PackageCheck, tipo: "retirada", origem: "pdv"  },
   { key: "delivery", label: "Delivery", icon: Bike,         tipo: "entrega",  origem: "pdv"  },
 ];
-
-
-const HELD_KEY = "pdv_held_v1";
-const RECENT_KEY = "pdv_recent_v1";
-
-function loadHeld(): Held[] {
-  try { return JSON.parse(localStorage.getItem(HELD_KEY) ?? "[]"); } catch { return []; }
-}
-function saveHeld(list: Held[]) { localStorage.setItem(HELD_KEY, JSON.stringify(list)); }
-function loadRecent(): string[] {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]"); } catch { return []; }
-}
-function pushRecent(id: string) {
-  const cur = loadRecent().filter((x) => x !== id);
-  cur.unshift(id);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(cur.slice(0, 12)));
-}
 
 function newLineKey(product_id: string | undefined, combo_id: string | undefined, comps: Complemento[], obs?: string) {
   return `${product_id ?? "c"}_${combo_id ?? ""}_${comps.map((c) => c.id).sort().join(",")}_${obs ?? ""}_${Math.random().toString(36).slice(2, 6)}`;
@@ -83,11 +64,10 @@ function PDVPage() {
   const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"produtos" | "combos" | "recentes">("produtos");
+  const [tab, setTab] = useState<"produtos" | "combos">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
   const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
-  const [descOrder, setDescOrder] = useState(0);
   const [atendimento, setAtendimento] = useState<Atendimento | null>(null);
   const [mesaId, setMesaId] = useState<string>("");
   const [clienteNome, setClienteNome] = useState("");
@@ -102,14 +82,10 @@ function PDVPage() {
   // pagamento misto + troco
   const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ methodId: "dinheiro", valor: 0 }]);
   const [recebido, setRecebido] = useState(0); // para calcular troco quando 1ª forma é dinheiro
-  const [pessoas, setPessoas] = useState(1);
 
   // modais
   const [complementModal, setComplementModal] = useState<{ product: any; groups: any[] } | null>(null);
   const [lineEdit, setLineEdit] = useState<CartLine | null>(null);
-  const [holdName, setHoldName] = useState("");
-  const [heldOpen, setHeldOpen] = useState(false);
-  const [held, setHeld] = useState<Held[]>([]);
   const [lastOrder, setLastOrder] = useState<{ id: string; numero: number } | null>(null);
   const [attendModalOpen, setAttendModalOpen] = useState(false);
   const [attendSnap, setAttendSnap] = useState<any>(null);
@@ -161,7 +137,8 @@ function PDVPage() {
   const isDinheiroMethod = (id: string) => findMethod(id)?.tipo === "dinheiro";
   const defaultMethodId = () => paymentMethods[0]?.id ?? "dinheiro";
 
-  useEffect(() => { setHeld(loadHeld()); }, []);
+
+
 
   // Autoload mesa/order coming from /admin/mesas (Novo pedido / Continuar atendimento)
   useEffect(() => {
