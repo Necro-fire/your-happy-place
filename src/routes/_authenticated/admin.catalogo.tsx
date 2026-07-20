@@ -136,25 +136,25 @@ function ProdutosTab() {
         <Button onClick={() => setEdit({})}><Plus className="h-4 w-4" />Novo produto</Button>
       </div>
       <FilterChips chips={activeChips} onClearAll={reset} />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((p: any) => (
           <Card key={p.id} className="flex gap-3 p-3">
             <ProductImage src={p.imagem_url} alt={p.nome} className="h-20 w-20 shrink-0 rounded-lg" />
-            <div className="flex-1">
+            <div className="flex min-w-0 flex-1 flex-col">
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-semibold">{p.nome}</div>
-                  <div className="text-xs text-muted-foreground">{p.categories?.nome ?? "Sem categoria"}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-semibold">{p.nome}</div>
+                  <div className="truncate text-xs text-muted-foreground">{p.categories?.nome ?? "Sem categoria"}</div>
                 </div>
-                <div className="font-display font-bold text-primary">{fmtMoney(p.preco_promo ?? p.preco)}</div>
+                <div className="shrink-0 font-display font-bold text-primary">{fmtMoney(p.preco_promo ?? p.preco)}</div>
               </div>
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.descricao}</p>
-              <div className="mt-2 flex items-center justify-between">
-                <div className="flex gap-1">
-                  {p.ativo ? <span className="text-xs text-success">Ativo</span> : <span className="text-xs text-muted-foreground">Inativo</span>}
-                  {!p.disponivel && <span className="text-xs text-warning">• Indisponível</span>}
+              <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                <div className="flex min-w-0 flex-wrap gap-x-2 text-xs">
+                  {p.ativo ? <span className="text-success">Ativo</span> : <span className="text-muted-foreground">Inativo</span>}
+                  {!p.disponivel && <span className="text-warning">Indisponível</span>}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex shrink-0 gap-1">
                   <Button variant="ghost" size="icon" onClick={() => setEdit(p)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={async () => { if (await dialog.confirm({ title: "Excluir produto?", destructive: true, confirmText: "Excluir" })) del.mutate(p.id); }}>
                     <Trash2 className="h-4 w-4 text-destructive" />
