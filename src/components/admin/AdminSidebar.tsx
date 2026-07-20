@@ -14,8 +14,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { usePermissions, type ModuleKey } from "@/hooks/use-app-settings";
 
-type Item = { title: string; url: string; icon: any; exact?: boolean; external?: boolean };
+type Item = { title: string; url: string; icon: any; exact?: boolean; external?: boolean; module?: ModuleKey };
 type Group = { id: string; label: string; icon: any; items: Item[] };
 
 const groups: Group[] = [
