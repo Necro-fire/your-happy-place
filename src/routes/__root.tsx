@@ -18,6 +18,7 @@ import "@fontsource/inter/600.css";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { AppDialogHost } from "@/components/ui/app-dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
