@@ -112,6 +112,39 @@ function PDVPage() {
   const [heldOpen, setHeldOpen] = useState(false);
   const [held, setHeld] = useState<Held[]>([]);
   const [lastOrder, setLastOrder] = useState<{ id: string; numero: number } | null>(null);
+  const [attendModalOpen, setAttendModalOpen] = useState(false);
+  const [attendSnap, setAttendSnap] = useState<any>(null);
+
+  function openAttendModal() {
+    setAttendSnap({
+      mesaId, clienteNome, clienteTel, obs, horario,
+      end: { ...end },
+    });
+    setAttendModalOpen(true);
+  }
+  function cancelAttendModal() {
+    if (attendSnap) {
+      setMesaId(attendSnap.mesaId);
+      setClienteNome(attendSnap.clienteNome);
+      setClienteTel(attendSnap.clienteTel);
+      setObs(attendSnap.obs);
+      setHorario(attendSnap.horario);
+      setEnd(attendSnap.end);
+    }
+    setAttendModalOpen(false);
+  }
+  function onSelectAtendimento(key: Atendimento) {
+    const prev = atendimento;
+    setAtendimento(key);
+    if (key !== "balcao") {
+      setAttendSnap({
+        mesaId: prev === key ? mesaId : "",
+        clienteNome, clienteTel, obs, horario,
+        end: { ...end },
+      });
+      setAttendModalOpen(true);
+    }
+  }
 
   const searchRef = useRef<HTMLInputElement>(null);
 
