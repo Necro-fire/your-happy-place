@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { fmtMoney } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { Plus, Search, Clock, MapPin } from "lucide-react";
+import { CategoryIcon } from "@/components/IconPicker";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -119,9 +120,9 @@ function HomePage() {
               <button
                 key={c.id}
                 onClick={() => setCat(c.id)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${cat === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent/40"}`}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition ${cat === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent/40"}`}
               >
-                <span className="mr-1">{c.icone}</span>
+                <CategoryIcon name={c.icone} className="h-4 w-4" />
                 {c.nome}
               </button>
             ))}
@@ -137,7 +138,7 @@ function HomePage() {
             if (list.length === 0) return null;
             return (
               <section key={c.id} className="mb-10">
-                <h2 className="mb-4 font-display text-2xl font-bold">{c.icone} {c.nome}</h2>
+                <h2 className="mb-4 flex items-center gap-2 font-display text-2xl font-bold"><CategoryIcon name={c.icone} className="h-6 w-6" />{c.nome}</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {list.map((p) => {
                     const preco = p.preco_promo ?? p.preco;
