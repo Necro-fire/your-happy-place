@@ -13,7 +13,7 @@ import { logMaster } from "@/lib/master-log";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import {
   Plus, Pencil, Ban, RotateCw, Trash2, CheckCircle2, PauseCircle, Search, Eye,
-  Copy, KeyRound, Sparkles, Heart,
+  Copy, KeyRound, Download, Filter, ExternalLink, MoreHorizontal,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/master/licencas")({
@@ -25,23 +25,22 @@ type License = {
   situacao: string; emitida_em: string; vence_em: string | null; valor: number | null;
   observacoes: string | null;
 };
-type TenantLite = { id: string; codigo: string; nome: string; empresa: string | null };
+type TenantLite = { id: string; codigo: string; nome: string; empresa: string | null; slug?: string | null; public_codigo?: string | null };
 
-const SIT_STYLES: Record<string, string> = {
-  ativa: "border-emerald-600 bg-emerald-100 text-emerald-700",
-  pendente: "border-yellow-600 bg-yellow-100 text-yellow-700",
-  expirada: "border-slate-500 bg-slate-100 text-slate-600",
-  cancelada: "border-purple-600 bg-purple-100 text-purple-700",
-  bloqueada: "border-red-600 bg-red-100 text-red-700",
-  suspensa: "border-orange-600 bg-orange-100 text-orange-700",
+const SIT_STYLES: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+  ativa:     { bg: "bg-[#ecfdf5]", text: "text-[#059669]", dot: "bg-[#10b981]", label: "Ativa" },
+  pendente:  { bg: "bg-[#fffbeb]", text: "text-[#d97706]", dot: "bg-[#f59e0b]", label: "Pendente" },
+  expirada:  { bg: "bg-[#f1f5f9]", text: "text-[#475569]", dot: "bg-[#94a3b8]", label: "Expirada" },
+  cancelada: { bg: "bg-[#f5f3ff]", text: "text-[#7c3aed]", dot: "bg-[#8b5cf6]", label: "Cancelada" },
+  bloqueada: { bg: "bg-[#fef2f2]", text: "text-[#dc2626]", dot: "bg-[#ef4444]", label: "Bloqueada" },
+  suspensa:  { bg: "bg-[#fff7ed]", text: "text-[#c2410c]", dot: "bg-[#f97316]", label: "Suspensa" },
 };
-const SIT_DOT: Record<string, string> = {
-  ativa: "bg-emerald-600",
-  pendente: "bg-yellow-500",
-  expirada: "bg-slate-400",
-  cancelada: "bg-purple-600",
-  bloqueada: "bg-red-600",
-  suspensa: "bg-orange-500",
+
+const PLAN_STYLES: Record<string, string> = {
+  basico:       "bg-[#f1f5f9] text-[#475569]",
+  profissional: "bg-[#eff6ff] text-[#2563eb]",
+  enterprise:   "bg-[#f5f3ff] text-[#7c3aed]",
+  demo:         "bg-[#fffbeb] text-[#d97706]",
 };
 
 function LicencasMaster() {
@@ -56,7 +55,7 @@ function LicencasMaster() {
   });
   const { data: tenants = [] } = useQuery({
     queryKey: ["master-tenants-lite"],
-    queryFn: async () => (await supabase.from("tenants").select("id, codigo, nome, empresa").order("nome")).data as TenantLite[] ?? [],
+    queryFn: async () => (await supabase.from("tenants").select("id, codigo, nome, empresa, slug, public_codigo").order("nome")).data as TenantLite[] ?? [],
   });
 
   const tenantMap = useMemo(() => new Map(tenants.map((t) => [t.id, t])), [tenants]);
@@ -123,195 +122,214 @@ function LicencasMaster() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["master-licenses"] }); toast.success("Licença excluída"); },
   });
 
-  async function copyKey(codigo: string) {
-    try { await navigator.clipboard.writeText(codigo); toast.success("Chave copiada"); }
+  async function copyText(text: string, label = "Copiado") {
+    try { await navigator.clipboard.writeText(text); toast.success(label); }
     catch { toast.error("Não foi possível copiar"); }
   }
 
+  const filterChips = [
+    { k: "todos", label: "Todas", count: licenses.length },
+    { k: "ativa", label: "Ativas", count: licenses.filter(l => l.situacao === "ativa").length },
+    { k: "pendente", label: "Pendentes", count: licenses.filter(l => l.situacao === "pendente").length },
+    { k: "bloqueada", label: "Bloqueadas", count: licenses.filter(l => l.situacao === "bloqueada").length },
+    { k: "expirada", label: "Expiradas", count: licenses.filter(l => l.situacao === "expirada").length },
+    { k: "cancelada", label: "Canceladas", count: licenses.filter(l => l.situacao === "cancelada").length },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative flex flex-wrap items-end justify-between gap-3 pt-2">
-        <Sparkles className="doodle-scribble -top-3 left-40 h-6 w-6 rotate-12 text-yellow-400 doodle-wiggle" />
+      {/* Page header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Controle de Licenças <span className="inline-block">🔑</span></h1>
-          <p className="mt-1 text-slate-500 underline decoration-orange-300 decoration-wavy underline-offset-4">
-            Emissão, renovação, cancelamento e transferência de licenças.
-          </p>
+          <h1 className="text-[26px] font-semibold tracking-tight text-[#0f172a]">Empresas e Licenças</h1>
+          <p className="mt-1 text-[14px] text-[#6b7280]">Emissão, renovação, bloqueio e histórico de licenças.</p>
         </div>
-        <button
-          onClick={() => setEditing({ tipo: "mensal", situacao: "ativa", plano: "basico" })}
-          className="doodle-btn doodle-btn--primary flex items-center gap-2 rounded-full px-5 py-2.5"
-        >
-          <Plus className="h-4 w-4" /> Nova licença
-        </button>
+        <div className="flex items-center gap-2">
+          <button className="ms-btn ms-btn--sm">
+            <Download className="h-4 w-4" /> Exportar
+          </button>
+          <button
+            onClick={() => setEditing({ tipo: "mensal", situacao: "ativa", plano: "basico" })}
+            className="ms-btn ms-btn--primary ms-btn--sm"
+          >
+            <Plus className="h-4 w-4" /> Nova licença
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="doodle-card rounded-[22px_16px_26px_14px] p-4">
+      {/* Filters bar */}
+      <div className="ms-card p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <div className="relative min-w-[240px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar por código, empresa ou responsável..."
-              className="doodle-input w-full pl-10"
+              placeholder="Buscar empresa, código ou responsável..."
+              className="ms-input"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {["todos", "ativa", "pendente", "bloqueada", "expirada", "cancelada"].map((k) => (
+          <button className="ms-btn ms-btn--sm">
+            <Filter className="h-4 w-4" /> Filtros
+          </button>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-[#e5e7eb] pt-3">
+          {filterChips.map((c) => {
+            const active = filter === c.k;
+            return (
               <button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`doodle-btn rounded-full px-3 py-1.5 text-xs uppercase ${filter === k ? "doodle-btn--primary" : ""}`}
+                key={c.k}
+                onClick={() => setFilter(c.k)}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
+                  active ? "bg-[#0f172a] text-white" : "bg-[#f1f5f9] text-[#4b5563] hover:bg-[#e5e7eb]"
+                }`}
               >
-                {k === "todos" ? "Todas" : k}
+                {c.label}
+                <span className={`rounded-full px-1.5 text-[10px] ${active ? "bg-white/20" : "bg-white text-[#6b7280]"}`}>
+                  {c.count}
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Table + side panel */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="doodle-card doodle-card--lg relative overflow-hidden rounded-[24px_36px_16px_28px] p-6">
-          <Heart className="doodle-scribble -bottom-2 -right-3 h-14 w-14 fill-orange-100 text-orange-200" />
-          <div className="overflow-x-auto">
-            <table className="doodle-table w-full text-sm">
-              <thead>
-                <tr>
-                  <th>Empresa</th>
-                  <th>Plano</th>
-                  <th>Situação</th>
-                  <th>Emissão</th>
-                  <th>Vencimento</th>
-                  <th className="text-right">Valor</th>
-                  <th className="text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 && (
-                  <tr><td colSpan={7} className="py-12 text-center text-slate-400">Nenhuma licença encontrada.</td></tr>
-                )}
-                {filtered.map((l) => {
-                  const t = l.tenant_id ? tenantMap.get(l.tenant_id) : null;
-                  const sit = l.situacao;
-                  return (
-                    <tr key={l.id}>
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 border-slate-900 bg-orange-100 text-lg">
-                            {(t?.empresa ?? t?.nome ?? "?").slice(0, 1).toUpperCase()}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="truncate font-bold">{t ? (t.empresa || t.nome) : "—"}</div>
-                            <div className="truncate font-mono text-[11px] text-slate-400">{l.codigo}</div>
+      {/* Table */}
+      <div className="ms-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="ms-table">
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Validade</th>
+                <th>Chave</th>
+                <th>Valor</th>
+                <th className="!text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="!py-16 text-center text-[13px] text-[#9ca3af]">Nenhuma licença encontrada.</td></tr>
+              )}
+              {filtered.map((l) => {
+                const t = l.tenant_id ? tenantMap.get(l.tenant_id) : null;
+                const sit = SIT_STYLES[l.situacao] ?? SIT_STYLES.expirada;
+                const initial = (t?.empresa ?? t?.nome ?? "?").slice(0, 1).toUpperCase();
+                const menuUrl = t?.slug ? `/cardapio/${t.slug}` : t?.public_codigo ? `/c/${t.public_codigo}` : null;
+                return (
+                  <tr key={l.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-[13px] font-semibold text-[#2563eb]">
+                          {initial}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate text-[14px] font-medium text-[#0f172a]">
+                            {t ? (t.empresa || t.nome) : "—"}
+                          </div>
+                          <div className="truncate text-[12px] text-[#9ca3af]">
+                            ID: {t?.codigo ?? "—"}
                           </div>
                         </div>
-                      </td>
-                      <td>
-                        <span className="doodle-badge border-purple-400 bg-purple-100 text-purple-700 capitalize">{l.plano}</span>
-                      </td>
-                      <td>
-                        <span className={`doodle-badge capitalize ${SIT_STYLES[sit] ?? "border-slate-400 bg-slate-100 text-slate-600"}`}>
-                          <span className={`h-2 w-2 rounded-full ${SIT_DOT[sit] ?? "bg-slate-400"}`} />
-                          {sit}
-                        </span>
-                      </td>
-                      <td className="text-slate-500">{fmtDate(l.emitida_em)}</td>
-                      <td className="font-bold">{l.vence_em ? fmtDate(l.vence_em) : "—"}</td>
-                      <td className="text-right font-bold">{fmtMoney(Number(l.valor ?? 0))}</td>
-                      <td>
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button title="Copiar chave" onClick={() => copyKey(l.codigo)} className="doodle-btn doodle-btn--icon">
-                            <Copy className="h-3.5 w-3.5" />
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`ms-badge capitalize ${PLAN_STYLES[l.plano] ?? "bg-[#f1f5f9] text-[#475569]"}`}>
+                        {l.plano}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`ms-badge ${sit.bg} ${sit.text}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${sit.dot}`} />
+                        {sit.label}
+                      </span>
+                    </td>
+                    <td className="text-[13px] text-[#4b5563]">
+                      {l.vence_em ? fmtDate(l.vence_em) : "—"}
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => copyText(l.codigo, "Chave copiada")}
+                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[12px] text-[#4b5563] hover:bg-[#f9fafb]"
+                        title="Copiar chave"
+                      >
+                        {l.codigo}
+                        <Copy className="h-3 w-3 text-[#9ca3af]" />
+                      </button>
+                    </td>
+                    <td className="text-[13px] font-medium text-[#0f172a]">
+                      {fmtMoney(Number(l.valor ?? 0))}
+                    </td>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
+                        {menuUrl && (
+                          <a
+                            href={menuUrl} target="_blank" rel="noreferrer"
+                            title="Abrir cardápio público"
+                            className="grid h-8 w-8 place-items-center rounded-lg text-[#6b7280] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        )}
+                        <button title="Editar" onClick={() => setEditing(l)}
+                          className="grid h-8 w-8 place-items-center rounded-lg text-[#6b7280] hover:bg-[#f1f5f9] hover:text-[#0f172a]">
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button title="Editar" onClick={() => setEditing(l)}
+                          className="grid h-8 w-8 place-items-center rounded-lg text-[#6b7280] hover:bg-[#f1f5f9] hover:text-[#0f172a]">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        {l.situacao !== "ativa" && (
+                          <button title="Liberar" onClick={() => changeSit.mutate({ id: l.id, situacao: "ativa" })}
+                            className="grid h-8 w-8 place-items-center rounded-lg text-[#059669] hover:bg-[#ecfdf5]">
+                            <CheckCircle2 className="h-4 w-4" />
                           </button>
-                          {sit !== "ativa" && (
-                            <button title="Liberar" onClick={() => changeSit.mutate({ id: l.id, situacao: "ativa" })} className="doodle-btn doodle-btn--icon bg-emerald-100">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />
-                            </button>
-                          )}
-                          {sit === "ativa" && (
-                            <button title="Suspender" onClick={() => changeSit.mutate({ id: l.id, situacao: "suspensa" })} className="doodle-btn doodle-btn--icon bg-yellow-100">
-                              <PauseCircle className="h-3.5 w-3.5 text-yellow-700" />
-                            </button>
-                          )}
-                          <button title="Renovar" onClick={() => renew.mutate(l)} className="doodle-btn doodle-btn--icon bg-blue-100">
-                            <RotateCw className="h-3.5 w-3.5 text-blue-700" />
+                        )}
+                        {l.situacao === "ativa" && (
+                          <button title="Suspender" onClick={() => changeSit.mutate({ id: l.id, situacao: "suspensa" })}
+                            className="grid h-8 w-8 place-items-center rounded-lg text-[#d97706] hover:bg-[#fffbeb]">
+                            <PauseCircle className="h-4 w-4" />
                           </button>
-                          <button title="Editar" onClick={() => setEditing(l)} className="doodle-btn doodle-btn--icon">
-                            <Pencil className="h-3.5 w-3.5" />
+                        )}
+                        <button title="Renovar" onClick={() => renew.mutate(l)}
+                          className="grid h-8 w-8 place-items-center rounded-lg text-[#2563eb] hover:bg-[#eff6ff]">
+                          <RotateCw className="h-4 w-4" />
+                        </button>
+                        {l.situacao !== "bloqueada" && (
+                          <button title="Bloquear" onClick={async () => {
+                            const ok = await dialog.confirm({ title: "Bloquear licença?", destructive: true, confirmText: "Bloquear" });
+                            if (ok) changeSit.mutate({ id: l.id, situacao: "bloqueada" });
+                          }} className="grid h-8 w-8 place-items-center rounded-lg text-[#dc2626] hover:bg-[#fef2f2]">
+                            <Ban className="h-4 w-4" />
                           </button>
-                          <button title="Visualizar" onClick={() => setEditing(l)} className="doodle-btn doodle-btn--icon">
-                            <Eye className="h-3.5 w-3.5" />
-                          </button>
-                          {sit !== "bloqueada" ? (
-                            <button title="Bloquear" onClick={async () => {
-                              const ok = await dialog.confirm({ title: "Bloquear licença?", destructive: true, confirmText: "Bloquear" });
-                              if (ok) changeSit.mutate({ id: l.id, situacao: "bloqueada" });
-                            }} className="doodle-btn doodle-btn--icon bg-red-100">
-                              <Ban className="h-3.5 w-3.5 text-red-700" />
-                            </button>
-                          ) : null}
-                          <button title="Excluir" onClick={async () => {
-                            const ok = await dialog.confirm({ title: "Excluir licença?", destructive: true, confirmText: "Excluir" });
-                            if (ok) remove.mutate(l.id);
-                          }} className="doodle-btn doodle-btn--icon bg-red-50">
-                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Side panel */}
-        <aside className="space-y-6">
-          <div className="doodle-card relative rounded-[28px_14px_22px_18px] p-6">
-            <Sparkles className="doodle-scribble -right-1 -top-2 h-6 w-6 text-yellow-400" />
-            <h3 className="mb-4 flex items-center gap-2 text-xl font-bold">
-              <KeyRound className="h-5 w-5 text-orange-500" /> Ações Rápidas
-            </h3>
-            <div className="space-y-2">
-              <button onClick={() => setEditing({ tipo: "mensal", situacao: "ativa", plano: "basico" })} className="doodle-btn flex w-full items-center gap-3 rounded-2xl p-3 text-sm">
-                <span className="grid h-8 w-8 place-items-center rounded-xl border-2 border-slate-900 bg-emerald-100"><Plus className="h-3.5 w-3.5 text-emerald-700" /></span>
-                Nova Licença
-              </button>
-              <div className="doodle-btn flex w-full items-center gap-3 rounded-2xl p-3 text-sm">
-                <span className="grid h-8 w-8 place-items-center rounded-xl border-2 border-slate-900 bg-blue-100"><RotateCw className="h-3.5 w-3.5 text-blue-700" /></span>
-                Renovar em massa
-                <span className="ml-auto rounded-full border border-slate-300 bg-slate-100 px-1.5 text-[9px] font-bold uppercase text-slate-500">em breve</span>
-              </div>
-              <div className="doodle-btn flex w-full items-center gap-3 rounded-2xl p-3 text-sm">
-                <span className="grid h-8 w-8 place-items-center rounded-xl border-2 border-slate-900 bg-orange-100"><KeyRound className="h-3.5 w-3.5 text-orange-700" /></span>
-                Gerar nova chave
-                <span className="ml-auto rounded-full border border-slate-300 bg-slate-100 px-1.5 text-[9px] font-bold uppercase text-slate-500">em breve</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="doodle-card relative rounded-[16px_28px_20px_24px] p-6">
-            <h3 className="mb-4 text-xl font-bold">Resumo</h3>
-            <ul className="space-y-2 text-sm font-bold">
-              {(["ativa", "pendente", "bloqueada", "suspensa", "expirada", "cancelada"] as const).map((k) => {
-                const n = licenses.filter((x) => x.situacao === k).length;
-                return (
-                  <li key={k} className="flex items-center justify-between capitalize">
-                    <span className="flex items-center gap-2">
-                      <span className={`h-3 w-3 rounded-full border border-slate-900 ${SIT_DOT[k]}`} /> {k}
-                    </span>
-                    <span>{n}</span>
-                  </li>
+                        )}
+                        <button title="Excluir" onClick={async () => {
+                          const ok = await dialog.confirm({ title: "Excluir licença?", destructive: true, confirmText: "Excluir" });
+                          if (ok) remove.mutate(l.id);
+                        }} className="grid h-8 w-8 place-items-center rounded-lg text-[#9ca3af] hover:bg-[#fef2f2] hover:text-[#dc2626]">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <button title="Mais opções" className="grid h-8 w-8 place-items-center rounded-lg text-[#9ca3af] hover:bg-[#f1f5f9] hover:text-[#0f172a]">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 );
               })}
-            </ul>
+            </tbody>
+          </table>
+        </div>
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between border-t border-[#e5e7eb] px-6 py-3 text-[12px] text-[#6b7280]">
+            <span>Mostrando <b className="text-[#0f172a]">{filtered.length}</b> de <b className="text-[#0f172a]">{licenses.length}</b> licenças</span>
+            <span className="inline-flex items-center gap-1">
+              <KeyRound className="h-3.5 w-3.5" /> Chaves geradas automaticamente
+            </span>
           </div>
-        </aside>
+        )}
       </div>
 
       {/* Editor dialog */}
