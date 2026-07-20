@@ -14,38 +14,32 @@ import { CategoryIcon } from "@/components/IconPicker";
 import { toast } from "sonner";
 import { usePublicSettings } from "@/hooks/use-public-settings";
 import { cn } from "@/lib/utils";
-import { loadTenantByCodigo, useTenant } from "@/lib/tenant-session";
+import { loadTenantBySlug, useTenant } from "@/lib/tenant-session";
 
-export const Route = createFileRoute("/menu/$codigo")({
+export const Route = createFileRoute("/cardapio/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `Cardápio ${params.codigo}` },
+      { title: `Cardápio · ${params.slug}` },
       { name: "description", content: "Cardápio digital — peça online com rapidez." },
     ],
   }),
-  component: MenuPage,
+  component: CardapioPage,
 });
 
-function MenuPage() {
-  const { codigo } = Route.useParams();
+function CardapioPage() {
+  const { slug } = Route.useParams();
   const navigate = useNavigate();
   const tenant = useTenant();
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     (async () => {
-      if (tenant && tenant.codigo === codigo.toUpperCase()) {
-        if (tenant.slug) navigate({ to: "/cardapio/$slug", params: { slug: tenant.slug }, replace: true });
-        return;
-      }
-      const t = await loadTenantByCodigo(codigo);
-      if (!t) { setNotFound(true); return; }
-      if (t.slug) navigate({ to: "/cardapio/$slug", params: { slug: t.slug }, replace: true });
+      if (tenant?.slug === slug.toLowerCase()) return;
+      const t = await loadTenantBySlug(slug);
+      if (!t) setNotFound(true);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codigo]);
-
-
+  }, [slug]);
 
   const tenantId = tenant?.tenant_id ?? null;
   const { add } = useCart();
@@ -112,7 +106,7 @@ function MenuPage() {
       <div className="grid min-h-dvh place-items-center bg-background p-6 text-center">
         <div>
           <h1 className="font-display text-2xl font-bold">Cardápio não encontrado</h1>
-          <p className="mt-2 text-sm text-muted-foreground">O código <span className="font-mono">{codigo}</span> não pertence a nenhuma loja.</p>
+          <p className="mt-2 text-sm text-muted-foreground">O endereço <span className="font-mono">/cardapio/{slug}</span> não pertence a nenhuma loja.</p>
           <Button className="mt-6" onClick={() => navigate({ to: "/" })}>Voltar para início</Button>
         </div>
       </div>

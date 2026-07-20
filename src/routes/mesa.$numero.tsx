@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { setMesaSession } from "@/lib/mesa-session";
-import { useTenant, loadTenantByCodigo } from "@/lib/tenant-session";
+import { useTenant, loadTenantByCodigo, publicMenuHref } from "@/lib/tenant-session";
 import { PublicLayout } from "@/components/public/PublicLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,8 @@ function MesaEntryPage() {
   const tenant = useTenant();
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
+  const menuTo = publicMenuHref(tenant);
+
 
   useEffect(() => {
     (async () => {

@@ -47,10 +47,36 @@ function EmpresaPage() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo, nome").eq("owner_user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo, slug, nome").eq("owner_user_id", user.id).maybeSingle();
       return data as any;
     },
   });
+  const [slugInput, setSlugInput] = useState("");
+  const [savingSlug, setSavingSlug] = useState(false);
+  useEffect(() => {
+    if (tenantQ.data?.slug) setSlugInput(tenantQ.data.slug);
+  }, [tenantQ.data?.slug]);
+
+  async function saveSlug() {
+    const raw = slugInput.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    if (raw.length < 3) { toast.error("O endereço deve ter pelo menos 3 caracteres"); return; }
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(raw)) { toast.error("Use letras, números e hífens (não pode começar/terminar com hífen)"); return; }
+    if (!tenantQ.data?.id) return;
+    setSavingSlug(true);
+    try {
+      const { data: exists } = await supabase.from("tenants" as any).select("id").eq("slug", raw).neq("id", tenantQ.data.id).maybeSingle();
+      if (exists) { toast.error("Este endereço já está em uso. Tente outro."); return; }
+      const { error } = await supabase.from("tenants" as any).update({ slug: raw }).eq("id", tenantQ.data.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["my-tenant"] });
+      toast.success("Endereço público atualizado");
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao salvar endereço");
+    } finally {
+      setSavingSlug(false);
+    }
+  }
+
   const [f, setF] = useState<any>(null);
   const [horarios, setHorarios] = useState<Horarios>(DEFAULT_HORARIOS);
   const [numero, setNumero] = useState("");
@@ -170,19 +196,44 @@ function EmpresaPage() {
 
   if (!f) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
+  const slug = tenantQ.data?.slug as string | undefined;
   const codigo = tenantQ.data?.menu_codigo as string | undefined;
-  const publicUrl = codigo ? `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${codigo}` : "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const publicUrl = slug ? `${origin}/cardapio/${slug}` : (codigo ? `${origin}/menu/${codigo}` : "");
 
   return (
     <div className="space-y-4">
-      <Card className="space-y-3 p-5">
+      <Card className="space-y-4 p-5">
         <div>
-          <h2 className="font-display text-lg font-semibold">URL pública do cardápio</h2>
-          <p className="text-xs text-muted-foreground">Este é o endereço exclusivo do seu cardápio digital. Compartilhe com seus clientes ou gere QR Codes na tela de QR Codes.</p>
+          <h2 className="font-display text-lg font-semibold">Endereço público do cardápio</h2>
+          <p className="text-xs text-muted-foreground">
+            Cada empresa possui um endereço exclusivo, sem códigos ou números. Escolha um nome curto e fácil de compartilhar.
+          </p>
         </div>
-        {codigo ? (
+
+        <div className="grid gap-2">
+          <Label>Endereço amigável</Label>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex-1 rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
+            <div className="inline-flex items-center rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              {origin}/cardapio/
+            </div>
+            <Input
+              value={slugInput}
+              onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
+              placeholder="minha-loja"
+              className="font-mono"
+              maxLength={64}
+            />
+            <Button type="button" onClick={saveSlug} disabled={savingSlug || !slugInput}>
+              {savingSlug ? "Salvando..." : "Salvar endereço"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Use letras minúsculas, números e hífens. Precisa ser único.</p>
+        </div>
+
+        {publicUrl && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex-1 truncate rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
               {publicUrl}
             </div>
             <div className="flex gap-2">
@@ -204,15 +255,9 @@ function EmpresaPage() {
               </Button>
             </div>
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">Gerando código exclusivo...</p>
-        )}
-        {codigo && (
-          <p className="text-xs text-muted-foreground">
-            Código de acesso: <span className="font-mono font-semibold">{codigo}</span>
-          </p>
         )}
       </Card>
+
 
       <Card className="space-y-4 p-5">
         <div>

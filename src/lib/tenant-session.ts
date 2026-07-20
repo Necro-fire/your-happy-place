@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type TenantSession = { tenant_id: string; codigo: string; nome?: string | null };
+export type TenantSession = {
+  tenant_id: string;
+  codigo: string;
+  slug?: string | null;
+  nome?: string | null;
+};
 
 const KEY = "tenant_session_v1";
 
@@ -37,17 +42,49 @@ export function useTenant() {
   return t;
 }
 
+function toSession(data: any): TenantSession {
+  return {
+    tenant_id: data.id,
+    codigo: data.menu_codigo,
+    slug: data.slug ?? null,
+    nome: data.nome,
+  };
+}
+
 /** Look up a tenant by menu code and cache it in the session. */
 export async function loadTenantByCodigo(codigo: string): Promise<TenantSession | null> {
   const clean = (codigo || "").trim().toUpperCase();
   if (!clean) return null;
   const { data } = await supabase
     .from("tenants" as any)
-    .select("id, menu_codigo, nome")
+    .select("id, menu_codigo, slug, nome")
     .eq("menu_codigo", clean)
     .maybeSingle();
   if (!data) return null;
-  const t: TenantSession = { tenant_id: (data as any).id, codigo: (data as any).menu_codigo, nome: (data as any).nome };
+  const t = toSession(data);
   setTenant(t);
   return t;
+}
+
+/** Look up a tenant by friendly slug and cache it in the session. */
+export async function loadTenantBySlug(slug: string): Promise<TenantSession | null> {
+  const clean = (slug || "").trim().toLowerCase();
+  if (!clean) return null;
+  const { data } = await supabase
+    .from("tenants" as any)
+    .select("id, menu_codigo, slug, nome")
+    .eq("slug", clean)
+    .maybeSingle();
+  if (!data) return null;
+  const t = toSession(data);
+  setTenant(t);
+  return t;
+}
+
+/** Preferred public menu path for a tenant session (slug when available). */
+export function publicMenuHref(t: Pick<TenantSession, "slug" | "codigo"> | null | undefined): string {
+  if (!t) return "/";
+  if (t.slug) return `/cardapio/${t.slug}`;
+  if (t.codigo) return `/menu/${t.codigo}`;
+  return "/";
 }

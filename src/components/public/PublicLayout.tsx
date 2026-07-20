@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart";
 import { useMesaSession } from "@/lib/mesa-session";
 import { Badge } from "@/components/ui/badge";
 import { usePublicSettings } from "@/hooks/use-public-settings";
-import { useTenant } from "@/lib/tenant-session";
+import { useTenant, publicMenuHref } from "@/lib/tenant-session";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { count } = useCart();
@@ -14,7 +14,8 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const tenant = useTenant();
   const nome = settings?.nome ?? "";
   const logo = settings?.logo_url ?? null;
-  const homeTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
+  const homeTo = publicMenuHref(tenant);
+
 
   useEffect(() => {
     if (nome && typeof document !== "undefined") {

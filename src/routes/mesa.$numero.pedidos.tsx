@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fmtMoney, statusLabel, statusColor } from "@/lib/format";
 import { Coffee, Clock, RefreshCw } from "lucide-react";
-import { useTenant } from "@/lib/tenant-session";
+import { useTenant, publicMenuHref } from "@/lib/tenant-session";
 
 export const Route = createFileRoute("/mesa/$numero/pedidos")({
   head: ({ params }) => ({ meta: [{ title: `Mesa ${params.numero} — Meus pedidos` }] }),
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/mesa/$numero/pedidos")({
 function MesaPedidosPage() {
   const { numero } = Route.useParams();
   const tenant = useTenant();
-  const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
+  const menuTo = publicMenuHref(tenant);
+
 
   const mesa = useQuery({
     queryKey: ["mesa-lookup", numero, tenant?.tenant_id],

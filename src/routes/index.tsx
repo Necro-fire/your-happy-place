@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Store, ArrowRight, Sparkles, LogIn } from "lucide-react";
 import { toast } from "sonner";
-import { loadTenantByCodigo } from "@/lib/tenant-session";
+import { loadTenantByCodigo, loadTenantBySlug } from "@/lib/tenant-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,14 +26,19 @@ function Landing() {
 
   async function enter(e: React.FormEvent) {
     e.preventDefault();
-    const c = codigo.trim().toUpperCase();
-    if (c.length < 4) return toast.error("Informe um código válido");
+    const raw = codigo.trim();
+    if (raw.length < 2) return toast.error("Informe o endereço ou código da loja");
     setLoading(true);
-    const t = await loadTenantByCodigo(c);
+    // Slug-friendly: lowercase alphanumeric with hyphens
+    const looksLikeSlug = /^[a-z0-9-]+$/i.test(raw) && /[a-z-]/i.test(raw);
+    let t = looksLikeSlug ? await loadTenantBySlug(raw.toLowerCase()) : null;
+    if (!t) t = await loadTenantByCodigo(raw.toUpperCase());
     setLoading(false);
-    if (!t) return toast.error("Código não encontrado");
-    navigate({ to: "/menu/$codigo", params: { codigo: c } });
+    if (!t) return toast.error("Loja não encontrada");
+    if (t.slug) navigate({ to: "/cardapio/$slug", params: { slug: t.slug } });
+    else navigate({ to: "/menu/$codigo", params: { codigo: t.codigo } });
   }
+
 
   return (
     <div className="min-h-dvh bg-gradient-to-br from-background via-background to-primary/5">
@@ -75,16 +80,16 @@ function Landing() {
             <div>
               <h2 className="font-display text-xl font-bold">Acesse um cardápio</h2>
               <p className="text-sm text-muted-foreground">
-                Informe o código de acesso da loja para abrir o cardápio digital.
+                Informe o endereço amigável da loja para abrir o cardápio digital.
               </p>
             </div>
             <form onSubmit={enter} className="space-y-3">
               <Input
                 value={codigo}
-                onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-                placeholder="Ex.: A1B2C3"
-                maxLength={12}
-                className="text-center font-mono text-lg tracking-widest"
+                onChange={(e) => setCodigo(e.target.value)}
+                placeholder="Ex.: minha-padaria"
+                maxLength={64}
+                className="text-center font-mono text-base"
                 autoFocus
               />
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
@@ -92,10 +97,11 @@ function Landing() {
               </Button>
             </form>
             <p className="text-center text-xs text-muted-foreground">
-              O código está impresso nos QR Codes da loja.
+              O endereço da loja é único e informado pelo estabelecimento.
             </p>
           </Card>
         </section>
+
       </main>
 
       <footer className="mx-auto max-w-6xl px-4 py-8 text-center text-xs text-muted-foreground">

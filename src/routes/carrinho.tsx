@@ -4,7 +4,7 @@ import { PublicLayout } from "@/components/public/PublicLayout";
 import { ProductImage } from "@/components/ProductImage";
 import { useCart } from "@/lib/cart";
 import { useMesaSession } from "@/lib/mesa-session";
-import { useTenant } from "@/lib/tenant-session";
+import { useTenant, publicMenuHref } from "@/lib/tenant-session";
 import { fmtMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, Coffee } from "lucide-react";
@@ -22,7 +22,8 @@ function CartPage() {
   const tenant = useTenant();
   const navigate = useNavigate();
   const [sending, setSending] = useState(false);
-  const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
+  const menuTo = publicMenuHref(tenant);
+
 
   async function sendToMesa() {
     if (!mesa || items.length === 0) return;
