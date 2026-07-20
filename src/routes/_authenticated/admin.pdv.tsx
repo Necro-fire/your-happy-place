@@ -151,6 +151,11 @@ function PDVPage() {
   const settingsQ = useAppSettings();
   const paymentMethods = useActivePaymentMethods();
   const impressoes = useSettingsSection("impressoes", { auto_print: true, vias: 1 });
+  const pdvCfg = useSettingsSection("pdv", {
+    tipos_venda: { balcao: true, retirada: true, mesa: true, delivery: true } as Record<string, boolean>,
+    pos_venda_impressao: "auto" as "auto" | "perguntar" | "nao",
+  });
+  const tiposAtivos = ATENDIMENTOS.filter((a) => pdvCfg.tipos_venda?.[a.key] !== false);
   const findMethod = (id: string): PaymentMethod | undefined => paymentMethods.find((m) => m.id === id);
   const methodLabel = (id: string) => findMethod(id)?.label ?? id;
   const isDinheiroMethod = (id: string) => findMethod(id)?.tipo === "dinheiro";
@@ -525,10 +530,21 @@ function PDVPage() {
       }
       return order;
     },
-    onSuccess: (order) => {
+    onSuccess: async (order) => {
       toast.success(`Venda #${order.numero} registrada`);
       setLastOrder(order);
-      printReceipt(order);
+      const modo = pdvCfg.pos_venda_impressao;
+      if (modo === "auto") {
+        printReceipt(order);
+      } else if (modo === "perguntar") {
+        const ok = await dialog.confirm({
+          title: `Venda #${order.numero} concluída`,
+          description: "Deseja imprimir o comprovante?",
+          confirmText: "Imprimir",
+          cancelText: "Não imprimir",
+        });
+        if (ok) printReceipt(order);
+      }
       resetSale();
       qc.invalidateQueries();
     },
@@ -542,7 +558,7 @@ function PDVPage() {
       <Card className="p-3 lg:p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="grid min-w-[260px] flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
-            {ATENDIMENTOS.map((a) => {
+            {tiposAtivos.map((a) => {
               const Icon = a.icon; const active = atendimento === a.key;
               return (
                 <button key={a.key} type="button" onClick={() => onSelectAtendimento(a.key)}
