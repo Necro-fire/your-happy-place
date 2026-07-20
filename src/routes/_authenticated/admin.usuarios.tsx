@@ -21,10 +21,10 @@ const ROLE_LABEL: Record<string, string> = {
   garcom: "Garçom", cozinha: "Cozinha", producao: "Produção", estoque: "Estoque",
   financeiro: "Financeiro", operador: "Operador",
 };
-const MODULES = ["dashboard","pedidos","pdv","mesas","caixa","vendas","catalogo","kds","usuarios","suporte","configuracoes"] as const;
+const MODULES = ["dashboard","pedidos","pdv","mesas","caixa","vendas","catalogo","usuarios","suporte","configuracoes"] as const;
 const MODULE_LABEL: Record<string, string> = {
   dashboard: "Dashboard", pedidos: "Pedidos", pdv: "PDV", mesas: "Mesas", caixa: "Caixa",
-  vendas: "Vendas", catalogo: "Catálogo", kds: "KDS Cozinha", usuarios: "Usuários",
+  vendas: "Vendas", catalogo: "Catálogo", usuarios: "Usuários",
   suporte: "Suporte", configuracoes: "Configurações",
 };
 

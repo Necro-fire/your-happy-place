@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, ShoppingCart, Package, ClipboardList, Calculator, Coffee, Wallet,
-  Settings, LogOut, Store, LifeBuoy, ChefHat, Users, QrCode, Search,
+  Settings, LogOut, Store, LifeBuoy, Users, QrCode, Search,
   DollarSign, Boxes, Building2, BarChart3, ConciergeBell, Globe,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -46,7 +46,6 @@ const groups: Group[] = [
   {
     id: "atendimento", label: "Atendimento", icon: ConciergeBell,
     items: [
-      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat, module: "kds" },
       { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode, module: "qrcodes" },
     ],
   },

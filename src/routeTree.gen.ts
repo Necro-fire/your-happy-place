@@ -36,7 +36,6 @@ import { Route as AuthenticatedAdminQrcodesRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminPedidosRouteImport } from './routes/_authenticated/admin.pedidos'
 import { Route as AuthenticatedAdminPdvRouteImport } from './routes/_authenticated/admin.pdv'
 import { Route as AuthenticatedAdminMesasRouteImport } from './routes/_authenticated/admin.mesas'
-import { Route as AuthenticatedAdminKdsRouteImport } from './routes/_authenticated/admin.kds'
 import { Route as AuthenticatedAdminEstoqueRouteImport } from './routes/_authenticated/admin.estoque'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin.configuracoes'
 import { Route as AuthenticatedAdminCatalogoRouteImport } from './routes/_authenticated/admin.catalogo'
@@ -201,11 +200,6 @@ const AuthenticatedAdminMesasRoute = AuthenticatedAdminMesasRouteImport.update({
   path: '/mesas',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminKdsRoute = AuthenticatedAdminKdsRouteImport.update({
-  id: '/kds',
-  path: '/kds',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
 const AuthenticatedAdminEstoqueRoute =
   AuthenticatedAdminEstoqueRouteImport.update({
     id: '/estoque',
@@ -351,7 +345,6 @@ export interface FileRoutesByFullPath {
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
-  '/admin/kds': typeof AuthenticatedAdminKdsRoute
   '/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
@@ -398,7 +391,6 @@ export interface FileRoutesByTo {
   '/admin/cardapio-publico': typeof AuthenticatedAdminCardapioPublicoRoute
   '/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
-  '/admin/kds': typeof AuthenticatedAdminKdsRoute
   '/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
@@ -450,7 +442,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/catalogo': typeof AuthenticatedAdminCatalogoRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   '/_authenticated/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
-  '/_authenticated/admin/kds': typeof AuthenticatedAdminKdsRoute
   '/_authenticated/admin/mesas': typeof AuthenticatedAdminMesasRoute
   '/_authenticated/admin/pdv': typeof AuthenticatedAdminPdvRoute
   '/_authenticated/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
@@ -502,7 +493,6 @@ export interface FileRouteTypes {
     | '/admin/catalogo'
     | '/admin/configuracoes'
     | '/admin/estoque'
-    | '/admin/kds'
     | '/admin/mesas'
     | '/admin/pdv'
     | '/admin/pedidos'
@@ -549,7 +539,6 @@ export interface FileRouteTypes {
     | '/admin/cardapio-publico'
     | '/admin/catalogo'
     | '/admin/estoque'
-    | '/admin/kds'
     | '/admin/mesas'
     | '/admin/pdv'
     | '/admin/pedidos'
@@ -600,7 +589,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/catalogo'
     | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/estoque'
-    | '/_authenticated/admin/kds'
     | '/_authenticated/admin/mesas'
     | '/_authenticated/admin/pdv'
     | '/_authenticated/admin/pedidos'
@@ -838,13 +826,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMesasRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/kds': {
-      id: '/_authenticated/admin/kds'
-      path: '/kds'
-      fullPath: '/admin/kds'
-      preLoaderRoute: typeof AuthenticatedAdminKdsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/admin/estoque': {
       id: '/_authenticated/admin/estoque'
       path: '/estoque'
@@ -1061,7 +1042,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCatalogoRoute: typeof AuthenticatedAdminCatalogoRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRouteWithChildren
   AuthenticatedAdminEstoqueRoute: typeof AuthenticatedAdminEstoqueRoute
-  AuthenticatedAdminKdsRoute: typeof AuthenticatedAdminKdsRoute
   AuthenticatedAdminMesasRoute: typeof AuthenticatedAdminMesasRoute
   AuthenticatedAdminPdvRoute: typeof AuthenticatedAdminPdvRoute
   AuthenticatedAdminPedidosRoute: typeof AuthenticatedAdminPedidosRoute
@@ -1080,7 +1060,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminConfiguracoesRoute:
     AuthenticatedAdminConfiguracoesRouteWithChildren,
   AuthenticatedAdminEstoqueRoute: AuthenticatedAdminEstoqueRoute,
-  AuthenticatedAdminKdsRoute: AuthenticatedAdminKdsRoute,
   AuthenticatedAdminMesasRoute: AuthenticatedAdminMesasRoute,
   AuthenticatedAdminPdvRoute: AuthenticatedAdminPdvRoute,
   AuthenticatedAdminPedidosRoute: AuthenticatedAdminPedidosRoute,

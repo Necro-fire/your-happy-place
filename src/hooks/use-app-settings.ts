@@ -48,7 +48,7 @@ export function methodToDbEnum(tipo: PaymentMethod["tipo"]): PayMethodEnum {
 /* ------------------------ Permissions ------------------------ */
 export type ModuleKey =
   | "dashboard" | "pdv" | "pedidos" | "mesas" | "caixa" | "vendas"
-  | "catalogo" | "estoque" | "kds" | "qrcodes" | "usuarios"
+  | "catalogo" | "estoque" | "qrcodes" | "usuarios"
   | "configuracoes" | "suporte";
 
 export function usePermissions() {
