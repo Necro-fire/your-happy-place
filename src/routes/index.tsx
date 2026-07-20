@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { fmtMoney } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { Plus, Search, Clock, MapPin } from "lucide-react";
+import { CategoryIcon } from "@/components/IconPicker";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
