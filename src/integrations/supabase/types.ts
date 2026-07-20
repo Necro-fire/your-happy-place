@@ -1952,6 +1952,7 @@ export type Database = {
           owner_user_id: string | null
           plano: string
           segmento: string | null
+          slug: string
           status: string
           telefone: string | null
           ultima_sync: string | null
@@ -1977,6 +1978,7 @@ export type Database = {
           owner_user_id?: string | null
           plano?: string
           segmento?: string | null
+          slug: string
           status?: string
           telefone?: string | null
           ultima_sync?: string | null
@@ -2002,6 +2004,7 @@ export type Database = {
           owner_user_id?: string | null
           plano?: string
           segmento?: string | null
+          slug?: string
           status?: string
           telefone?: string | null
           ultima_sync?: string | null
@@ -2044,6 +2047,7 @@ export type Database = {
     Functions: {
       current_tenant_id: { Args: never; Returns: string }
       gen_menu_codigo: { Args: never; Returns: string }
+      gen_tenant_slug: { Args: { base: string }; Returns: string }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2052,6 +2056,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      slugify: { Args: { txt: string }; Returns: string }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role:
