@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { fmtMoney } from "@/lib/format";
+import { smartFilter } from "@/lib/search";
 import { ProductImage } from "@/components/ProductImage";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
+import { useFilters } from "@/components/filters/useFilters";
+
 
 export const Route = createFileRoute("/_authenticated/admin/catalogo")({
   component: CatalogoPage,
