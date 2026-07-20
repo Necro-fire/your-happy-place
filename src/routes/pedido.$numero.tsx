@@ -77,7 +77,7 @@ function OrderPage() {
           </div>
         </div>
 
-        <Button asChild className="mt-6 w-full" variant="outline"><Link to="/">Fazer novo pedido</Link></Button>
+        <Button asChild className="mt-6 w-full" variant="outline"><a href="/">Voltar</a></Button>
       </div>
     </PublicLayout>
   );
