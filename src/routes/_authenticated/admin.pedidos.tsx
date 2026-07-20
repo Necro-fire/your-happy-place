@@ -123,6 +123,30 @@ function PedidosPage() {
     return null;
   };
 
+  const prevStatus = (o: any): { status: string; label: string } | null => {
+    switch (o.status) {
+      case "em_preparo": return { status: "novo", label: "Novo" };
+      case "pronto": return { status: "em_preparo", label: "Em Produção" };
+      case "saiu_entrega": return { status: "pronto", label: "Pronto" };
+      case "entregue":
+        return o.tipo === "entrega"
+          ? { status: "saiu_entrega", label: "Em Rota de Entrega" }
+          : { status: "pronto", label: "Pronto" };
+      case "finalizado": return { status: "pronto", label: "Pronto" };
+      default: return null;
+    }
+  };
+
+  const confirmarRetroceder = async (o: any, target: { status: string; label: string }) => {
+    const ok = await dialog.confirm({
+      title: "Retroceder pedido",
+      description: `Tem certeza de que deseja retornar o pedido #${o.numero} para o status "${target.label}"?\n\nEssa ação atualizará o pedido para a etapa anterior.`,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+    });
+    if (ok) updateStatus.mutate({ id: o.id, status: target.status });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
