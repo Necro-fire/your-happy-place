@@ -69,13 +69,23 @@ function QrCodesPage() {
     queryKey: ["settings"],
     queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
   });
+  const tenantQ = useQuery({
+    queryKey: ["my-tenant"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo").eq("owner_user_id", user.id).maybeSingle();
+      return data as any;
+    },
+  });
   const tables = useQuery({
     queryKey: ["tables"],
     queryFn: async () => (await supabase.from("restaurant_tables").select("*").order("numero")).data ?? [],
   });
 
-  const cardapioUrl = `${origin()}/`;
-  const mesaUrl = (numero: number) => `${origin()}/mesa/${numero}`;
+  const codigo = tenantQ.data?.menu_codigo as string | undefined;
+  const cardapioUrl = codigo ? `${origin()}/menu/${codigo}` : `${origin()}/`;
+  const mesaUrl = (numero: number) => codigo ? `${origin()}/mesa/${numero}?c=${codigo}` : `${origin()}/mesa/${numero}`;
 
   const filtered = useMemo(() => {
     const q = busca.trim().toLowerCase();
