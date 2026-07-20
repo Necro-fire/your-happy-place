@@ -389,7 +389,8 @@ function PDVPage() {
   });
 
   return (
-    <div className="grid h-[calc(100vh-7rem)] gap-4 lg:grid-cols-[1fr_400px]">
+    <div className="grid gap-4 lg:h-[calc(100dvh-7rem)] lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+
       {/* ============ ESQUERDA: catálogo ============ */}
       <div className="flex flex-col gap-3 overflow-hidden">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -456,7 +457,7 @@ function PDVPage() {
       </div>
 
       {/* ============ DIREITA: comanda ============ */}
-      <Card className="flex flex-col overflow-hidden p-4">
+      <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
         <div className="mb-3 flex items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
           <h2 className="font-semibold">Comanda</h2>
@@ -467,20 +468,23 @@ function PDVPage() {
           {cart.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">Sem itens</div>}
           {cart.map((i) => (
             <div key={i.key} className="rounded-md border border-border p-2 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium leading-tight">{i.nome}</div>
                   <div className="text-xs text-muted-foreground">
                     {fmtMoney(i.preco)} {i.desconto > 0 && <span className="ml-1 text-destructive">-{fmtMoney(i.desconto)}</span>}
                   </div>
                 </div>
+                <div className="shrink-0 text-right text-sm font-semibold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-end gap-1">
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: Math.max(1, x.quantidade - 1) } : x))}><Minus className="h-3 w-3" /></Button>
                 <span className="w-6 text-center">{i.quantidade}</span>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: x.quantidade + 1 } : x))}><Plus className="h-3 w-3" /></Button>
-                <div className="w-16 text-right font-semibold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setLineEdit(i)} title="Editar"><StickyNote className="h-3 w-3" /></Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.filter((x) => x.key !== i.key))} title="Remover"><Trash2 className="h-3 w-3 text-destructive" /></Button>
               </div>
+
               {(i.complementos.length > 0 || i.observacoes) && (
                 <div className="mt-1 space-y-0.5 pl-1 text-xs text-muted-foreground">
                   {i.complementos.length > 0 && <div>+ {i.complementos.map((c) => c.nome).join(", ")}</div>}

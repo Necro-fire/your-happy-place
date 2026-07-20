@@ -52,23 +52,24 @@ function CaixaPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="font-display text-2xl font-bold">Caixa</h1>
           <p className="text-sm text-muted-foreground">{session.data ? "Sessão aberta" : "Nenhuma sessão aberta"}</p>
         </div>
         {!session.data ? (
           <Button onClick={() => setOpenDlg("open")}><Unlock className="h-4 w-4" />Abrir caixa</Button>
         ) : (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setMovType("entrada"); setOpenDlg("mov"); }}><ArrowDownCircle className="h-4 w-4" />Entrada</Button>
-            <Button variant="outline" onClick={() => { setMovType("saida"); setOpenDlg("mov"); }}><ArrowUpCircle className="h-4 w-4" />Saída</Button>
-            <Button variant="outline" onClick={() => { setMovType("sangria"); setOpenDlg("mov"); }}>Sangria</Button>
-            <Button variant="outline" onClick={() => { setMovType("reforco"); setOpenDlg("mov"); }}>Reforço</Button>
-            <Button variant="destructive" onClick={() => setOpenDlg("close")}><Lock className="h-4 w-4" />Fechar caixa</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => { setMovType("entrada"); setOpenDlg("mov"); }}><ArrowDownCircle className="h-4 w-4" />Entrada</Button>
+            <Button variant="outline" size="sm" onClick={() => { setMovType("saida"); setOpenDlg("mov"); }}><ArrowUpCircle className="h-4 w-4" />Saída</Button>
+            <Button variant="outline" size="sm" onClick={() => { setMovType("sangria"); setOpenDlg("mov"); }}>Sangria</Button>
+            <Button variant="outline" size="sm" onClick={() => { setMovType("reforco"); setOpenDlg("mov"); }}>Reforço</Button>
+            <Button variant="destructive" size="sm" onClick={() => setOpenDlg("close")}><Lock className="h-4 w-4" />Fechar caixa</Button>
           </div>
         )}
       </div>
+
 
       {session.data && (
         <>
