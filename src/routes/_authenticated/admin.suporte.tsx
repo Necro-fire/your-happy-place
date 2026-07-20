@@ -452,7 +452,7 @@ function Base() {
     else { toast.success("Salvo"); setProbOpen(false); setProbEdit(null); qc.invalidateQueries(); }
   }
   async function delProb(id: string) {
-    if (!confirm("Excluir este problema?")) return;
+    if (!(await dialog.confirm({ title: "Excluir problema?", destructive: true, confirmText: "Excluir" }))) return;
     const { error } = await supabase.from("support_problems" as any).delete().eq("id", id);
     if (error) toast.error(error.message); else qc.invalidateQueries();
   }
