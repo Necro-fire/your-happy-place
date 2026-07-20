@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { fetchMyRoles, landingRouteFor } from "@/hooks/use-role";
+import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
