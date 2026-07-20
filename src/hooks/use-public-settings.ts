@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/lib/tenant-session";
 
 export type CarrosselItem = {
   id: string;
@@ -40,19 +41,22 @@ export type PublicSettings = {
   design: DesignConfig;
 };
 
-export function usePublicSettings() {
+export function usePublicSettings(tenantIdArg?: string | null) {
+  const tenant = useTenant();
+  const tenantId = tenantIdArg ?? tenant?.tenant_id ?? null;
   return useQuery({
-    queryKey: ["public-settings"],
+    queryKey: ["public-settings", tenantId],
+    enabled: !!tenantId,
     queryFn: async (): Promise<PublicSettings> => {
-      const { data } = await supabase
+      let query = supabase
         .from("settings")
-        .select("nome_estabelecimento, nome_fantasia, descricao, logo_url, telefone, whatsapp, email, endereco, cidade, estado, cep, config")
-        .eq("id", 1)
-        .maybeSingle();
+        .select("nome_estabelecimento, nome_fantasia, descricao, logo_url, telefone, whatsapp, email, endereco, cidade, estado, cep, config, tenant_id" as any);
+      if (tenantId) query = query.eq("tenant_id", tenantId) as any;
+      const { data } = await query.maybeSingle();
       const s: any = data ?? {};
       const design: DesignConfig = { ...EMPTY_DESIGN, ...((s.config as any)?.design ?? {}) };
       return {
-        nome: s.nome_fantasia || s.nome_estabelecimento || "Meu Estabelecimento",
+        nome: s.nome_fantasia || s.nome_estabelecimento || "Estabelecimento",
         descricao: s.descricao ?? null,
         logo_url: design.logo_url ?? s.logo_url ?? null,
         telefone: s.telefone ?? null,

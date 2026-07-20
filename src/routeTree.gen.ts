@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as MesaNumeroRouteImport } from './routes/mesa.$numero'
+import { Route as MenuCodigoRouteImport } from './routes/menu.$codigo'
 import { Route as AuthenticatedMasterRouteImport } from './routes/_authenticated/master'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
@@ -97,6 +98,11 @@ const PedidoNumeroRoute = PedidoNumeroRouteImport.update({
 const MesaNumeroRoute = MesaNumeroRouteImport.update({
   id: '/mesa/$numero',
   path: '/mesa/$numero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MenuCodigoRoute = MenuCodigoRouteImport.update({
+  id: '/menu/$codigo',
+  path: '/menu/$codigo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedMasterRoute = AuthenticatedMasterRouteImport.update({
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/master': typeof AuthenticatedMasterRouteWithChildren
+  '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/master': typeof AuthenticatedMasterRouteWithChildren
+  '/menu/$codigo': typeof MenuCodigoRoute
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/_authenticated/admin/caixa': typeof AuthenticatedAdminCaixaRoute
@@ -455,6 +464,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/master'
+    | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/admin/caixa'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/admin/caixa'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/master'
+    | '/menu/$codigo'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/_authenticated/admin/caixa'
@@ -591,6 +603,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  MenuCodigoRoute: typeof MenuCodigoRoute
   MesaNumeroRoute: typeof MesaNumeroRouteWithChildren
   PedidoNumeroRoute: typeof PedidoNumeroRoute
 }
@@ -658,6 +671,13 @@ declare module '@tanstack/react-router' {
       path: '/mesa/$numero'
       fullPath: '/mesa/$numero'
       preLoaderRoute: typeof MesaNumeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/menu/$codigo': {
+      id: '/menu/$codigo'
+      path: '/menu/$codigo'
+      fullPath: '/menu/$codigo'
+      preLoaderRoute: typeof MenuCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/master': {
@@ -1061,6 +1081,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  MenuCodigoRoute: MenuCodigoRoute,
   MesaNumeroRoute: MesaNumeroRouteWithChildren,
   PedidoNumeroRoute: PedidoNumeroRoute,
 }

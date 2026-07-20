@@ -5,13 +5,16 @@ import { useCart } from "@/lib/cart";
 import { useMesaSession } from "@/lib/mesa-session";
 import { Badge } from "@/components/ui/badge";
 import { usePublicSettings } from "@/hooks/use-public-settings";
+import { useTenant } from "@/lib/tenant-session";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { count } = useCart();
   const { mesa, setMesa } = useMesaSession();
   const { data: settings } = usePublicSettings();
+  const tenant = useTenant();
   const nome = settings?.nome ?? "";
   const logo = settings?.logo_url ?? null;
+  const homeTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
 
   useEffect(() => {
     if (nome && typeof document !== "undefined") {
@@ -31,7 +34,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       )}
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2 min-w-0">
+          <a href={homeTo} className="flex items-center gap-2 min-w-0">
             {logo ? (
               <img
                 src={logo}
@@ -46,7 +49,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             <span className="font-display text-xl font-bold tracking-tight truncate">
               {nome || "\u00A0"}
             </span>
-          </Link>
+          </a>
           <nav className="flex items-center gap-2">
             <Link
               to="/carrinho"
