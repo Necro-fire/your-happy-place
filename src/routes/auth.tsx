@@ -7,14 +7,18 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Croissant } from "lucide-react";
+import { fetchMyRoles, landingRouteFor } from "@/hooks/use-role";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/admin" });
+    if (data.user) {
+      const roles = await fetchMyRoles();
+      throw redirect({ to: landingRouteFor(roles) });
+    }
   },
-  head: () => ({ meta: [{ title: "Acesso padaria — Admin" }] }),
+  head: () => ({ meta: [{ title: "Acesso — Sistema" }] }),
   component: AuthPage,
 });
 
@@ -30,17 +34,17 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setLoading(false); return toast.error(error.message); }
+    const roles = await fetchMyRoles();
     setLoading(false);
-    if (error) return toast.error(error.message);
-    navigate({ to: "/admin" });
+    navigate({ to: landingRouteFor(roles) });
   }
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email, password,
       options: { emailRedirectTo: window.location.origin + "/admin", data: { nome } },
     });
     setLoading(false);
@@ -68,8 +72,8 @@ function AuthPage() {
             <Croissant className="h-5 w-5" />
           </div>
           <div>
-            <div className="font-display text-xl font-bold">Padaria Admin</div>
-            <div className="text-xs text-muted-foreground">Acesso restrito da equipe</div>
+            <div className="font-display text-xl font-bold">Acesso ao Sistema</div>
+            <div className="text-xs text-muted-foreground">Login unificado — o perfil define o painel</div>
           </div>
         </div>
 
@@ -107,7 +111,7 @@ function AuthPage() {
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={signUp} className="space-y-3">
-                <p className="text-xs text-muted-foreground">A primeira conta criada vira administradora automaticamente.</p>
+                <p className="text-xs text-muted-foreground">Novas contas entram como equipe da empresa.</p>
                 <div>
                   <Label>Nome</Label>
                   <Input value={nome} onChange={(e) => setNome(e.target.value)} required />

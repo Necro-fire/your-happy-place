@@ -18,9 +18,14 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PedidoNumeroRouteImport } from './routes/pedido.$numero'
 import { Route as MesaNumeroRouteImport } from './routes/mesa.$numero'
+import { Route as AuthenticatedMasterRouteImport } from './routes/_authenticated/master'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as MesaNumeroPedidosRouteImport } from './routes/mesa.$numero.pedidos'
+import { Route as AuthenticatedMasterLogsRouteImport } from './routes/_authenticated/master.logs'
+import { Route as AuthenticatedMasterLicencasRouteImport } from './routes/_authenticated/master.licencas'
+import { Route as AuthenticatedMasterClientesRouteImport } from './routes/_authenticated/master.clientes'
 import { Route as AuthenticatedAdminVendasRouteImport } from './routes/_authenticated/admin.vendas'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
 import { Route as AuthenticatedAdminSuporteRouteImport } from './routes/_authenticated/admin.suporte'
@@ -102,11 +107,22 @@ const MesaNumeroRoute = MesaNumeroRouteImport.update({
   path: '/mesa/$numero',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedMasterRoute = AuthenticatedMasterRouteImport.update({
+  id: '/master',
+  path: '/master',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMasterIndexRoute =
+  AuthenticatedMasterIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -117,6 +133,23 @@ const MesaNumeroPedidosRoute = MesaNumeroPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => MesaNumeroRoute,
 } as any)
+const AuthenticatedMasterLogsRoute = AuthenticatedMasterLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AuthenticatedMasterRoute,
+} as any)
+const AuthenticatedMasterLicencasRoute =
+  AuthenticatedMasterLicencasRouteImport.update({
+    id: '/licencas',
+    path: '/licencas',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
+const AuthenticatedMasterClientesRoute =
+  AuthenticatedMasterClientesRouteImport.update({
+    id: '/clientes',
+    path: '/clientes',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
 const AuthenticatedAdminVendasRoute =
   AuthenticatedAdminVendasRouteImport.update({
     id: '/vendas',
@@ -338,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/master': typeof AuthenticatedMasterRouteWithChildren
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/admin/caixa': typeof AuthenticatedAdminCaixaRoute
@@ -351,8 +385,12 @@ export interface FileRoutesByFullPath {
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/master/clientes': typeof AuthenticatedMasterClientesRoute
+  '/master/licencas': typeof AuthenticatedMasterLicencasRoute
+  '/master/logs': typeof AuthenticatedMasterLogsRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/master/': typeof AuthenticatedMasterIndexRoute
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
@@ -398,8 +436,12 @@ export interface FileRoutesByTo {
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/master/clientes': typeof AuthenticatedMasterClientesRoute
+  '/master/licencas': typeof AuthenticatedMasterLicencasRoute
+  '/master/logs': typeof AuthenticatedMasterLogsRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/master': typeof AuthenticatedMasterIndexRoute
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
@@ -436,6 +478,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/master': typeof AuthenticatedMasterRouteWithChildren
   '/mesa/$numero': typeof MesaNumeroRouteWithChildren
   '/pedido/$numero': typeof PedidoNumeroRoute
   '/_authenticated/admin/caixa': typeof AuthenticatedAdminCaixaRoute
@@ -449,8 +492,12 @@ export interface FileRoutesById {
   '/_authenticated/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/_authenticated/master/clientes': typeof AuthenticatedMasterClientesRoute
+  '/_authenticated/master/licencas': typeof AuthenticatedMasterLicencasRoute
+  '/_authenticated/master/logs': typeof AuthenticatedMasterLogsRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/master/': typeof AuthenticatedMasterIndexRoute
   '/_authenticated/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/_authenticated/admin/configuracoes/area-publica': typeof AuthenticatedAdminConfiguracoesAreaPublicaRoute
   '/_authenticated/admin/configuracoes/auditoria': typeof AuthenticatedAdminConfiguracoesAuditoriaRoute
@@ -487,6 +534,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/master'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/admin/caixa'
@@ -500,8 +548,12 @@ export interface FileRouteTypes {
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/master/clientes'
+    | '/master/licencas'
+    | '/master/logs'
     | '/mesa/$numero/pedidos'
     | '/admin/'
+    | '/master/'
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
     | '/admin/configuracoes/auditoria'
@@ -547,8 +599,12 @@ export interface FileRouteTypes {
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/master/clientes'
+    | '/master/licencas'
+    | '/master/logs'
     | '/mesa/$numero/pedidos'
     | '/admin'
+    | '/master'
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/area-publica'
     | '/admin/configuracoes/auditoria'
@@ -584,6 +640,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/master'
     | '/mesa/$numero'
     | '/pedido/$numero'
     | '/_authenticated/admin/caixa'
@@ -597,8 +654,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/suporte'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/admin/vendas'
+    | '/_authenticated/master/clientes'
+    | '/_authenticated/master/licencas'
+    | '/_authenticated/master/logs'
     | '/mesa/$numero/pedidos'
     | '/_authenticated/admin/'
+    | '/_authenticated/master/'
     | '/_authenticated/admin/configuracoes/aparencia'
     | '/_authenticated/admin/configuracoes/area-publica'
     | '/_authenticated/admin/configuracoes/auditoria'
@@ -703,12 +764,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesaNumeroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/master': {
+      id: '/_authenticated/master'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof AuthenticatedMasterRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/master/': {
+      id: '/_authenticated/master/'
+      path: '/'
+      fullPath: '/master/'
+      preLoaderRoute: typeof AuthenticatedMasterIndexRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -723,6 +798,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/mesa/$numero/pedidos'
       preLoaderRoute: typeof MesaNumeroPedidosRouteImport
       parentRoute: typeof MesaNumeroRoute
+    }
+    '/_authenticated/master/logs': {
+      id: '/_authenticated/master/logs'
+      path: '/logs'
+      fullPath: '/master/logs'
+      preLoaderRoute: typeof AuthenticatedMasterLogsRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
+    }
+    '/_authenticated/master/licencas': {
+      id: '/_authenticated/master/licencas'
+      path: '/licencas'
+      fullPath: '/master/licencas'
+      preLoaderRoute: typeof AuthenticatedMasterLicencasRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
+    }
+    '/_authenticated/master/clientes': {
+      id: '/_authenticated/master/clientes'
+      path: '/clientes'
+      fullPath: '/master/clientes'
+      preLoaderRoute: typeof AuthenticatedMasterClientesRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
     }
     '/_authenticated/admin/vendas': {
       id: '/_authenticated/admin/vendas'
@@ -1100,12 +1196,31 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedMasterRouteChildren {
+  AuthenticatedMasterClientesRoute: typeof AuthenticatedMasterClientesRoute
+  AuthenticatedMasterLicencasRoute: typeof AuthenticatedMasterLicencasRoute
+  AuthenticatedMasterLogsRoute: typeof AuthenticatedMasterLogsRoute
+  AuthenticatedMasterIndexRoute: typeof AuthenticatedMasterIndexRoute
+}
+
+const AuthenticatedMasterRouteChildren: AuthenticatedMasterRouteChildren = {
+  AuthenticatedMasterClientesRoute: AuthenticatedMasterClientesRoute,
+  AuthenticatedMasterLicencasRoute: AuthenticatedMasterLicencasRoute,
+  AuthenticatedMasterLogsRoute: AuthenticatedMasterLogsRoute,
+  AuthenticatedMasterIndexRoute: AuthenticatedMasterIndexRoute,
+}
+
+const AuthenticatedMasterRouteWithChildren =
+  AuthenticatedMasterRoute._addFileChildren(AuthenticatedMasterRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedMasterRoute: typeof AuthenticatedMasterRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedMasterRoute: AuthenticatedMasterRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1137,13 +1252,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

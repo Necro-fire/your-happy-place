@@ -580,6 +580,92 @@ export type Database = {
           },
         ]
       }
+      licenses: {
+        Row: {
+          codigo: string
+          created_at: string
+          emitida_em: string
+          id: string
+          observacoes: string | null
+          plano: string
+          situacao: string
+          tenant_id: string | null
+          tipo: string
+          updated_at: string
+          valor: number | null
+          vence_em: string | null
+        }
+        Insert: {
+          codigo?: string
+          created_at?: string
+          emitida_em?: string
+          id?: string
+          observacoes?: string | null
+          plano?: string
+          situacao?: string
+          tenant_id?: string | null
+          tipo?: string
+          updated_at?: string
+          valor?: number | null
+          vence_em?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          emitida_em?: string
+          id?: string
+          observacoes?: string | null
+          plano?: string
+          situacao?: string
+          tenant_id?: string | null
+          tipo?: string
+          updated_at?: string
+          valor?: number | null
+          vence_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_user_id: string | null
+          created_at: string
+          detalhes: Json | null
+          entity: string | null
+          entity_id: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           cancelado: boolean
@@ -1571,6 +1657,81 @@ export type Database = {
           },
         ]
       }
+      tenants: {
+        Row: {
+          ativado_em: string | null
+          cidade: string | null
+          codigo: string
+          created_at: string
+          documento: string | null
+          email: string | null
+          empresa: string | null
+          estado: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          owner_user_id: string | null
+          plano: string
+          segmento: string | null
+          status: string
+          telefone: string | null
+          ultima_sync: string | null
+          ultimo_acesso: string | null
+          updated_at: string
+          vence_em: string | null
+          versao_instalada: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          ativado_em?: string | null
+          cidade?: string | null
+          codigo?: string
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          empresa?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          owner_user_id?: string | null
+          plano?: string
+          segmento?: string | null
+          status?: string
+          telefone?: string | null
+          ultima_sync?: string | null
+          ultimo_acesso?: string | null
+          updated_at?: string
+          vence_em?: string | null
+          versao_instalada?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          ativado_em?: string | null
+          cidade?: string | null
+          codigo?: string
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          empresa?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          owner_user_id?: string | null
+          plano?: string
+          segmento?: string | null
+          status?: string
+          telefone?: string | null
+          ultima_sync?: string | null
+          ultimo_acesso?: string | null
+          updated_at?: string
+          vence_em?: string | null
+          versao_instalada?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1616,6 +1777,7 @@ export type Database = {
         | "caixa"
         | "cozinha"
         | "entregador"
+        | "master"
       cash_mov_tipo:
         | "venda"
         | "entrada"
@@ -1785,6 +1947,7 @@ export const Constants = {
         "caixa",
         "cozinha",
         "entregador",
+        "master",
       ],
       cash_mov_tipo: [
         "venda",
