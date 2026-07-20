@@ -924,16 +924,16 @@ function PDVPage() {
               <div className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between">
                   <Label>Formas de pagamento</Label>
-                  <Button size="sm" variant="outline" onClick={() => setPagamentos((ps) => [...ps, { forma: "dinheiro", valor: restante }])}>
+                  <Button size="sm" variant="outline" onClick={() => setPagamentos((ps) => [...ps, { methodId: defaultMethodId(), valor: restante }])}>
                     <Plus className="mr-1 h-3 w-3" />Adicionar
                   </Button>
                 </div>
                 {pagamentos.map((p, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <Select value={p.forma} onValueChange={(v) => setPagamentos((ps) => ps.map((x, i) => i === idx ? { ...x, forma: v as Pgto } : x))}>
+                    <Select value={p.methodId} onValueChange={(v) => setPagamentos((ps) => ps.map((x, i) => i === idx ? { ...x, methodId: v } : x))}>
                       <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {Object.entries(PGTO_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+                        {paymentMethods.map((m) => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Input type="number" min={0} step="0.01" value={p.valor}
@@ -951,7 +951,7 @@ function PDVPage() {
                 </div>
                 {restante > 0.01 && <div className="flex justify-between text-xs text-destructive"><span>Falta</span><span>{fmtMoney(restante)}</span></div>}
 
-                {pagamentos.some((p) => p.forma === "dinheiro" && p.valor > 0) && (
+                {pagamentos.some((p) => isDinheiroMethod(p.methodId) && p.valor > 0) && (
                   <div className="mt-2 border-t pt-2">
                     <Label className="text-xs">Valor recebido em dinheiro (para calcular troco)</Label>
                     <Input type="number" min={0} step="0.01" value={recebido} onChange={(e) => setRecebido(Number(e.target.value))} />
