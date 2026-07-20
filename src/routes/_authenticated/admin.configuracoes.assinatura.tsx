@@ -77,9 +77,24 @@ function savingsPct(planId: PlanId, cycle: Cycle) {
 
 function AssinaturaPage() {
   const [cycle, setCycle] = useState<Cycle>("mes");
-  // Demo state — plano atual do cliente
-  const [currentPlan, setCurrentPlan] = useState<PlanId>("basico");
+  const [currentPlan, setCurrentPlan] = useState<PlanId>("plus");
   const [currentCycle, setCurrentCycle] = useState<Cycle>("mes");
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("tenants")
+        .select("plano")
+        .eq("owner_user_id", user.id)
+        .maybeSingle();
+      const p = (data?.plano || "").toLowerCase();
+      if (p === "plus" || p === "enterprise" || p === "pro") setCurrentPlan("plus");
+      else if (p === "basico" || p === "basic") setCurrentPlan("basico");
+    })();
+  }, []);
+
 
   const contratacao = useMemo(() => {
     const d = new Date();
