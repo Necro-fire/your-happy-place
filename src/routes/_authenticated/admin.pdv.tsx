@@ -930,30 +930,44 @@ function PDVPage() {
 /* ============ Grade de produtos reutilizável ============ */
 function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => void; empty?: string }) {
   if (list.length === 0) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{empty ?? "Nenhum produto encontrado"}</div>;
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center">
+        <div className="grid h-14 w-14 place-items-center rounded-full bg-muted/60">
+          <Package className="h-6 w-6 text-muted-foreground/70" />
+        </div>
+        <div className="text-sm font-semibold">{empty ?? "Nenhum produto encontrado"}</div>
+        <div className="text-xs text-muted-foreground">Ajuste a busca ou selecione outra categoria</div>
+      </div>
+    );
   }
   return (
     <div className="h-full overflow-y-auto pr-1">
-      <div className="grid auto-rows-max grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid auto-rows-max grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {list.map((p) => {
           const indisponivel = p.controla_estoque && p.estoque_atual <= 0;
+          const emPromo = p.preco_promo != null && Number(p.preco_promo) < Number(p.preco);
           return (
             <button
               key={p.id}
               onClick={() => onAdd(p)}
               disabled={indisponivel}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
             >
               <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted">
-                <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full" />
+                <ProductImage src={p.imagem_url} alt={p.nome} className="h-full w-full transition group-hover:scale-105" />
+                {emPromo && <span className="absolute left-2 top-2 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground shadow">PROMO</span>}
+                {indisponivel && <span className="absolute right-2 top-2 rounded-full bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow">Esgotado</span>}
               </div>
-              <div className="flex flex-col gap-1 p-2">
-                <div className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-tight">{p.nome}</div>
+              <div className="flex flex-col gap-0.5 p-2.5">
+                <div className="line-clamp-2 min-h-[2.4rem] text-[13px] font-semibold leading-tight">{p.nome}</div>
                 {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-                <div className="font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-                {p.controla_estoque && (
+                <div className="mt-0.5 flex items-baseline gap-1.5">
+                  <div className="text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+                  {emPromo && <div className="text-[11px] text-muted-foreground line-through">{fmtMoney(Number(p.preco))}</div>}
+                </div>
+                {p.controla_estoque && !indisponivel && (
                   <div className={`text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-                    {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+                    estoque: {p.estoque_atual} {p.unidade}
                   </div>
                 )}
               </div>
