@@ -1,12 +1,24 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Croissant, Coffee, X } from "lucide-react";
+import { useEffect } from "react";
+import { ShoppingBag, Store, Coffee, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useMesaSession } from "@/lib/mesa-session";
 import { Badge } from "@/components/ui/badge";
+import { usePublicSettings } from "@/hooks/use-public-settings";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const { count } = useCart();
   const { mesa, setMesa } = useMesaSession();
+  const { data: settings } = usePublicSettings();
+  const nome = settings?.nome ?? "";
+  const logo = settings?.logo_url ?? null;
+
+  useEffect(() => {
+    if (nome && typeof document !== "undefined") {
+      document.title = nome;
+    }
+  }, [nome]);
+
   return (
     <div className="min-h-screen bg-background">
       {mesa && (
@@ -19,11 +31,21 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       )}
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary text-primary-foreground">
-              <Croissant className="h-5 w-5" />
-            </div>
-            <span className="font-display text-xl font-bold tracking-tight">Padaria</span>
+          <Link to="/" className="flex items-center gap-2 min-w-0">
+            {logo ? (
+              <img
+                src={logo}
+                alt={nome}
+                className="h-9 w-9 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary text-primary-foreground">
+                <Store className="h-5 w-5" />
+              </div>
+            )}
+            <span className="font-display text-xl font-bold tracking-tight truncate">
+              {nome || "\u00A0"}
+            </span>
           </Link>
           <nav className="flex items-center gap-2">
             <Link
@@ -43,7 +65,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       </header>
       <main>{children}</main>
       <footer className="mt-16 border-t border-border py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Padaria — Sistema de gestão & pedidos
+        © {new Date().getFullYear()} {nome} {settings?.cidade && settings?.estado ? `— ${settings.cidade}/${settings.estado}` : ""}
       </footer>
     </div>
   );
