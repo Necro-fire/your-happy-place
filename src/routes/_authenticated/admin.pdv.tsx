@@ -13,9 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { fmtMoney } from "@/lib/format";
+import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
   Star, Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
+  MapPin, User, Phone, StickyNote as NoteIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -178,6 +180,19 @@ function PDVPage() {
   const mesas = useQuery({
     queryKey: ["tables-pdv"],
     queryFn: async () => (await supabase.from("restaurant_tables").select("*").order("numero")).data ?? [],
+    refetchInterval: 15_000,
+  });
+  const openByMesa = useQuery({
+    queryKey: ["open-orders-by-mesa"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, mesa_id, numero, status")
+        .not("mesa_id", "is", null)
+        .not("status", "in", "(finalizado,cancelado)");
+      return data ?? [];
+    },
+    refetchInterval: 10_000,
   });
   const pcg = useQuery({
     queryKey: ["product-complement-groups"],
@@ -189,6 +204,21 @@ function PDVPage() {
     queryFn: async () => (await supabase.from("complement_groups").select("*, complements(*)").eq("ativo", true)).data ?? [],
     staleTime: 5 * 60_000,
   });
+
+  const openOrderByMesa = useMemo(() => {
+    const map = new Map<string, { id: string; numero: number }>();
+    for (const o of (openByMesa.data ?? []) as any[]) map.set(o.mesa_id, { id: o.id, numero: o.numero });
+    return map;
+  }, [openByMesa.data]);
+
+  function selectMesa(id: string) {
+    const open = openOrderByMesa.get(id);
+    if (open && open.id !== existingOrderId) {
+      toast.error(`Mesa já possui pedido #${open.numero} em aberto. Continue pelo módulo Mesas.`);
+      return;
+    }
+    setMesaId(id);
+  }
 
   const recent = loadRecent();
 
@@ -457,10 +487,10 @@ function PDVPage() {
   });
 
   return (
-    <div className="grid gap-4 lg:h-[calc(100dvh-7rem)] lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
 
-      {/* ============ ESQUERDA: catálogo ============ */}
-      <div className="flex flex-col gap-3 overflow-hidden">
+      {/* ============ CABEÇALHO: identificação da venda ============ */}
+      <Card className="p-3 lg:p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {ATENDIMENTOS.map((a) => {
             const Icon = a.icon; const active = atendimento === a.key;
@@ -472,6 +502,114 @@ function PDVPage() {
             );
           })}
         </div>
+
+        {atendimento && (
+          <div className="mt-3 grid gap-3">
+            {atendimento === "mesa" && (
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><Coffee className="h-3 w-3" /> Mesa *</Label>
+                <Select value={mesaId} onValueChange={selectMesa}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a mesa" /></SelectTrigger>
+                  <SelectContent>
+                    {(mesas.data ?? []).map((m: any) => {
+                      const open = openOrderByMesa.get(m.id);
+                      const isThisSale = open && open.id === existingOrderId;
+                      const statusLabel = isThisSale
+                        ? `Pedido #${open!.numero} (esta venda)`
+                        : open
+                          ? `Ocupada — pedido #${open.numero}`
+                          : m.status === "reservada" ? "Reservada" : "Livre";
+                      const dotColor = open && !isThisSale ? "bg-amber-500" : m.status === "reservada" ? "bg-blue-500" : "bg-emerald-500";
+                      return (
+                        <SelectItem key={m.id} value={m.id} disabled={!!open && !isThisSale}>
+                          <span className="flex items-center gap-2">
+                            <span className={`inline-block h-2 w-2 rounded-full ${dotColor}`} />
+                            Mesa {m.numero} — <span className="text-muted-foreground">{statusLabel}</span>
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><User className="h-3 w-3" /> Cliente {atendimento === "delivery" && <span className="text-destructive">*</span>}</Label>
+                <Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} placeholder="Nome do cliente" />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><Phone className="h-3 w-3" /> Telefone {atendimento === "delivery" && <span className="text-destructive">*</span>}</Label>
+                <Input value={clienteTel} onChange={(e) => setClienteTel(maskPhone(e.target.value))} placeholder="(00) 00000-0000" inputMode="numeric" />
+              </div>
+            </div>
+
+            {atendimento === "delivery" && (
+              <div className="rounded-lg border border-border p-3">
+                <div className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> Endereço de entrega
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[140px_1fr_100px]">
+                  <div>
+                    <Label className="text-xs">CEP *</Label>
+                    <Input value={end.cep} onChange={(e) => { const v = maskCEP(e.target.value); setEnd((s) => ({ ...s, cep: v })); if (v.replace(/\D/g, "").length === 8) lookupCep(v); }} placeholder="00000-000" disabled={cepLoading} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Rua *</Label>
+                    <Input value={end.rua} onChange={(e) => setEnd({ ...end, rua: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Número *</Label>
+                    <Input value={end.numero} onChange={(e) => setEnd({ ...end, numero: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_1fr_80px]">
+                  <div>
+                    <Label className="text-xs">Bairro *</Label>
+                    <Input value={end.bairro} onChange={(e) => setEnd({ ...end, bairro: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Complemento</Label>
+                    <Input value={end.complemento} onChange={(e) => setEnd({ ...end, complemento: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Cidade *</Label>
+                    <Input value={end.cidade} onChange={(e) => setEnd({ ...end, cidade: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">UF *</Label>
+                    <Input value={end.estado} maxLength={2} onChange={(e) => setEnd({ ...end, estado: e.target.value.toUpperCase() })} />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-xs">Ponto de referência</Label>
+                  <Input value={end.referencia} onChange={(e) => setEnd({ ...end, referencia: e.target.value })} placeholder="Ex: próximo ao mercado" />
+                </div>
+              </div>
+            )}
+
+            {atendimento === "retirada" && (
+              <div>
+                <Label className="text-xs">Horário previsto</Label>
+                <Input type="datetime-local" value={horario} onChange={(e) => setHorario(e.target.value)} />
+              </div>
+            )}
+
+            <div>
+              <Label className="flex items-center gap-1 text-xs"><NoteIcon className="h-3 w-3" /> Observações do pedido</Label>
+              <Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Ex: sem cebola, bem passado, cortar em 8 pedaços..." />
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* ============ CORPO: catálogo + comanda ============ */}
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+
+      {/* ============ ESQUERDA: catálogo ============ */}
+      <div className="flex flex-col gap-3 overflow-hidden">
+
 
         <div className="flex flex-wrap gap-2">
           <div className="relative min-w-[220px] flex-1">
@@ -602,6 +740,7 @@ function PDVPage() {
           {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
         </Button>
       </Card>
+      </div>
 
       {/* ============ Modal: complementos ============ */}
       {complementModal && (
@@ -681,48 +820,21 @@ function PDVPage() {
           <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader><DialogTitle>Finalizar — {ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              {atendimento === "mesa" && (
-                <div><Label>Mesa *</Label>
-                  <Select value={mesaId} onValueChange={setMesaId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {(mesas.data ?? []).map((m) => <SelectItem key={m.id} value={m.id}>Mesa {m.numero} — {m.capacidade} lug.</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                <div className="font-semibold">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</div>
+                {atendimento === "mesa" && mesaId && (
+                  <div className="text-muted-foreground">Mesa {(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero}</div>
+                )}
+                {(clienteNome || clienteTel) && (
+                  <div className="text-muted-foreground">{clienteNome}{clienteTel ? ` • ${clienteTel}` : ""}</div>
+                )}
+                {atendimento === "delivery" && end.rua && (
+                  <div className="text-muted-foreground">{end.rua}, {end.numero} — {end.bairro}, {end.cidade}/{end.estado}</div>
+                )}
+                {obs && <div className="text-muted-foreground">📝 {obs}</div>}
+              </div>
 
-              {(atendimento === "retirada" || atendimento === "delivery" || atendimento === "balcao") && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div><Label>Nome {atendimento !== "balcao" && "*"}</Label><Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} /></div>
-                  <div><Label>Telefone {atendimento === "delivery" && "*"}</Label><Input value={clienteTel} onChange={(e) => setClienteTel(e.target.value)} /></div>
-                </div>
-              )}
 
-              {atendimento === "retirada" && (
-                <div><Label>Horário previsto</Label><Input type="datetime-local" value={horario} onChange={(e) => setHorario(e.target.value)} /></div>
-              )}
-
-              {atendimento === "delivery" && (
-                <div className="space-y-2 rounded-lg border border-border p-3">
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div><Label>CEP *</Label><Input value={end.cep} onChange={(e) => lookupCep(e.target.value)} placeholder="00000-000" disabled={cepLoading} /></div>
-                    <div><Label>Rua *</Label><Input value={end.rua} onChange={(e) => setEnd({ ...end, rua: e.target.value })} /></div>
-                  </div>
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div><Label>Número *</Label><Input value={end.numero} onChange={(e) => setEnd({ ...end, numero: e.target.value })} /></div>
-                    <div><Label>Bairro *</Label><Input value={end.bairro} onChange={(e) => setEnd({ ...end, bairro: e.target.value })} /></div>
-                  </div>
-                  <div className="grid grid-cols-[2fr_1fr] gap-2">
-                    <div><Label>Cidade *</Label><Input value={end.cidade} onChange={(e) => setEnd({ ...end, cidade: e.target.value })} /></div>
-                    <div><Label>Estado *</Label><Input value={end.estado} maxLength={2} onChange={(e) => setEnd({ ...end, estado: e.target.value.toUpperCase() })} /></div>
-                  </div>
-                  <div><Label>Complemento</Label><Input value={end.complemento} onChange={(e) => setEnd({ ...end, complemento: e.target.value })} /></div>
-                  <div><Label>Ponto de referência</Label><Input value={end.referencia} onChange={(e) => setEnd({ ...end, referencia: e.target.value })} /></div>
-                </div>
-              )}
-
-              <div><Label>Observações do pedido</Label><Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
 
               {/* Pagamento múltiplo */}
               <div className="space-y-2 rounded-lg border border-border p-3">
