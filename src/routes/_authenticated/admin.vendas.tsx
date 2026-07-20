@@ -1,15 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { fmtMoney, fmtDate, statusLabel, statusColor, paymentLabel, origemLabel, tipoLabel, tipoColor, fmtPhone } from "@/lib/format";
 import { smartFilter } from "@/lib/search";
 import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
 import { useFilters } from "@/components/filters/useFilters";
+import { dialog } from "@/components/ui/app-dialog";
+import { toast } from "sonner";
+import { Trash2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/vendas")({
   component: VendasPage,
@@ -29,6 +34,7 @@ const SORT_OPTIONS = [
 ];
 
 function VendasPage() {
+  const [detail, setDetail] = useState<any | null>(null);
   const f = useFilters("vendas", { sort: "recent" });
   const { state, setState, reset, activeChips, dateRange, presets, savePreset, applyPreset, removePreset } = f;
 
