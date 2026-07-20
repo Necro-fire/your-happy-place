@@ -512,6 +512,11 @@ function PDVPage() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
+      {!cashSession.data && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline">Operações → Caixa</a> para finalizar vendas.
+        </div>
+      )}
 
       {/* ============ CABEÇALHO: identificação da venda ============ */}
       <Card className="p-3 lg:p-4">
