@@ -740,6 +740,7 @@ function PDVPage() {
           {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
         </Button>
       </Card>
+      </div>
 
       {/* ============ Modal: complementos ============ */}
       {complementModal && (
