@@ -198,6 +198,87 @@ body { overscroll-behavior-y: none; }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
 }
 
+/* ============================================================
+   Master (Developer) Panel — Doodle + Cartoon theme
+   Scoped to `.master-doodle` root; hardcoded palette per PRD.
+   ============================================================ */
+.master-doodle {
+  font-family: "Patrick Hand", "Comic Neue", ui-rounded, system-ui, sans-serif;
+  background-color: #fdfcf0;
+  color: #0f172a;
+}
+.master-doodle .doodle-card {
+  background: #ffffff;
+  border: 3px solid #0f172a;
+  box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 1);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.master-doodle .doodle-card--sm { box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 1); border-width: 2px; }
+.master-doodle .doodle-card--lg { box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 1); }
+.master-doodle .doodle-hover:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 0 rgba(0,0,0,1); }
+.master-doodle .doodle-btn {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 0 rgba(0,0,0,1);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  font-weight: 700;
+}
+.master-doodle .doodle-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 rgba(0,0,0,1); }
+.master-doodle .doodle-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 rgba(0,0,0,1); }
+.master-doodle .doodle-btn--primary { background: #FF8A00; color: #0f172a; }
+.master-doodle .doodle-btn--success { background: #43A047; color: #ffffff; }
+.master-doodle .doodle-btn--ghost { box-shadow: none; background: transparent; border-color: transparent; }
+.master-doodle .doodle-btn--icon { padding: 6px; border-radius: 12px; box-shadow: 2px 2px 0 0 rgba(0,0,0,1); }
+.master-doodle .doodle-input {
+  border: 2px solid #0f172a;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  outline: none;
+  font-family: inherit;
+}
+.master-doodle .doodle-input:focus { box-shadow: 0 0 0 3px rgba(255,138,0,.25); }
+.master-doodle .doodle-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px;
+  border: 1.5px solid currentColor;
+}
+.master-doodle .doodle-nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 16px;
+  transition: transform .15s ease, background .15s ease;
+  color: #0f172a;
+}
+.master-doodle .doodle-nav-item:hover { background: #fff7ec; transform: translateX(2px); }
+.master-doodle .doodle-nav-item.is-active {
+  background: #ffe1bf;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0 0 rgba(0,0,0,1);
+  transform: rotate(-1deg);
+}
+.master-doodle .doodle-scribble {
+  position: absolute; pointer-events: none; user-select: none; opacity: .5;
+}
+@keyframes doodleFloat { 0%,100% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-6px) rotate(var(--r,0deg)); } }
+.master-doodle .doodle-float { animation: doodleFloat 4s ease-in-out infinite; }
+@keyframes doodleWiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+.master-doodle .doodle-wiggle { animation: doodleWiggle 3s ease-in-out infinite; }
+.master-doodle table.doodle-table th {
+  border-bottom: 2px dashed #0f172a;
+  padding: 12px 12px;
+  text-transform: uppercase; letter-spacing: .04em;
+  font-size: 12px; color: #64748b;
+  text-align: left; font-weight: 700;
+}
+.master-doodle table.doodle-table td {
+  padding: 14px 12px;
+  border-bottom: 1px dashed #e2e8f0;
+  vertical-align: middle;
+}
+.master-doodle table.doodle-table tbody tr:hover { background: #fff7ec; }
+
+
 @media print {
   body * { visibility: hidden; }
   .print-area, .print-area * { visibility: visible; }
