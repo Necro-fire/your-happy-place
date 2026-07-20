@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   fmtMoney, fmtTime, fmtDate, statusLabel, statusColor,
@@ -14,10 +12,26 @@ import {
 } from "@/lib/format";
 import { Printer, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { FiltersDrawer, FilterChips } from "@/components/filters/FiltersDrawer";
+import { useFilters } from "@/components/filters/useFilters";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   component: PedidosPage,
 });
+
+const PED_CATEGORIES = [
+  { value: "local", label: "Mesa" },
+  { value: "entrega", label: "Entrega" },
+  { value: "retirada", label: "Retirada" },
+];
+const PED_STATUS = [
+  { value: "novo", label: "Novo" },
+  { value: "em_preparo", label: "Em preparo" },
+  { value: "pronto", label: "Pronto" },
+  { value: "saiu_entrega", label: "Em rota" },
+  { value: "entregue", label: "Entregue" },
+  { value: "cancelado", label: "Cancelado" },
+];
 
 const COLUMNS: Array<{ key: string; label: string; icon?: any; tone?: string }> = [
   { key: "novo", label: "Novos Pedidos" },
