@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { maskPhone, maskCEP, maskCPFOrCNPJ } from "@/lib/masks";
-import { Loader2, Search, Upload, Trash2 } from "lucide-react";
+import { Loader2, Search, Upload, Trash2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,15 @@ function EmpresaPage() {
   const q = useQuery({
     queryKey: ["settings"],
     queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
+  });
+  const tenantQ = useQuery({
+    queryKey: ["my-tenant"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo, nome").eq("owner_user_id", user.id).maybeSingle();
+      return data as any;
+    },
   });
   const [f, setF] = useState<any>(null);
   const [horarios, setHorarios] = useState<Horarios>(DEFAULT_HORARIOS);
@@ -161,9 +170,49 @@ function EmpresaPage() {
 
   if (!f) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
+  const codigo = tenantQ.data?.menu_codigo as string | undefined;
+  const publicUrl = codigo ? `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${codigo}` : "";
+
   return (
     <div className="space-y-4">
-      <Card className="space-y-4 p-5">
+      <Card className="space-y-3 p-5">
+        <div>
+          <h2 className="font-display text-lg font-semibold">URL pública do cardápio</h2>
+          <p className="text-xs text-muted-foreground">Este é o endereço exclusivo do seu cardápio digital. Compartilhe com seus clientes ou gere QR Codes na tela de QR Codes.</p>
+        </div>
+        {codigo ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex-1 rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
+              {publicUrl}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try { await navigator.clipboard.writeText(publicUrl); toast.success("URL copiada"); }
+                  catch { toast.error("Não foi possível copiar"); }
+                }}
+              >
+                <Copy className="mr-1 h-4 w-4" /> Copiar
+              </Button>
+              <Button type="button" variant="outline" size="sm" asChild>
+                <a href={publicUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-1 h-4 w-4" /> Abrir
+                </a>
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Gerando código exclusivo...</p>
+        )}
+        {codigo && (
+          <p className="text-xs text-muted-foreground">
+            Código de acesso: <span className="font-mono font-semibold">{codigo}</span>
+          </p>
+        )}
+      </Card>
         <div>
           <h2 className="font-display text-lg font-semibold">Logo do estabelecimento</h2>
           <p className="text-xs text-muted-foreground">Aparece no cabeçalho do cardápio público e nas telas de pedido do cliente.</p>
