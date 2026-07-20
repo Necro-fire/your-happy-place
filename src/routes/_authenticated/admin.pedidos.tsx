@@ -44,9 +44,8 @@ const COLUMNS: Array<{ key: string; label: string; icon?: any; tone?: string }> 
 function PedidosPage() {
   const qc = useQueryClient();
   const [detail, setDetail] = useState<any | null>(null);
-  const [tipoFilter, setTipoFilter] = useState<string>("todos");
-  const [busca, setBusca] = useState("");
-  const [data, setData] = useState<string>("");
+  const f = useFilters("pedidos", { sort: "recent" });
+  const { state, setState, reset, activeChips, dateRange, presets, savePreset, applyPreset, removePreset } = f;
 
   const orders = useQuery({
     queryKey: ["admin-orders-active"],
@@ -84,11 +83,14 @@ function PedidosPage() {
 
   const filtered = useMemo(() => {
     let list = orders.data ?? [];
-    // map saiu_entrega/confirmado para em_preparo visual? mantemos cru.
-    if (tipoFilter !== "todos") list = list.filter((o) => o.tipo === tipoFilter);
-    if (data) list = list.filter((o) => (o.created_at as string).slice(0, 10) === data);
-    if (busca.trim()) {
-      const s = busca.toLowerCase();
+    if (state.categories.length > 0) list = list.filter((o) => state.categories.includes(o.tipo));
+    if (state.status.length > 0) list = list.filter((o) => state.status.includes(o.status));
+    if (dateRange.start) list = list.filter((o) => new Date(o.created_at) >= dateRange.start!);
+    if (dateRange.end) list = list.filter((o) => new Date(o.created_at) <= dateRange.end!);
+    if (state.valueMin != null) list = list.filter((o) => Number(o.total) >= state.valueMin!);
+    if (state.valueMax != null) list = list.filter((o) => Number(o.total) <= state.valueMax!);
+    if (state.q.trim()) {
+      const s = state.q.toLowerCase();
       list = list.filter((o) =>
         String(o.numero).includes(s) ||
         (o.cliente_nome ?? "").toLowerCase().includes(s) ||
@@ -96,7 +98,7 @@ function PedidosPage() {
       );
     }
     return list;
-  }, [orders.data, tipoFilter, busca, data]);
+  }, [orders.data, state, dateRange.start, dateRange.end]);
 
   const byStatus = (k: string) => {
     if (k === "em_preparo") return filtered.filter((o) => o.status === "em_preparo" || o.status === "confirmado");
@@ -123,21 +125,21 @@ function PedidosPage() {
           <h1 className="font-display text-2xl font-bold">Pedidos</h1>
           <p className="text-sm text-muted-foreground">Acompanhe e atualize o status em tempo real.</p>
         </div>
-        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
-          <Input placeholder="Buscar nº/cliente/tel" value={busca} onChange={(e) => setBusca(e.target.value)} />
-          <Select value={tipoFilter} onValueChange={setTipoFilter}>
-            <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas as categorias</SelectItem>
-              <SelectItem value="local">Mesa</SelectItem>
-              <SelectItem value="entrega">Entrega</SelectItem>
-              <SelectItem value="retirada">Retirada</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
-          <Button variant="outline" onClick={() => { setBusca(""); setTipoFilter("todos"); setData(""); }}>Limpar</Button>
-        </div>
+        <FiltersDrawer
+          sections={{ search: true, period: true, status: PED_STATUS, categories: PED_CATEGORIES, valueRange: true }}
+          state={state}
+          setState={setState as any}
+          reset={reset}
+          presets={presets}
+          onSavePreset={savePreset}
+          onApplyPreset={applyPreset}
+          onRemovePreset={removePreset}
+          activeCount={activeChips.length}
+        />
       </div>
+
+      <FilterChips chips={activeChips} onClearAll={reset} />
+
 
       <div className="-mx-4 overflow-x-auto overflow-y-hidden px-4 pb-3 md:mx-0 md:px-0" style={{ scrollbarGutter: "stable" }}>
         <div className="flex gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
