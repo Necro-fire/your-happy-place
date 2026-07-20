@@ -28,8 +28,6 @@ function PdvSettings() {
   const { state, setState, save, loading } = useSettingsConfig("pdv", {
     tipos_venda: { balcao: true, retirada: true, mesa: true, delivery: true } as Record<string, boolean>,
     pos_venda_impressao: "auto" as PosVenda,
-    som_confirmacao: true,
-    focar_busca_ao_abrir: true,
   });
   if (loading || !state) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
@@ -95,26 +93,6 @@ function PdvSettings() {
               </button>
             );
           })}
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-sm font-semibold">Comportamento da tela</Label>
-        <div className="mt-2 space-y-2">
-          <label className="flex items-center justify-between rounded-md border border-border p-3">
-            <div>
-              <div className="text-sm">Focar campo de busca ao abrir o PDV</div>
-              <div className="text-xs text-muted-foreground">Cursor pronto para pesquisar produtos.</div>
-            </div>
-            <Switch checked={state.focar_busca_ao_abrir} onCheckedChange={(v) => setState({ ...state, focar_busca_ao_abrir: v })} />
-          </label>
-          <label className="flex items-center justify-between rounded-md border border-border p-3">
-            <div>
-              <div className="text-sm">Som de confirmação ao adicionar produto</div>
-              <div className="text-xs text-muted-foreground">Feedback sonoro rápido ao inserir itens.</div>
-            </div>
-            <Switch checked={state.som_confirmacao} onCheckedChange={(v) => setState({ ...state, som_confirmacao: v })} />
-          </label>
         </div>
       </div>
     </SectionShell>
