@@ -16,7 +16,7 @@ import { fmtMoney } from "@/lib/format";
 import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
-  Star, Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
+  Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
   MapPin, User, Phone, StickyNote as NoteIcon,
 } from "lucide-react";
 import { toast } from "sonner";
