@@ -120,9 +120,9 @@ function HomePage() {
               <button
                 key={c.id}
                 onClick={() => setCat(c.id)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${cat === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent/40"}`}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition ${cat === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent/40"}`}
               >
-                <span className="mr-1">{c.icone}</span>
+                <CategoryIcon name={c.icone} className="h-4 w-4" />
                 {c.nome}
               </button>
             ))}
