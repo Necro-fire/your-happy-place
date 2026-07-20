@@ -42,40 +42,6 @@ function EmpresaPage() {
     queryKey: ["settings"],
     queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
   });
-  const tenantQ = useQuery({
-    queryKey: ["my-tenant"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data } = await supabase.from("tenants" as any).select("id, menu_codigo, slug, nome").eq("owner_user_id", user.id).maybeSingle();
-      return data as any;
-    },
-  });
-  const [slugInput, setSlugInput] = useState("");
-  const [savingSlug, setSavingSlug] = useState(false);
-  useEffect(() => {
-    if (tenantQ.data?.slug) setSlugInput(tenantQ.data.slug);
-  }, [tenantQ.data?.slug]);
-
-  async function saveSlug() {
-    const raw = slugInput.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-    if (raw.length < 3) { toast.error("O endereço deve ter pelo menos 3 caracteres"); return; }
-    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(raw)) { toast.error("Use letras, números e hífens (não pode começar/terminar com hífen)"); return; }
-    if (!tenantQ.data?.id) return;
-    setSavingSlug(true);
-    try {
-      const { data: exists } = await supabase.from("tenants" as any).select("id").eq("slug", raw).neq("id", tenantQ.data.id).maybeSingle();
-      if (exists) { toast.error("Este endereço já está em uso. Tente outro."); return; }
-      const { error } = await supabase.from("tenants" as any).update({ slug: raw }).eq("id", tenantQ.data.id);
-      if (error) throw error;
-      qc.invalidateQueries({ queryKey: ["my-tenant"] });
-      toast.success("Endereço público atualizado");
-    } catch (e: any) {
-      toast.error(e.message ?? "Falha ao salvar endereço");
-    } finally {
-      setSavingSlug(false);
-    }
-  }
 
   const [f, setF] = useState<any>(null);
   const [horarios, setHorarios] = useState<Horarios>(DEFAULT_HORARIOS);
