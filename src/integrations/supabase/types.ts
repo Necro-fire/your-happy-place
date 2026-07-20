@@ -2162,6 +2162,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      seed_default_menu: { Args: { _tenant_id: string }; Returns: undefined }
       server_now: { Args: never; Returns: string }
       slugify: { Args: { txt: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
