@@ -50,6 +50,7 @@ import { Route as AuthenticatedAdminConfiguracoesImpressoesRouteImport } from '.
 import { Route as AuthenticatedAdminConfiguracoesFinanceiroRouteImport } from './routes/_authenticated/admin.configuracoes.financeiro'
 import { Route as AuthenticatedAdminConfiguracoesEstoqueRouteImport } from './routes/_authenticated/admin.configuracoes.estoque'
 import { Route as AuthenticatedAdminConfiguracoesEmpresaRouteImport } from './routes/_authenticated/admin.configuracoes.empresa'
+import { Route as AuthenticatedAdminConfiguracoesDescontosRouteImport } from './routes/_authenticated/admin.configuracoes.descontos'
 import { Route as AuthenticatedAdminConfiguracoesBackupRouteImport } from './routes/_authenticated/admin.configuracoes.backup'
 import { Route as AuthenticatedAdminConfiguracoesAssinaturaRouteImport } from './routes/_authenticated/admin.configuracoes.assinatura'
 import { Route as AuthenticatedAdminConfiguracoesAparenciaRouteImport } from './routes/_authenticated/admin.configuracoes.aparencia'
@@ -281,6 +282,12 @@ const AuthenticatedAdminConfiguracoesEmpresaRoute =
     path: '/empresa',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesDescontosRoute =
+  AuthenticatedAdminConfiguracoesDescontosRouteImport.update({
+    id: '/descontos',
+    path: '/descontos',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesBackupRoute =
   AuthenticatedAdminConfiguracoesBackupRouteImport.update({
     id: '/backup',
@@ -332,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/assinatura': typeof AuthenticatedAdminConfiguracoesAssinaturaRoute
   '/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
+  '/admin/configuracoes/descontos': typeof AuthenticatedAdminConfiguracoesDescontosRoute
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
@@ -374,6 +382,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/admin/configuracoes/assinatura': typeof AuthenticatedAdminConfiguracoesAssinaturaRoute
   '/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
+  '/admin/configuracoes/descontos': typeof AuthenticatedAdminConfiguracoesDescontosRoute
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
@@ -421,6 +430,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes/aparencia': typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   '/_authenticated/admin/configuracoes/assinatura': typeof AuthenticatedAdminConfiguracoesAssinaturaRoute
   '/_authenticated/admin/configuracoes/backup': typeof AuthenticatedAdminConfiguracoesBackupRoute
+  '/_authenticated/admin/configuracoes/descontos': typeof AuthenticatedAdminConfiguracoesDescontosRoute
   '/_authenticated/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/_authenticated/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/_authenticated/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/assinatura'
     | '/admin/configuracoes/backup'
+    | '/admin/configuracoes/descontos'
     | '/admin/configuracoes/empresa'
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/aparencia'
     | '/admin/configuracoes/assinatura'
     | '/admin/configuracoes/backup'
+    | '/admin/configuracoes/descontos'
     | '/admin/configuracoes/empresa'
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
@@ -556,6 +568,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes/aparencia'
     | '/_authenticated/admin/configuracoes/assinatura'
     | '/_authenticated/admin/configuracoes/backup'
+    | '/_authenticated/admin/configuracoes/descontos'
     | '/_authenticated/admin/configuracoes/empresa'
     | '/_authenticated/admin/configuracoes/estoque'
     | '/_authenticated/admin/configuracoes/financeiro'
@@ -871,6 +884,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesEmpresaRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/descontos': {
+      id: '/_authenticated/admin/configuracoes/descontos'
+      path: '/descontos'
+      fullPath: '/admin/configuracoes/descontos'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesDescontosRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/backup': {
       id: '/_authenticated/admin/configuracoes/backup'
       path: '/backup'
@@ -899,6 +919,7 @@ interface AuthenticatedAdminConfiguracoesRouteChildren {
   AuthenticatedAdminConfiguracoesAparenciaRoute: typeof AuthenticatedAdminConfiguracoesAparenciaRoute
   AuthenticatedAdminConfiguracoesAssinaturaRoute: typeof AuthenticatedAdminConfiguracoesAssinaturaRoute
   AuthenticatedAdminConfiguracoesBackupRoute: typeof AuthenticatedAdminConfiguracoesBackupRoute
+  AuthenticatedAdminConfiguracoesDescontosRoute: typeof AuthenticatedAdminConfiguracoesDescontosRoute
   AuthenticatedAdminConfiguracoesEmpresaRoute: typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   AuthenticatedAdminConfiguracoesEstoqueRoute: typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   AuthenticatedAdminConfiguracoesFinanceiroRoute: typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
@@ -921,6 +942,8 @@ const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfigurac
       AuthenticatedAdminConfiguracoesAssinaturaRoute,
     AuthenticatedAdminConfiguracoesBackupRoute:
       AuthenticatedAdminConfiguracoesBackupRoute,
+    AuthenticatedAdminConfiguracoesDescontosRoute:
+      AuthenticatedAdminConfiguracoesDescontosRoute,
     AuthenticatedAdminConfiguracoesEmpresaRoute:
       AuthenticatedAdminConfiguracoesEmpresaRoute,
     AuthenticatedAdminConfiguracoesEstoqueRoute:
