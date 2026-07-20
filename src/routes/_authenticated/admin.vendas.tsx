@@ -248,7 +248,7 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
               <div><span className="text-xs text-muted-foreground">Data</span><div className="font-medium">{fmtDate(o.created_at)}</div></div>
               <div><span className="text-xs text-muted-foreground">Pagamento</span><div className="font-medium">{o.forma_pagamento ? paymentLabel[o.forma_pagamento] : "—"}</div></div>
               <div><span className="text-xs text-muted-foreground">Cliente</span><div className="font-medium">{o.cliente_nome ?? "—"}{o.cliente_telefone ? ` · ${fmtPhone(o.cliente_telefone)}` : ""}</div></div>
-              <div><span className="text-xs text-muted-foreground">Operador</span><div className="font-medium">{(o.operador as any)?.nome ?? (o.garcom as any)?.nome ?? "—"}</div></div>
+              <div><span className="text-xs text-muted-foreground">Tipo</span><div className="font-medium">{tipoLabel[o.tipo]}</div></div>
             </div>
 
             <div className="rounded-lg border">
