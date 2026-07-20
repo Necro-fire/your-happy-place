@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fmtMoney, tipoLabel } from "@/lib/format";
-import { Clock, ChefHat, CheckCircle2, ArrowRight } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2, ArrowRight, Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import { dialog } from "@/components/ui/app-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/kds")({
   component: KDSPage,
