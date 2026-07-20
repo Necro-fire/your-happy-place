@@ -74,6 +74,7 @@ export type Database = {
           fechado_por: string | null
           id: string
           observacoes: string | null
+          saldo_esperado: number | null
           saldo_final: number | null
           saldo_inicial: number
           status: Database["public"]["Enums"]["cash_status"]
@@ -86,6 +87,7 @@ export type Database = {
           fechado_por?: string | null
           id?: string
           observacoes?: string | null
+          saldo_esperado?: number | null
           saldo_final?: number | null
           saldo_inicial?: number
           status?: Database["public"]["Enums"]["cash_status"]
@@ -98,6 +100,7 @@ export type Database = {
           fechado_por?: string | null
           id?: string
           observacoes?: string | null
+          saldo_esperado?: number | null
           saldo_final?: number | null
           saldo_inicial?: number
           status?: Database["public"]["Enums"]["cash_status"]
