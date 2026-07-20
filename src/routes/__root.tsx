@@ -68,7 +68,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Padaria — Pedidos Online & Gestão" },
       { name: "description", content: "Peça pães, bolos, salgados e cafés online. Gestão completa para sua padaria." },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Comic+Neue:wght@400;700&display=swap" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

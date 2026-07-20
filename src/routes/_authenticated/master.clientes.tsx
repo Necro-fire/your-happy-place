@@ -1,20 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { logMaster } from "@/lib/master-log";
 import { fmtDate } from "@/lib/format";
 import { maskPhone, maskCPFOrCNPJ } from "@/lib/masks";
-import { Plus, Pencil, Ban, CheckCircle2, Trash2, RotateCw, Search } from "lucide-react";
+import { Plus, Pencil, Ban, CheckCircle2, Trash2, RotateCw, Search, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/master/clientes")({
   component: ClientesMaster,
@@ -28,11 +26,14 @@ type Tenant = {
   ativado_em: string | null; vence_em: string | null; observacoes: string | null;
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  ativo: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-  teste: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  bloqueado: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-  cancelado: "bg-slate-500/20 text-slate-300 border-slate-500/40",
+const STATUS_STYLES: Record<string, string> = {
+  ativo: "border-emerald-600 bg-emerald-100 text-emerald-700",
+  teste: "border-yellow-600 bg-yellow-100 text-yellow-700",
+  bloqueado: "border-red-600 bg-red-100 text-red-700",
+  cancelado: "border-purple-600 bg-purple-100 text-purple-700",
+};
+const STATUS_DOT: Record<string, string> = {
+  ativo: "bg-emerald-600", teste: "bg-yellow-500", bloqueado: "bg-red-600", cancelado: "bg-purple-600",
 };
 
 function ClientesMaster() {
@@ -46,24 +47,22 @@ function ClientesMaster() {
     queryFn: async () => (await supabase.from("tenants").select("*").order("created_at", { ascending: false })).data as Tenant[] ?? [],
   });
 
-  const filtered = tenants.filter((t) => {
+  const filtered = useMemo(() => tenants.filter((t) => {
     if (statusFilter !== "todos" && t.status !== statusFilter) return false;
     if (!q) return true;
     const s = q.toLowerCase();
     return (t.nome + " " + (t.empresa ?? "") + " " + t.codigo + " " + (t.email ?? "") + " " + (t.documento ?? "")).toLowerCase().includes(s);
-  });
+  }), [tenants, statusFilter, q]);
 
   const save = useMutation({
     mutationFn: async (t: Partial<Tenant>) => {
       if (t.id) {
-        const { id, codigo: _c, ...rest } = t;
-        void _c;
+        const { id, codigo: _c, ...rest } = t; void _c;
         const { error } = await supabase.from("tenants").update(rest).eq("id", id);
         if (error) throw error;
         await logMaster("tenant.update", "tenant", id, { nome: t.nome });
       } else {
-        const { id: _i, codigo: _c, ...rest } = t;
-        void _i; void _c;
+        const { id: _i, codigo: _c, ...rest } = t; void _i; void _c;
         const { data, error } = await supabase.from("tenants").insert(rest as never).select().single();
         if (error) throw error;
         await logMaster("tenant.create", "tenant", data.id, { nome: data.nome, codigo: data.codigo });
@@ -94,94 +93,117 @@ function ClientesMaster() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-6">
+      <div className="relative flex flex-wrap items-end justify-between gap-3 pt-2">
+        <Sparkles className="doodle-scribble -top-2 left-52 h-6 w-6 text-yellow-400 doodle-wiggle" />
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-50">Empresas Clientes</h1>
-          <p className="text-sm text-slate-400">Cadastro, planos, status e ciclo de vida das empresas contratantes.</p>
+          <h1 className="text-3xl font-bold">Empresas Cadastradas 🏢</h1>
+          <p className="mt-1 text-slate-500 underline decoration-orange-300 decoration-wavy underline-offset-4">
+            Cadastro, planos, status e ciclo de vida das empresas contratantes.
+          </p>
         </div>
-        <Button onClick={() => setEditing({ status: "ativo", plano: "basico" })} className="bg-indigo-600 hover:bg-indigo-500">
-          <Plus className="mr-2 h-4 w-4" />Nova empresa
-        </Button>
+        <button
+          onClick={() => setEditing({ status: "ativo", plano: "basico" })}
+          className="doodle-btn doodle-btn--primary flex items-center gap-2 rounded-full px-5 py-2.5"
+        >
+          <Plus className="h-4 w-4" /> Nova empresa
+        </button>
       </div>
 
-      <Card className="border-slate-800 bg-slate-900 p-3">
-        <div className="flex flex-wrap gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por código, nome, empresa, email..." className="border-slate-700 bg-slate-950 pl-8 text-slate-100 placeholder:text-slate-500" />
+      <div className="doodle-card rounded-[22px_16px_26px_14px] p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por código, nome, empresa, email..." className="doodle-input w-full pl-10" />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px] border-slate-700 bg-slate-950 text-slate-100"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="ativo">Ativos</SelectItem>
-              <SelectItem value="teste">Em teste</SelectItem>
-              <SelectItem value="bloqueado">Bloqueados</SelectItem>
-              <SelectItem value="cancelado">Cancelados</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-2">
+            {["todos", "ativo", "teste", "bloqueado", "cancelado"].map((k) => (
+              <button
+                key={k}
+                onClick={() => setStatusFilter(k)}
+                className={`doodle-btn rounded-full px-3 py-1.5 text-xs uppercase ${statusFilter === k ? "doodle-btn--primary" : ""}`}
+              >
+                {k === "todos" ? "Todos" : k}
+              </button>
+            ))}
+          </div>
         </div>
-      </Card>
+      </div>
 
-      <Card className="border-slate-800 bg-slate-900 p-0 overflow-hidden">
+      <div className="doodle-card doodle-card--lg overflow-hidden rounded-[24px_36px_16px_28px] p-6">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-950 text-xs uppercase tracking-wider text-slate-400">
+          <table className="doodle-table w-full text-sm">
+            <thead>
               <tr>
-                <th className="px-3 py-2 text-left">Código</th>
-                <th className="px-3 py-2 text-left">Empresa</th>
-                <th className="px-3 py-2 text-left">Contato</th>
-                <th className="px-3 py-2 text-left">Plano</th>
-                <th className="px-3 py-2 text-left">Status</th>
-                <th className="px-3 py-2 text-left">Vence</th>
-                <th className="px-3 py-2 text-left">Último acesso</th>
-                <th className="px-3 py-2 text-right">Ações</th>
+                <th>Empresa</th>
+                <th>Contato</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Vence</th>
+                <th>Último acesso</th>
+                <th className="text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-slate-500">Nenhuma empresa cadastrada.</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-slate-400">Nenhuma empresa cadastrada.</td></tr>
               )}
               {filtered.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-800/40">
-                  <td className="px-3 py-2 font-mono text-xs text-indigo-300">{t.codigo}</td>
-                  <td className="px-3 py-2">
-                    <div className="font-medium text-slate-100">{t.empresa || t.nome}</div>
-                    <div className="text-xs text-slate-500">{t.documento} · {t.cidade}{t.estado ? "/" + t.estado : ""}</div>
+                <tr key={t.id}>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 border-slate-900 bg-orange-100 text-lg font-bold">
+                        {(t.empresa ?? t.nome).slice(0, 1).toUpperCase()}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate font-bold">{t.empresa || t.nome}</div>
+                        <div className="truncate font-mono text-[11px] text-slate-400">{t.codigo}</div>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-3 py-2 text-slate-300">
-                    <div>{t.email}</div>
-                    <div className="text-xs text-slate-500">{t.telefone}</div>
+                  <td className="text-slate-600">
+                    <div className="truncate">{t.email ?? "—"}</div>
+                    <div className="truncate text-xs text-slate-400">{t.telefone ?? ""}</div>
                   </td>
-                  <td className="px-3 py-2"><Badge variant="outline" className="border-slate-700 text-slate-200">{t.plano}</Badge></td>
-                  <td className="px-3 py-2"><Badge variant="outline" className={STATUS_COLORS[t.status] ?? "border-slate-700"}>{t.status}</Badge></td>
-                  <td className="px-3 py-2 text-slate-300">{t.vence_em ? fmtDate(t.vence_em) : "—"}</td>
-                  <td className="px-3 py-2 text-slate-400">{t.ultimo_acesso ? fmtDate(t.ultimo_acesso) : "—"}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => setEditing(t)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+                  <td><span className="doodle-badge border-purple-400 bg-purple-100 text-purple-700 capitalize">{t.plano}</span></td>
+                  <td>
+                    <span className={`doodle-badge capitalize ${STATUS_STYLES[t.status] ?? "border-slate-400 bg-slate-100 text-slate-600"}`}>
+                      <span className={`h-2 w-2 rounded-full ${STATUS_DOT[t.status] ?? "bg-slate-400"}`} />
+                      {t.status}
+                    </span>
+                  </td>
+                  <td className="font-bold">{t.vence_em ? fmtDate(t.vence_em) : "—"}</td>
+                  <td className="text-slate-500">{t.ultimo_acesso ? fmtDate(t.ultimo_acesso) : "—"}</td>
+                  <td>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button title="Editar" onClick={() => setEditing(t)} className="doodle-btn doodle-btn--icon"><Pencil className="h-3.5 w-3.5" /></button>
                       {t.status !== "bloqueado" ? (
-                        <Button size="icon" variant="ghost" title="Bloquear" onClick={async () => {
-                          const ok = await dialog.confirm({ title: "Bloquear empresa?", description: `A empresa ${t.empresa || t.nome} não conseguirá mais acessar.`, confirmText: "Bloquear", destructive: true });
+                        <button title="Bloquear" onClick={async () => {
+                          const ok = await dialog.confirm({ title: "Bloquear empresa?", description: `${t.empresa || t.nome} não poderá mais acessar.`, confirmText: "Bloquear", destructive: true });
                           if (ok) changeStatus.mutate({ id: t.id, status: "bloqueado" });
-                        }}><Ban className="h-4 w-4 text-rose-400" /></Button>
+                        }} className="doodle-btn doodle-btn--icon bg-red-100">
+                          <Ban className="h-3.5 w-3.5 text-red-700" />
+                        </button>
                       ) : (
-                        <Button size="icon" variant="ghost" title="Reativar" onClick={() => changeStatus.mutate({ id: t.id, status: "ativo" })}>
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                        </Button>
+                        <button title="Reativar" onClick={() => changeStatus.mutate({ id: t.id, status: "ativo" })} className="doodle-btn doodle-btn--icon bg-emerald-100">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />
+                        </button>
                       )}
-                      <Button size="icon" variant="ghost" title="Renovar (marcar +30d)" onClick={async () => {
+                      <button title="Renovar (+30d)" onClick={async () => {
                         const vence = new Date(); vence.setDate(vence.getDate() + 30);
                         await supabase.from("tenants").update({ vence_em: vence.toISOString(), status: "ativo" }).eq("id", t.id);
                         await logMaster("tenant.renew", "tenant", t.id, { dias: 30 });
                         qc.invalidateQueries({ queryKey: ["master-tenants"] });
                         toast.success("Renovado por 30 dias");
-                      }}><RotateCw className="h-4 w-4 text-indigo-300" /></Button>
-                      <Button size="icon" variant="ghost" title="Excluir" onClick={async () => {
+                      }} className="doodle-btn doodle-btn--icon bg-blue-100">
+                        <RotateCw className="h-3.5 w-3.5 text-blue-700" />
+                      </button>
+                      <button title="Excluir" onClick={async () => {
                         const ok = await dialog.confirm({ title: "Excluir empresa?", description: "Ação irreversível. Todas as licenças da empresa também serão removidas.", confirmText: "Excluir", destructive: true });
                         if (ok) remove.mutate(t.id);
-                      }}><Trash2 className="h-4 w-4 text-rose-400" /></Button>
+                      }} className="doodle-btn doodle-btn--icon bg-red-50">
+                        <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -189,7 +211,7 @@ function ClientesMaster() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
         <DialogContent className="max-w-2xl">
