@@ -1616,6 +1616,7 @@ export type Database = {
         | "caixa"
         | "cozinha"
         | "entregador"
+        | "master"
       cash_mov_tipo:
         | "venda"
         | "entrada"
@@ -1785,6 +1786,7 @@ export const Constants = {
         "caixa",
         "cozinha",
         "entregador",
+        "master",
       ],
       cash_mov_tipo: [
         "venda",
