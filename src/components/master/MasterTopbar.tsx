@@ -15,7 +15,8 @@ function useNow() {
 export function MasterTopbar() {
   const now = useNow();
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-[#e5e7eb] bg-white/95 px-6 backdrop-blur lg:px-8">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-2 border-b border-[#e5e7eb] bg-white/95 px-3 backdrop-blur sm:gap-3 sm:px-6 lg:px-8">
+      <MasterMobileNav />
       <div className="relative hidden max-w-md flex-1 md:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
         <input
@@ -24,8 +25,8 @@ export function MasterTopbar() {
         />
       </div>
       <div className="flex-1 md:hidden" />
-      <div className="flex items-center gap-2">
-        <button className="ms-btn ms-btn--primary ms-btn--sm">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <button className="ms-btn ms-btn--primary ms-btn--sm hidden sm:inline-flex">
           <Plus className="h-4 w-4" /> Ação rápida
         </button>
         <button className="relative grid h-9 w-9 place-items-center rounded-lg border border-[#e5e7eb] bg-white text-[#4b5563] hover:bg-[#f9fafb]">
