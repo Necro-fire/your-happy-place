@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { maskPhone, maskCEP, onlyDigits } from "@/lib/masks";
+import { useTenant } from "@/lib/tenant-session";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Finalizar pedido — Padaria" }] }),
@@ -24,6 +25,7 @@ type Pagto = "pix" | "dinheiro" | "credito" | "debito";
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
+  const tenant = useTenant();
   const [tipo, setTipo] = useState<Tipo>("retirada");
   const [pagto, setPagto] = useState<Pagto>("pix");
   const [nome, setNome] = useState("");
@@ -36,19 +38,21 @@ function CheckoutPage() {
   const [loading, setLoading] = useState(false);
 
   const settings = useQuery({
-    queryKey: ["settings"],
+    queryKey: ["settings-public", tenant?.tenant_id],
+    enabled: !!tenant?.tenant_id,
     queryFn: async () => {
-      const { data } = await supabase.from("settings").select("*").eq("id", 1).single();
+      const { data } = await supabase.from("settings").select("*").eq("tenant_id" as any, tenant!.tenant_id).maybeSingle();
       return data;
     },
   });
 
-  const taxa = tipo === "entrega" ? Number(settings.data?.taxa_entrega ?? 0) : 0;
+  const taxa = tipo === "entrega" ? Number((settings.data as any)?.taxa_entrega ?? 0) : 0;
   const total = subtotal + taxa;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (items.length === 0) return toast.error("Carrinho vazio");
+    if (!tenant?.tenant_id) return toast.error("Sessão da loja expirou. Abra o cardápio novamente.");
     if (!nome.trim() || !telefone.trim()) return toast.error("Preencha nome e telefone");
     if (onlyDigits(telefone).length < 10) return toast.error("Telefone inválido");
     if (tipo === "entrega" && !endereco.trim()) return toast.error("Endereço obrigatório para entrega");
@@ -59,6 +63,7 @@ function CheckoutPage() {
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
+        tenant_id: tenant.tenant_id,
         cliente_nome: nome,
         cliente_telefone: telefone,
         cliente_endereco: tipo === "entrega" ? endereco : null,
@@ -72,7 +77,7 @@ function CheckoutPage() {
         total,
         forma_pagamento: pagto,
         observacoes: obs || null,
-      })
+      } as any)
       .select("id, numero")
       .single();
 
@@ -83,6 +88,7 @@ function CheckoutPage() {
     }
 
     const itemsPayload = items.map((i) => ({
+      tenant_id: tenant.tenant_id,
       order_id: order.id,
       product_id: i.product_id,
       produto_nome: i.nome,
@@ -90,7 +96,7 @@ function CheckoutPage() {
       preco_unitario: i.preco,
       subtotal: i.preco * i.quantidade,
     }));
-    const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload);
+    const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload as any);
     if (itemsErr) {
       setLoading(false);
       toast.error("Erro ao registrar itens do pedido.");
