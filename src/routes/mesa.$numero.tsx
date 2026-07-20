@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { setMesaSession } from "@/lib/mesa-session";
-import { useTenant } from "@/lib/tenant-session";
+import { useTenant, loadTenantByCodigo } from "@/lib/tenant-session";
 import { PublicLayout } from "@/components/public/PublicLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,16 +22,23 @@ function MesaEntryPage() {
   const menuTo = tenant?.codigo ? `/menu/${tenant.codigo}` : "/";
 
   useEffect(() => {
-    if (!tenant?.tenant_id) {
-      setError("Abra o cardápio da loja primeiro para identificar sua mesa.");
-      return;
-    }
     (async () => {
+      // Auto-load tenant from ?c=CODIGO if present and not yet loaded
+      const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+      const c = params.get("c");
+      let currentTenant = tenant;
+      if (c && (!currentTenant || currentTenant.codigo !== c.toUpperCase())) {
+        currentTenant = await loadTenantByCodigo(c);
+      }
+      if (!currentTenant?.tenant_id) {
+        setError("Abra o cardápio da loja primeiro para identificar sua mesa.");
+        return;
+      }
       const { data, error } = await supabase
         .from("restaurant_tables")
         .select("id, numero")
         .eq("numero", Number(numero))
-        .eq("tenant_id" as any, tenant.tenant_id)
+        .eq("tenant_id" as any, currentTenant.tenant_id)
         .maybeSingle();
       if (error || !data) {
         setError("Mesa não encontrada. Chame um atendente.");
