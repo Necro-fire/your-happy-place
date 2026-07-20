@@ -318,6 +318,8 @@ function PDVPage() {
     setMesaId(""); setAtendimento(null); setCheckout(false); setPessoas(1); setRecebido(0);
     setEnd({ cep: "", rua: "", numero: "", bairro: "", cidade: "", estado: "", complemento: "", referencia: "" });
     setPagamentos([{ forma: "dinheiro", valor: 0 }]);
+    setExistingOrderId(null); setExistingOrderNumero(null);
+    if (search.mesa || search.order) navigate({ to: "/admin/pdv", search: {} as any, replace: true });
   }
 
   function suspendSale() {
