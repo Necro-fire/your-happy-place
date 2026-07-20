@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { fmtMoney, fmtDate, statusLabel, statusColor, paymentLabel, origemLabel, tipoLabel, tipoColor } from "@/lib/format";
+import { fmtMoney, fmtDate, statusLabel, statusColor, paymentLabel, origemLabel, tipoLabel, tipoColor, fmtPhone } from "@/lib/format";
+import { smartFilter } from "@/lib/search";
 
 export const Route = createFileRoute("/_authenticated/admin/vendas")({
   component: VendasPage,
@@ -38,11 +39,12 @@ function VendasPage() {
     },
   });
 
-  const filtered = (list.data ?? []).filter((o) => {
-    if (!busca.trim()) return true;
-    const s = busca.toLowerCase();
-    return String(o.numero).includes(s) || (o.cliente_nome ?? "").toLowerCase().includes(s) || (o.cliente_telefone ?? "").includes(s);
-  });
+  const filtered = smartFilter(list.data ?? [], busca, [
+    (o: any) => `#${o.numero}`,
+    (o: any) => o.numero,
+    (o: any) => o.cliente_nome,
+    (o: any) => o.cliente_telefone,
+  ]);
 
   const total = filtered.reduce((s, o) => s + Number(o.total), 0);
 
@@ -113,7 +115,7 @@ function VendasPage() {
                 <tr key={o.id} className="hover:bg-accent/20">
                   <td className="px-3 py-2 font-mono font-semibold">#{o.numero}</td>
                   <td className="px-3 py-2 text-muted-foreground">{fmtDate(o.created_at)}</td>
-                  <td className="px-3 py-2">{o.cliente_nome ?? "—"}</td>
+                  <td className="px-3 py-2">{o.cliente_nome ?? "—"}{o.cliente_telefone ? <div className="text-xs text-muted-foreground">{fmtPhone(o.cliente_telefone)}</div> : null}</td>
                   <td className="px-3 py-2"><Badge className={tipoColor[o.tipo]}>{tipoLabel[o.tipo]}</Badge></td>
                   <td className="px-3 py-2">{origemLabel[o.origem]}</td>
                   <td className="px-3 py-2">{o.forma_pagamento ? paymentLabel[o.forma_pagamento] : "—"}</td>

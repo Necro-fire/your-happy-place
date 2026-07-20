@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { maskPhone } from "@/lib/masks";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes")({
@@ -50,13 +51,13 @@ function ConfigPage() {
         <div><Label>Descrição</Label><Textarea value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={2} /></div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Horário</Label><Input value={form.horario_funcionamento ?? ""} onChange={(e) => setForm({ ...form, horario_funcionamento: e.target.value })} /></div>
-          <div><Label>Telefone</Label><Input value={form.telefone ?? ""} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
+          <div><Label>Telefone</Label><Input value={form.telefone ?? ""} onChange={(e) => setForm({ ...form, telefone: maskPhone(e.target.value) })} placeholder="(11) 99999-9999" inputMode="tel" maxLength={15} /></div>
         </div>
         <div><Label>Endereço</Label><Input value={form.endereco ?? ""} onChange={(e) => setForm({ ...form, endereco: e.target.value })} /></div>
         <div><Label>Taxa de entrega (R$)</Label><Input type="number" step="0.01" value={form.taxa_entrega} onChange={(e) => setForm({ ...form, taxa_entrega: e.target.value })} /></div>
         <div>
           <Label>WhatsApp do suporte (com DDI, ex: +55 11 99999-9999)</Label>
-          <Input value={form.whatsapp_suporte ?? ""} onChange={(e) => setForm({ ...form, whatsapp_suporte: e.target.value })} placeholder="+5511999999999" />
+          <Input value={form.whatsapp_suporte ?? ""} onChange={(e) => setForm({ ...form, whatsapp_suporte: maskPhone(e.target.value) })} placeholder="(11) 99999-9999" inputMode="tel" maxLength={15} />
         </div>
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={form.aceita_pedidos_online} onCheckedChange={(v) => setForm({ ...form, aceita_pedidos_online: v })} />

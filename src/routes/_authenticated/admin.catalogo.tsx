@@ -42,13 +42,17 @@ function ProdutosTab() {
   const products = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, categories(nome)").order("ordem");
+      const { data } = await supabase
+        .from("products")
+        .select("*, categories(nome)")
+        .order("nome", { ascending: true });
       return data ?? [];
     },
   });
   const categories = useQuery({
     queryKey: ["admin-categories"],
-    queryFn: async () => (await supabase.from("categories").select("*").order("ordem")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("categories").select("*").order("nome", { ascending: true })).data ?? [],
   });
 
   const del = useMutation({
@@ -167,7 +171,8 @@ function CategoriasTab() {
   const [edit, setEdit] = useState<any | null>(null);
   const cats = useQuery({
     queryKey: ["admin-categories"],
-    queryFn: async () => (await supabase.from("categories").select("*").order("ordem")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("categories").select("*").order("nome", { ascending: true })).data ?? [],
   });
   const del = useMutation({
     mutationFn: async (id: string) => { await supabase.from("categories").delete().eq("id", id); },

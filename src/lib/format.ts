@@ -10,6 +10,45 @@ export const fmtDateOnly = (d: string | Date) =>
 export const fmtTime = (d: string | Date) =>
   new Intl.DateTimeFormat("pt-BR", { timeStyle: "short" }).format(new Date(d));
 
+/** Número simples pt-BR (ex.: 1.250) */
+export const fmtNumber = (v: number | null | undefined, opts?: Intl.NumberFormatOptions) =>
+  new Intl.NumberFormat("pt-BR", opts).format(Number(v ?? 0));
+
+/** Quantidade genérica (0 casas por padrão) */
+export const fmtQty = (v: number | null | undefined, dec = 0) =>
+  fmtNumber(v, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+/** Peso em kg com 3 casas (ex.: 0,250 kg) */
+export const fmtWeight = (v: number | null | undefined) =>
+  `${fmtNumber(v, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} kg`;
+
+/** Porcentagem 0..100 (ex.: 15,5%) */
+export const fmtPercent = (v: number | null | undefined, dec = 1) =>
+  `${fmtNumber(v, { minimumFractionDigits: 0, maximumFractionDigits: dec })}%`;
+
+/** Formata telefone bruto (só dígitos) em (00) 00000-0000 */
+export const fmtPhone = (v: string | null | undefined) => {
+  const d = (v ?? "").replace(/\D+/g, "");
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  return v ?? "";
+};
+
+/** Formata CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00) automaticamente */
+export const fmtDoc = (v: string | null | undefined) => {
+  const d = (v ?? "").replace(/\D+/g, "");
+  if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  return v ?? "";
+};
+
+/** Formata CEP (00000-000) */
+export const fmtCEP = (v: string | null | undefined) => {
+  const d = (v ?? "").replace(/\D+/g, "");
+  if (d.length === 8) return d.replace(/(\d{5})(\d{3})/, "$1-$2");
+  return v ?? "";
+};
+
 export const statusLabel: Record<string, string> = {
   novo: "Novo Pedido",
   confirmado: "Confirmado",
