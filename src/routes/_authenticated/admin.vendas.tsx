@@ -178,14 +178,9 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
     queryFn: async () => {
       const { data } = await supabase
         .from("orders")
-        .select("*, order_items(*), profiles!orders_operador_id_fkey(nome), operador:operador_id(nome), garcom:garcom_id(nome)")
+        .select("*, order_items(*)")
         .eq("id", orderId)
         .maybeSingle();
-      // Fallback simpler query if operador join fails
-      if (!data) {
-        const { data: d2 } = await supabase.from("orders").select("*, order_items(*)").eq("id", orderId).maybeSingle();
-        return d2;
-      }
       return data;
     },
   });
