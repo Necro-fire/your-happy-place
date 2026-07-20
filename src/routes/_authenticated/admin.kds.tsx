@@ -13,10 +13,10 @@ export const Route = createFileRoute("/_authenticated/admin/kds")({
   component: KDSPage,
 });
 
-const COLUMNS: { key: string; label: string; next?: string; icon: any; color: string }[] = [
+const COLUMNS: { key: string; label: string; next?: string; prev?: string; prevLabel?: string; icon: any; color: string }[] = [
   { key: "novo", label: "Recebido", next: "em_preparo", icon: Clock, color: "border-chart-4/60" },
-  { key: "em_preparo", label: "Em Preparo", next: "pronto", icon: ChefHat, color: "border-warning/60" },
-  { key: "pronto", label: "Pronto", next: "finalizado", icon: CheckCircle2, color: "border-success/60" },
+  { key: "em_preparo", label: "Em Preparo", next: "pronto", prev: "novo", prevLabel: "Recebido", icon: ChefHat, color: "border-warning/60" },
+  { key: "pronto", label: "Pronto", next: "finalizado", prev: "em_preparo", prevLabel: "Em Preparo", icon: CheckCircle2, color: "border-success/60" },
 ];
 
 function KDSPage() {
