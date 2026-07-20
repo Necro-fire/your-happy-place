@@ -155,7 +155,7 @@ function QrCodesPage() {
               {filtered.map((t) => (
                 <Card key={t.id} className="p-4 text-center">
                   <div className="font-display text-lg font-bold">Mesa {t.numero}</div>
-                  {t.setor && <div className="text-xs text-muted-foreground">{t.setor}</div>}
+                  
                   <div className="my-3 grid place-items-center rounded-md border border-border bg-white p-3">
                     <QRCodeSVG id={`qr-mesa-${t.numero}`} value={mesaUrl(t.numero)} size={140} level="H" includeMargin />
                   </div>
