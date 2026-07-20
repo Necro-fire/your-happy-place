@@ -124,11 +124,11 @@ function PedidosPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold">Pedidos</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe e atualize o status em tempo real.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Pedidos</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Acompanhe e atualize o status em tempo real.</p>
         </div>
         <FiltersDrawer
           sections={{ search: true, period: true, status: PED_STATUS, categories: PED_CATEGORIES, valueRange: true }}
@@ -153,49 +153,50 @@ function PedidosPage() {
             const items = byStatus(col.key);
             return (
               <div key={col.key} className="flex w-[280px] shrink-0 flex-col gap-2 md:w-auto">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="flex items-center gap-1.5 truncate text-sm font-semibold">
-                    {Icon && <Icon className="h-4 w-4 shrink-0 text-chart-4" />}
+                <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/60 px-3 py-2 shadow-sm">
+                  <h3 className="flex min-w-0 items-center gap-1.5 text-[13px] font-bold">
+                    {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
                     <span className="truncate">{col.label}</span>
                   </h3>
-                  <Badge variant="secondary" className="shrink-0">{items.length}</Badge>
+                  <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{items.length}</span>
                 </div>
-                <div className={`flex min-h-[200px] flex-col gap-2 rounded-lg p-2 ${col.tone ?? "bg-muted/40"}`}>
+                <div className="flex min-h-[200px] flex-col gap-2 rounded-2xl border border-dashed border-border/50 bg-muted/20 p-2">
                   {items.map((o) => {
                     const next = nextStatus(col.key, o);
                     return (
-                      <Card
+                      <div
                         key={o.id}
-                        className={`cursor-pointer p-3 border-l-4 hover:shadow-elevated ${tipoColor[o.tipo] ?? ""}`}
+                        className={`cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md border-l-4 ${tipoColor[o.tipo] ?? ""}`}
                         onClick={() => setDetail(o)}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="font-mono text-sm font-bold">#{o.numero}</div>
-                            <div className="truncate text-xs text-muted-foreground">{fmtTime(o.created_at)} · {origemLabel[o.origem]}</div>
+                            <div className="truncate text-[11px] text-muted-foreground">{fmtTime(o.created_at)} · {origemLabel[o.origem]}</div>
                           </div>
-                          <div className="shrink-0 text-right text-sm font-semibold">{fmtMoney(o.total)}</div>
+                          <div className="shrink-0 text-right text-sm font-bold text-primary">{fmtMoney(o.total)}</div>
                         </div>
-                        <div className="mt-1 truncate text-xs">{o.cliente_nome ?? "Sem cliente"}</div>
-                        <div className="mt-1 flex items-center gap-1.5 text-xs">
+                        <div className="mt-1 truncate text-xs font-medium">{o.cliente_nome ?? "Sem cliente"}</div>
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${tipoDot[o.tipo] ?? "bg-muted"}`} />
-                          <span className="truncate font-medium">{tipoLabel[o.tipo]}</span>
+                          <span className="truncate font-medium text-muted-foreground">{tipoLabel[o.tipo]}</span>
                         </div>
                         {next && (
-                          <Button size="sm" className="mt-2 w-full" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
+                          <Button size="sm" className="mt-2 h-8 w-full rounded-lg text-xs font-semibold" onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: o.id, status: next.status }); }}>
                             {next.label} →
                           </Button>
                         )}
-                      </Card>
+                      </div>
                     );
                   })}
-                  {items.length === 0 && <div className="py-6 text-center text-xs text-muted-foreground">vazio</div>}
+                  {items.length === 0 && <div className="py-8 text-center text-[11px] font-medium text-muted-foreground/70">vazio</div>}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
 
       {detail && <OrderDetail order={detail} list={filtered} onNavigate={(o: any) => setDetail(o)} onClose={() => setDetail(null)} onUpdate={(s: string, motivo?: string) => updateStatus.mutate({ id: detail.id, status: s, motivo })} />}
     </div>
