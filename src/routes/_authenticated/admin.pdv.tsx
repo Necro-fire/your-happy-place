@@ -115,6 +115,50 @@ function PDVPage() {
 
   useEffect(() => { setHeld(loadHeld()); }, []);
 
+  // Autoload mesa/order coming from /admin/mesas (Novo pedido / Continuar atendimento)
+  useEffect(() => {
+    if (!search.mesa) return;
+    setAtendimento("mesa");
+    setMesaId(search.mesa);
+
+    if (!search.order) return;
+    let cancelled = false;
+    (async () => {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("id, numero, observacoes, cliente_nome, cliente_telefone, order_items(id, product_id, combo_id, produto_nome, quantidade, preco_unitario, desconto, observacoes, complementos)")
+        .eq("id", search.order!)
+        .maybeSingle();
+      if (cancelled || !order) return;
+      setExistingOrderId(order.id);
+      setExistingOrderNumero(order.numero);
+      setClienteNome(order.cliente_nome ?? "");
+      setClienteTel(order.cliente_telefone ?? "");
+      setObs(order.observacoes ?? "");
+      const lines: CartLine[] = (order.order_items ?? []).map((it: any) => {
+        const comps = Array.isArray(it.complementos) ? it.complementos : [];
+        const preco = Number(it.preco_unitario);
+        return {
+          key: newLineKey(it.product_id, it.combo_id, comps, it.observacoes ?? ""),
+          product_id: it.product_id ?? undefined,
+          combo_id: it.combo_id ?? undefined,
+          nome: it.produto_nome,
+          preco,
+          base_preco: preco,
+          quantidade: Number(it.quantidade),
+          desconto: Number(it.desconto ?? 0),
+          observacoes: it.observacoes ?? undefined,
+          complementos: comps,
+        };
+      });
+      setCart(lines);
+      toast.success(`Retomando pedido #${order.numero}`);
+    })();
+    return () => { cancelled = true; };
+  }, [search.mesa, search.order]);
+
+
+
   // queries
   const categories = useQuery({
     queryKey: ["admin-categories"],
