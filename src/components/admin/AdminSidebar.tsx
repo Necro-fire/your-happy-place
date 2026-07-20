@@ -14,47 +14,48 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { usePermissions, type ModuleKey } from "@/hooks/use-app-settings";
 
-type Item = { title: string; url: string; icon: any; exact?: boolean; external?: boolean };
+type Item = { title: string; url: string; icon: any; exact?: boolean; external?: boolean; module?: ModuleKey };
 type Group = { id: string; label: string; icon: any; items: Item[] };
 
 const groups: Group[] = [
   {
     id: "vendas", label: "Vendas", icon: ShoppingCart,
     items: [
-      { title: "PDV", url: "/admin/pdv", icon: Calculator },
-      { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList },
-      { title: "Mesas", url: "/admin/mesas", icon: Coffee },
-      { title: "Histórico de vendas", url: "/admin/vendas", icon: BarChart3 },
+      { title: "PDV", url: "/admin/pdv", icon: Calculator, module: "pdv" },
+      { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList, module: "pedidos" },
+      { title: "Mesas", url: "/admin/mesas", icon: Coffee, module: "mesas" },
+      { title: "Histórico de vendas", url: "/admin/vendas", icon: BarChart3, module: "vendas" },
       { title: "Cardápio Público", url: "/", icon: Globe, external: true },
     ],
   },
   {
     id: "financeiro", label: "Financeiro", icon: DollarSign,
     items: [
-      { title: "Caixa", url: "/admin/caixa", icon: Wallet },
+      { title: "Caixa", url: "/admin/caixa", icon: Wallet, module: "caixa" },
     ],
   },
   {
     id: "estoque", label: "Estoque", icon: Boxes,
     items: [
-      { title: "Produtos e Categorias", url: "/admin/catalogo", icon: Package },
-      { title: "Estoque", url: "/admin/estoque", icon: Boxes },
+      { title: "Produtos e Categorias", url: "/admin/catalogo", icon: Package, module: "catalogo" },
+      { title: "Estoque", url: "/admin/estoque", icon: Boxes, module: "estoque" },
     ],
   },
   {
     id: "atendimento", label: "Atendimento", icon: ConciergeBell,
     items: [
-      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat },
-      { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode },
+      { title: "KDS Cozinha", url: "/admin/kds", icon: ChefHat, module: "kds" },
+      { title: "QR Codes", url: "/admin/qrcodes", icon: QrCode, module: "qrcodes" },
     ],
   },
   {
     id: "gestao", label: "Gestão", icon: Building2,
     items: [
-      { title: "Usuários", url: "/admin/usuarios", icon: Users },
-      { title: "Configurações", url: "/admin/configuracoes", icon: Settings },
-      { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy },
+      { title: "Usuários", url: "/admin/usuarios", icon: Users, module: "usuarios" },
+      { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "configuracoes" },
+      { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy, module: "suporte" },
     ],
   },
 ];
@@ -76,13 +77,21 @@ export function AdminSidebar() {
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
+  const { canView } = usePermissions();
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return groups;
     return groups
-      .map((g) => ({ ...g, items: g.items.filter((i) => i.title.toLowerCase().includes(q)) }))
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((i) => {
+          if (i.module && !canView(i.module)) return false;
+          if (!q) return true;
+          return i.title.toLowerCase().includes(q);
+        }),
+      }))
       .filter((g) => g.items.length > 0);
-  }, [query]);
+  }, [query, canView]);
 
   async function signOut() {
     await qc.cancelQueries();

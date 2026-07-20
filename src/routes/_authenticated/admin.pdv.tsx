@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { ProductImage } from "@/components/ProductImage";
 import { dialog } from "@/components/ui/app-dialog";
+import { useAppSettings, useActivePaymentMethods, useSettingsSection, methodToDbEnum, type PaymentMethod } from "@/hooks/use-app-settings";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -45,8 +46,7 @@ type CartLine = {
   complementos: Complemento[];
 };
 type Atendimento = "balcao" | "mesa" | "retirada" | "delivery";
-type Pgto = "pix" | "dinheiro" | "credito" | "debito" | "vale" | "credito_cliente";
-type PagamentoLinha = { forma: Pgto; valor: number };
+type PagamentoLinha = { methodId: string; valor: number };
 type Held = { id: string; label: string; cart: CartLine[]; atendimento: Atendimento | null; savedAt: string };
 
 const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; origem: string }[] = [
@@ -56,9 +56,6 @@ const ATENDIMENTOS: { key: Atendimento; label: string; icon: any; tipo: string; 
   { key: "delivery", label: "Delivery", icon: Bike,         tipo: "entrega",  origem: "pdv"  },
 ];
 
-const PGTO_LABEL: Record<Pgto, string> = {
-  dinheiro: "Dinheiro", pix: "Pix", credito: "Crédito", debito: "Débito", vale: "Vale", credito_cliente: "Crédito cliente",
-};
 
 const HELD_KEY = "pdv_held_v1";
 const RECENT_KEY = "pdv_recent_v1";
@@ -103,7 +100,7 @@ function PDVPage() {
   const [cepLoading, setCepLoading] = useState(false);
 
   // pagamento misto + troco
-  const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ forma: "dinheiro", valor: 0 }]);
+  const [pagamentos, setPagamentos] = useState<PagamentoLinha[]>([{ methodId: "dinheiro", valor: 0 }]);
   const [recebido, setRecebido] = useState(0); // para calcular troco quando 1ª forma é dinheiro
   const [pessoas, setPessoas] = useState(1);
 
@@ -149,6 +146,15 @@ function PDVPage() {
   }
 
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // === Dynamic settings ===
+  const settingsQ = useAppSettings();
+  const paymentMethods = useActivePaymentMethods();
+  const impressoes = useSettingsSection("impressoes", { auto_print: true, vias: 1 });
+  const findMethod = (id: string): PaymentMethod | undefined => paymentMethods.find((m) => m.id === id);
+  const methodLabel = (id: string) => findMethod(id)?.label ?? id;
+  const isDinheiroMethod = (id: string) => findMethod(id)?.tipo === "dinheiro";
+  const defaultMethodId = () => paymentMethods[0]?.id ?? "dinheiro";
 
   useEffect(() => { setHeld(loadHeld()); }, []);
 
@@ -337,7 +343,7 @@ function PDVPage() {
   const totalPago = pagamentos.reduce((s, p) => s + Number(p.valor || 0), 0);
   const restante = Math.max(0, total - totalPago);
   const trocoDinheiro = (() => {
-    const dinheiroPago = pagamentos.filter((p) => p.forma === "dinheiro").reduce((s, p) => s + Number(p.valor || 0), 0);
+    const dinheiroPago = pagamentos.filter((p) => isDinheiroMethod(p.methodId)).reduce((s, p) => s + Number(p.valor || 0), 0);
     if (dinheiroPago <= 0) return 0;
     return Math.max(0, recebido - dinheiroPago);
   })();
@@ -365,7 +371,7 @@ function PDVPage() {
       if (!end.cep || !end.rua || !end.numero || !end.bairro || !end.cidade || !end.estado) { toast.error("Preencha o endereço"); return; }
     }
     if (atendimento === "retirada" && !clienteNome) { toast.error("Nome do cliente é obrigatório"); return; }
-    setPagamentos([{ forma: "dinheiro", valor: total }]);
+    setPagamentos([{ methodId: defaultMethodId(), valor: total }]);
     setRecebido(0);
     setCheckout(true);
   }
@@ -381,7 +387,7 @@ function PDVPage() {
     setCart([]); setDescOrder(0); setClienteNome(""); setClienteTel(""); setObs(""); setTaxa(0); setHorario("");
     setMesaId(""); setAtendimento(null); setCheckout(false); setPessoas(1); setRecebido(0);
     setEnd({ cep: "", rua: "", numero: "", bairro: "", cidade: "", estado: "", complemento: "", referencia: "" });
-    setPagamentos([{ forma: "dinheiro", valor: 0 }]);
+    setPagamentos([{ methodId: "dinheiro", valor: 0 }]);
     setExistingOrderId(null); setExistingOrderNumero(null);
     if (search.mesa || search.order) navigate({ to: "/admin/pdv", search: {} as any, replace: true });
   }
@@ -412,15 +418,24 @@ function PDVPage() {
   function printReceipt(order: { id: string; numero: number }) {
     const w = window.open("", "_blank", "width=380,height=600");
     if (!w) return;
+    const settings: any = settingsQ.data ?? {};
+    const nomeEmpresa: string = settings.nome_fantasia || settings.nome_estabelecimento || "";
+    const logoUrl: string | undefined = settings.logo_url || undefined;
+    const showLogo = ((settings.config?.impressoes ?? {}).mostrar_logo ?? true) && !!logoUrl;
+    const rodape: string = settings.config?.impressoes?.rodape || "Obrigado!";
     const linhas = cart.map((i) => {
       const c = i.complementos.length ? `<div style="font-size:11px;color:#666;padding-left:12px">+ ${i.complementos.map((x) => x.nome).join(", ")}</div>` : "";
       const o = i.observacoes ? `<div style="font-size:11px;color:#666;padding-left:12px">obs: ${i.observacoes}</div>` : "";
       return `<div style="display:flex;justify-content:space-between"><span>${i.quantidade}x ${i.nome}</span><span>${fmtMoney(i.preco * i.quantidade - i.desconto)}</span></div>${c}${o}`;
     }).join("");
-    const pgts = pagamentos.filter((p) => p.valor > 0).map((p) => `<div style="display:flex;justify-content:space-between"><span>${PGTO_LABEL[p.forma]}</span><span>${fmtMoney(p.valor)}</span></div>`).join("");
+    const pgts = pagamentos.filter((p) => p.valor > 0).map((p) => `<div style="display:flex;justify-content:space-between"><span>${methodLabel(p.methodId)}</span><span>${fmtMoney(p.valor)}</span></div>`).join("");
+    const header = `
+      ${showLogo ? `<div style="text-align:center;margin-bottom:6px"><img src="${logoUrl}" alt="logo" style="max-height:56px;max-width:100%"/></div>` : ""}
+      ${nomeEmpresa ? `<div style="text-align:center;font-weight:bold;font-size:14px">${nomeEmpresa}</div>` : ""}`;
     w.document.write(`<html><head><title>Pedido #${order.numero}</title>
       <style>body{font-family:monospace;padding:12px;font-size:13px}h2{text-align:center;margin:4px 0}hr{border:none;border-top:1px dashed #999;margin:8px 0}</style>
       </head><body>
+      ${header}
       <h2>Pedido #${order.numero}</h2>
       <div style="text-align:center;font-size:11px">${new Date().toLocaleString("pt-BR")}</div>
       <hr/>${linhas}<hr/>
@@ -430,8 +445,12 @@ function PDVPage() {
       <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:16px"><span>TOTAL</span><span>${fmtMoney(total)}</span></div>
       <hr/>${pgts}
       ${trocoDinheiro > 0 ? `<div style="display:flex;justify-content:space-between"><span>Troco</span><span>${fmtMoney(trocoDinheiro)}</span></div>` : ""}
-      <hr/><div style="text-align:center">Obrigado!</div>
-      <script>window.print();setTimeout(()=>window.close(),300)</script>
+      <hr/><div style="text-align:center">${rodape}</div>
+      <script>
+        const vias = ${Math.max(1, Number(impressoes.vias) || 1)};
+        const doPrint = ${impressoes.auto_print ? "true" : "false"};
+        if (doPrint) { for (let i=0;i<vias;i++) { window.print(); } setTimeout(()=>window.close(),300); }
+      </script>
       </body></html>`);
     w.document.close();
   }
@@ -446,7 +465,7 @@ function PDVPage() {
       if (Math.abs(totalPago - total) > 0.01) throw new Error(`Pagamento não confere. Faltam ${fmtMoney(restante)}`);
       const cfg = ATENDIMENTOS.find((a) => a.key === atendimento)!;
       const pagsValidos = pagamentos.filter((p) => p.valor > 0);
-      const forma_pagamento = pagsValidos.length > 1 ? "multiplo" : pagsValidos[0]?.forma ?? "dinheiro";
+      const forma_pagamento = pagsValidos.length > 1 ? "multiplo" : methodToDbEnum(findMethod(pagsValidos[0]?.methodId ?? "")?.tipo ?? "dinheiro");
 
       const payload: any = {
         cliente_nome: clienteNome || (atendimento === "mesa" ? `Mesa ${(mesas.data ?? []).find((m) => m.id === mesaId)?.numero ?? ""}` : "Balcão"),
@@ -500,7 +519,7 @@ function PDVPage() {
         if (session) {
           await supabase.from("cash_movements").insert(pagsValidos.map((p) => ({
             session_id: session.id, tipo: "venda", valor: p.valor,
-            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: p.forma, order_id: order.id,
+            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: methodToDbEnum(findMethod(p.methodId)?.tipo ?? "dinheiro"), order_id: order.id,
           })));
         }
       }
@@ -905,16 +924,16 @@ function PDVPage() {
               <div className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between">
                   <Label>Formas de pagamento</Label>
-                  <Button size="sm" variant="outline" onClick={() => setPagamentos((ps) => [...ps, { forma: "dinheiro", valor: restante }])}>
+                  <Button size="sm" variant="outline" onClick={() => setPagamentos((ps) => [...ps, { methodId: defaultMethodId(), valor: restante }])}>
                     <Plus className="mr-1 h-3 w-3" />Adicionar
                   </Button>
                 </div>
                 {pagamentos.map((p, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <Select value={p.forma} onValueChange={(v) => setPagamentos((ps) => ps.map((x, i) => i === idx ? { ...x, forma: v as Pgto } : x))}>
+                    <Select value={p.methodId} onValueChange={(v) => setPagamentos((ps) => ps.map((x, i) => i === idx ? { ...x, methodId: v } : x))}>
                       <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {Object.entries(PGTO_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+                        {paymentMethods.map((m) => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Input type="number" min={0} step="0.01" value={p.valor}
@@ -932,7 +951,7 @@ function PDVPage() {
                 </div>
                 {restante > 0.01 && <div className="flex justify-between text-xs text-destructive"><span>Falta</span><span>{fmtMoney(restante)}</span></div>}
 
-                {pagamentos.some((p) => p.forma === "dinheiro" && p.valor > 0) && (
+                {pagamentos.some((p) => isDinheiroMethod(p.methodId) && p.valor > 0) && (
                   <div className="mt-2 border-t pt-2">
                     <Label className="text-xs">Valor recebido em dinheiro (para calcular troco)</Label>
                     <Input type="number" min={0} step="0.01" value={recebido} onChange={(e) => setRecebido(Number(e.target.value))} />
