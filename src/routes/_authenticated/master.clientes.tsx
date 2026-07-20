@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { logMaster } from "@/lib/master-log";
 import { fmtDate } from "@/lib/format";
-import { maskPhone, maskCPFCNPJ } from "@/lib/masks";
+import { maskPhone, maskCPFOrCNPJ } from "@/lib/masks";
 import { Plus, Pencil, Ban, CheckCircle2, Trash2, RotateCw, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/master/clientes")({
@@ -163,7 +163,7 @@ function ClientesMaster() {
                       <Button size="icon" variant="ghost" onClick={() => setEditing(t)} title="Editar"><Pencil className="h-4 w-4" /></Button>
                       {t.status !== "bloqueado" ? (
                         <Button size="icon" variant="ghost" title="Bloquear" onClick={async () => {
-                          const ok = await dialog.confirm({ title: "Bloquear empresa?", description: `A empresa ${t.empresa || t.nome} não conseguirá mais acessar.`, confirmText: "Bloquear", variant: "warning" });
+                          const ok = await dialog.confirm({ title: "Bloquear empresa?", description: `A empresa ${t.empresa || t.nome} não conseguirá mais acessar.`, confirmText: "Bloquear", destructive: true });
                           if (ok) changeStatus.mutate({ id: t.id, status: "bloqueado" });
                         }}><Ban className="h-4 w-4 text-rose-400" /></Button>
                       ) : (
@@ -179,7 +179,7 @@ function ClientesMaster() {
                         toast.success("Renovado por 30 dias");
                       }}><RotateCw className="h-4 w-4 text-indigo-300" /></Button>
                       <Button size="icon" variant="ghost" title="Excluir" onClick={async () => {
-                        const ok = await dialog.confirm({ title: "Excluir empresa?", description: "Ação irreversível. Todas as licenças da empresa também serão removidas.", confirmText: "Excluir", variant: "danger" });
+                        const ok = await dialog.confirm({ title: "Excluir empresa?", description: "Ação irreversível. Todas as licenças da empresa também serão removidas.", confirmText: "Excluir", destructive: true });
                         if (ok) remove.mutate(t.id);
                       }}><Trash2 className="h-4 w-4 text-rose-400" /></Button>
                     </div>
@@ -198,7 +198,7 @@ function ClientesMaster() {
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2"><Label>Nome do responsável *</Label><Input value={editing.nome ?? ""} onChange={(e) => setEditing({ ...editing, nome: e.target.value })} /></div>
               <div><Label>Empresa</Label><Input value={editing.empresa ?? ""} onChange={(e) => setEditing({ ...editing, empresa: e.target.value })} /></div>
-              <div><Label>Documento (CPF/CNPJ)</Label><Input value={editing.documento ?? ""} onChange={(e) => setEditing({ ...editing, documento: maskCPFCNPJ(e.target.value) })} /></div>
+              <div><Label>Documento (CPF/CNPJ)</Label><Input value={editing.documento ?? ""} onChange={(e) => setEditing({ ...editing, documento: maskCPFOrCNPJ(e.target.value) })} /></div>
               <div><Label>Email</Label><Input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} /></div>
               <div><Label>Telefone</Label><Input value={editing.telefone ?? ""} onChange={(e) => setEditing({ ...editing, telefone: maskPhone(e.target.value) })} /></div>
               <div><Label>WhatsApp</Label><Input value={editing.whatsapp ?? ""} onChange={(e) => setEditing({ ...editing, whatsapp: maskPhone(e.target.value) })} /></div>

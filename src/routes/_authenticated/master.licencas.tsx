@@ -149,7 +149,7 @@ function LicencasMaster() {
                         <Button size="icon" variant="ghost" onClick={() => renew.mutate(l)} title="Renovar"><RotateCw className="h-4 w-4 text-indigo-300" /></Button>
                         {l.situacao !== "bloqueada" ? (
                           <Button size="icon" variant="ghost" title="Bloquear" onClick={async () => {
-                            const ok = await dialog.confirm({ title: "Bloquear licença?", variant: "warning", confirmText: "Bloquear" });
+                            const ok = await dialog.confirm({ title: "Bloquear licença?", destructive: true, confirmText: "Bloquear" });
                             if (ok) changeSit.mutate({ id: l.id, situacao: "bloqueada" });
                           }}><Ban className="h-4 w-4 text-rose-400" /></Button>
                         ) : (
@@ -158,7 +158,7 @@ function LicencasMaster() {
                           </Button>
                         )}
                         <Button size="icon" variant="ghost" title="Excluir" onClick={async () => {
-                          const ok = await dialog.confirm({ title: "Excluir licença?", variant: "danger", confirmText: "Excluir" });
+                          const ok = await dialog.confirm({ title: "Excluir licença?", destructive: true, confirmText: "Excluir" });
                           if (ok) remove.mutate(l.id);
                         }}><Trash2 className="h-4 w-4 text-rose-400" /></Button>
                       </div>
