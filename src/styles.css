@@ -154,7 +154,7 @@
    outer document never scrolls when interacting with internal panes. Public
    marketing/menu routes keep normal document scroll. */
 html, body, #root { min-height: 100%; }
-body { overscroll-behavior-y: none; }
+body { overscroll-behavior-y: none; overflow-x: hidden; }
 
 @layer base {
   * { border-color: var(--color-border); }
