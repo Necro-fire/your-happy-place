@@ -241,7 +241,7 @@ function PedidosPage() {
   );
 }
 
-function OrderDetail({ order, list, onNavigate, onClose, onUpdate }: any) {
+function OrderDetail({ order, list, onNavigate, onClose, onUpdate, onRetrocede }: any) {
   const idx = (list ?? []).findIndex((o: any) => o.id === order.id);
   const prev = idx > 0 ? list[idx - 1] : null;
   const next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
