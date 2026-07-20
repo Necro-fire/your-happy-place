@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ const SORT_OPTIONS = [
   { value: "high", label: "Maior valor" },
   { value: "low", label: "Menor valor" },
 ];
+
+type PayMethod = Database["public"]["Enums"]["pay_method"];
 
 const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
@@ -243,7 +246,7 @@ function VendaDetail({ orderId, onClose }: { orderId: string; onClose: () => voi
       const receita = movimentos ?? [];
       if (receita.length === 0) return;
 
-      const grupos = new Map<string, { session_id: string; forma_pagamento: string | null; valor: number }>();
+      const grupos = new Map<string, { session_id: string; forma_pagamento: PayMethod | null; valor: number }>();
       for (const mov of receita) {
         const key = `${mov.session_id}:${mov.forma_pagamento ?? ""}`;
         const atual = grupos.get(key) ?? { session_id: mov.session_id, forma_pagamento: mov.forma_pagamento, valor: 0 };
