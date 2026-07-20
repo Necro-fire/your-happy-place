@@ -3,6 +3,7 @@ import { MasterSidebar } from "@/components/master/MasterSidebar";
 import { MasterTopbar } from "@/components/master/MasterTopbar";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyRoles, isMaster } from "@/hooks/use-role";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 export const Route = createFileRoute("/_authenticated/master")({
   beforeLoad: async () => {
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/master")({
 });
 
 function MasterLayout() {
+  useRealtimeSync();
   return (
     <div className="master-saas flex min-h-dvh w-full bg-[#f7f8fa]">
       <MasterSidebar />
