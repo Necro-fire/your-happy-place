@@ -7,9 +7,10 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, ShoppingCart, Package, ClipboardList, Calculator, Coffee, Wallet,
-  Settings, LogOut, Croissant, LifeBuoy, ChefHat, Users, QrCode, Search,
+  Settings, LogOut, Store, LifeBuoy, ChefHat, Users, QrCode, Search,
   DollarSign, Boxes, Building2, BarChart3, ConciergeBell, Globe,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
