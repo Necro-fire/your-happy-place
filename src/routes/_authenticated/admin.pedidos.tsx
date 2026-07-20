@@ -291,6 +291,11 @@ function OrderDetail({ order, list, onNavigate, onClose, onUpdate, onRetrocede }
         </div>
         <div className="no-print flex flex-wrap gap-2 pt-3">
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
+          {onRetrocede && !["novo", "cancelado"].includes(order.status) && (
+            <Button size="sm" variant="outline" onClick={() => onRetrocede(order)}>
+              <Undo2 className="h-4 w-4" />Voltar etapa
+            </Button>
+          )}
           <div className="flex-1" />
           <Button size="sm" variant="outline" onClick={async () => {
             const motivo = await dialog.prompt({ title: "Cancelar pedido", description: "Informe o motivo do cancelamento:", placeholder: "Ex: cliente desistiu", confirmText: "Cancelar pedido", cancelText: "Voltar" });
