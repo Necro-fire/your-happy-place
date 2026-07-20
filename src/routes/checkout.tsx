@@ -112,7 +112,7 @@ function CheckoutPage() {
       <PublicLayout>
         <div className="mx-auto max-w-md px-4 py-16 text-center">
           <p className="text-muted-foreground">Seu carrinho está vazio.</p>
-          <Button className="mt-4" onClick={() => navigate({ to: "/" })}>Ver cardápio</Button>
+          <Button className="mt-4" onClick={() => navigate({ to: (tenant?.codigo ? `/menu/${tenant.codigo}` : "/") as any })}>Ver cardápio</Button>
         </div>
       </PublicLayout>
     );
