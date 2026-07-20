@@ -84,7 +84,7 @@ function PDVPage() {
   const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"produtos" | "combos" | "favoritos" | "recentes">("produtos");
+  const [tab, setTab] = useState<"produtos" | "combos" | "recentes">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
   const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
