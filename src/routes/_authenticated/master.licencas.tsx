@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { logMaster } from "@/lib/master-log";
 import { fmtDate, fmtMoney } from "@/lib/format";
-import { Plus, Pencil, Ban, RotateCw, Trash2 } from "lucide-react";
+import { Plus, Pencil, Ban, RotateCw, Trash2, CheckCircle2, PauseCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/master/licencas")({
   component: LicencasMaster,
@@ -28,6 +28,7 @@ type TenantLite = { id: string; codigo: string; nome: string; empresa: string | 
 
 const SIT_COLORS: Record<string, string> = {
   ativa: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+  pendente: "bg-amber-500/20 text-amber-300 border-amber-500/40",
   expirada: "bg-rose-500/20 text-rose-300 border-rose-500/40",
   cancelada: "bg-slate-500/20 text-slate-300 border-slate-500/40",
   bloqueada: "bg-rose-500/20 text-rose-300 border-rose-500/40",
@@ -145,6 +146,16 @@ function LicencasMaster() {
                     <td className="px-3 py-2 text-right text-slate-200">{fmtMoney(Number(l.valor ?? 0))}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-end gap-1">
+                        {l.situacao !== "ativa" && (
+                          <Button size="icon" variant="ghost" title="Liberar licença" onClick={() => changeSit.mutate({ id: l.id, situacao: "ativa" })}>
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          </Button>
+                        )}
+                        {l.situacao === "ativa" && (
+                          <Button size="icon" variant="ghost" title="Suspender" onClick={() => changeSit.mutate({ id: l.id, situacao: "suspensa" })}>
+                            <PauseCircle className="h-4 w-4 text-amber-400" />
+                          </Button>
+                        )}
                         <Button size="icon" variant="ghost" onClick={() => setEditing(l)} title="Editar"><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={() => renew.mutate(l)} title="Renovar"><RotateCw className="h-4 w-4 text-indigo-300" /></Button>
                         {l.situacao !== "bloqueada" ? (
@@ -216,11 +227,12 @@ function LicencasMaster() {
                 <Select value={editing.situacao ?? "ativa"} onValueChange={(v) => setEditing({ ...editing, situacao: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
                     <SelectItem value="ativa">Ativa</SelectItem>
+                    <SelectItem value="suspensa">Suspensa</SelectItem>
+                    <SelectItem value="bloqueada">Bloqueada</SelectItem>
                     <SelectItem value="expirada">Expirada</SelectItem>
                     <SelectItem value="cancelada">Cancelada</SelectItem>
-                    <SelectItem value="bloqueada">Bloqueada</SelectItem>
-                    <SelectItem value="suspensa">Suspensa</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

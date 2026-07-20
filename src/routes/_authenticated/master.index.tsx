@@ -37,25 +37,30 @@ function MasterDashboard() {
     queryFn: async () => {
       const now = new Date();
       const in30 = new Date(); in30.setDate(now.getDate() + 30);
-      const [tenants, licencas, expirando, vencidas, logs] = await Promise.all([
-        supabase.from("tenants").select("id, status, plano"),
+      const d7 = new Date(now.getTime() - 7 * 86400000).toISOString();
+      const [tenants, licencas, expirando, vencidas, logs, novos] = await Promise.all([
+        supabase.from("tenants").select("id, status, plano, created_at"),
         supabase.from("licenses").select("id, situacao, valor, vence_em"),
         supabase.from("licenses").select("id").gte("vence_em", now.toISOString()).lte("vence_em", in30.toISOString()).eq("situacao", "ativa"),
         supabase.from("licenses").select("id").lt("vence_em", now.toISOString()).eq("situacao", "ativa"),
         supabase.from("master_logs").select("id").gte("created_at", new Date(now.getTime() - 86400000).toISOString()),
+        supabase.from("tenants").select("id").gte("created_at", d7),
       ]);
       const t = tenants.data ?? [];
       const l = licencas.data ?? [];
       const receita = l.filter((x) => x.situacao === "ativa").reduce((s, x) => s + Number(x.valor ?? 0), 0);
+      const count = (sit: string) => l.filter((x) => x.situacao === sit).length;
       return {
         totalEmpresas: t.length,
-        ativos: t.filter((x) => x.status === "ativo").length,
-        teste: t.filter((x) => x.status === "teste").length,
         bloqueados: t.filter((x) => x.status === "bloqueado").length,
-        cancelados: t.filter((x) => x.status === "cancelado").length,
         expirando: (expirando.data ?? []).length,
         vencidas: (vencidas.data ?? []).length,
-        licAtivas: l.filter((x) => x.situacao === "ativa").length,
+        licAtivas: count("ativa"),
+        licPendentes: count("pendente"),
+        licBloqueadas: count("bloqueada"),
+        licSuspensas: count("suspensa"),
+        licExpiradas: count("expirada"),
+        novos7d: (novos.data ?? []).length,
         receitaMensal: receita,
         logs24h: (logs.data ?? []).length,
       };
@@ -63,26 +68,29 @@ function MasterDashboard() {
   });
 
   const s = data ?? {
-    totalEmpresas: 0, ativos: 0, teste: 0, bloqueados: 0, cancelados: 0,
-    expirando: 0, vencidas: 0, licAtivas: 0, receitaMensal: 0, logs24h: 0,
+    totalEmpresas: 0, bloqueados: 0, expirando: 0, vencidas: 0,
+    licAtivas: 0, licPendentes: 0, licBloqueadas: 0, licSuspensas: 0, licExpiradas: 0,
+    novos7d: 0, receitaMensal: 0, logs24h: 0,
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-slate-50">Visão Geral da Plataforma</h1>
-        <p className="text-sm text-slate-400">Indicadores em tempo real do ambiente Master.</p>
+        <h1 className="font-display text-2xl font-bold text-slate-50">Painel do Desenvolvedor</h1>
+        <p className="text-sm text-slate-400">Indicadores da plataforma e situação das licenças.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat icon={Building2} label="Empresas cadastradas" value={s.totalEmpresas} tone="indigo" />
-        <Stat icon={Users} label="Clientes ativos" value={s.ativos} tone="emerald" />
-        <Stat icon={Clock} label="Em teste" value={s.teste} tone="amber" />
-        <Stat icon={ShieldAlert} label="Bloqueados" value={s.bloqueados} tone="rose" />
-        <Stat icon={KeyRound} label="Licenças ativas" value={s.licAtivas} tone="indigo" />
-        <Stat icon={AlertTriangle} label="Licenças expirando (30d)" value={s.expirando} tone="amber" />
-        <Stat icon={AlertTriangle} label="Licenças vencidas" value={s.vencidas} tone="rose" />
+        <Stat icon={Users} label="Novos cadastros (7d)" value={s.novos7d} tone="emerald" />
+        <Stat icon={KeyRound} label="Licenças ativas" value={s.licAtivas} tone="emerald" />
+        <Stat icon={Clock} label="Licenças pendentes" value={s.licPendentes} hint="Aguardando liberação" tone="amber" />
+        <Stat icon={ShieldAlert} label="Licenças bloqueadas" value={s.licBloqueadas} tone="rose" />
+        <Stat icon={ShieldAlert} label="Licenças suspensas" value={s.licSuspensas} tone="amber" />
+        <Stat icon={AlertTriangle} label="Licenças expiradas" value={s.licExpiradas + s.vencidas} tone="rose" />
+        <Stat icon={AlertTriangle} label="Vencendo em 30d" value={s.expirando} tone="amber" />
         <Stat icon={Activity} label="Receita ativa/mês" value={fmtMoney(s.receitaMensal)} tone="emerald" />
+        <Stat icon={ShieldAlert} label="Empresas bloqueadas" value={s.bloqueados} tone="rose" />
       </div>
 
       <Card className="border-slate-800 bg-slate-900 p-4">
