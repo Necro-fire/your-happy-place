@@ -78,10 +78,14 @@ function newLineKey(product_id: string | undefined, combo_id: string | undefined
 
 function PDVPage() {
   const qc = useQueryClient();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | null>(null);
   const [tab, setTab] = useState<"produtos" | "combos" | "favoritos" | "recentes">("produtos");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
+  const [existingOrderNumero, setExistingOrderNumero] = useState<number | null>(null);
   const [descOrder, setDescOrder] = useState(0);
   const [atendimento, setAtendimento] = useState<Atendimento | null>(null);
   const [mesaId, setMesaId] = useState<string>("");
