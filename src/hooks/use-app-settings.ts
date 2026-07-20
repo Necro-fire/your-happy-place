@@ -61,7 +61,7 @@ export function usePermissions() {
 
   const myRoles = roles.data ?? [];
   // owner/admin/master bypass permission filtering
-  const isPrivileged = myRoles.some((r) => ["owner", "admin", "master"].includes(r));
+  const isPrivileged = myRoles.some((r) => ["owner", "proprietario", "admin", "master"].includes(r));
 
   const canView = (mod: ModuleKey): boolean => {
     if (isPrivileged) return true;
