@@ -820,48 +820,21 @@ function PDVPage() {
           <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader><DialogTitle>Finalizar — {ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              {atendimento === "mesa" && (
-                <div><Label>Mesa *</Label>
-                  <Select value={mesaId} onValueChange={setMesaId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {(mesas.data ?? []).map((m) => <SelectItem key={m.id} value={m.id}>Mesa {m.numero} — {m.capacidade} lug.</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                <div className="font-semibold">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</div>
+                {atendimento === "mesa" && mesaId && (
+                  <div className="text-muted-foreground">Mesa {(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero}</div>
+                )}
+                {(clienteNome || clienteTel) && (
+                  <div className="text-muted-foreground">{clienteNome}{clienteTel ? ` • ${clienteTel}` : ""}</div>
+                )}
+                {atendimento === "delivery" && end.rua && (
+                  <div className="text-muted-foreground">{end.rua}, {end.numero} — {end.bairro}, {end.cidade}/{end.estado}</div>
+                )}
+                {obs && <div className="text-muted-foreground">📝 {obs}</div>}
+              </div>
 
-              {(atendimento === "retirada" || atendimento === "delivery" || atendimento === "balcao") && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div><Label>Nome {atendimento !== "balcao" && "*"}</Label><Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} /></div>
-                  <div><Label>Telefone {atendimento === "delivery" && "*"}</Label><Input value={clienteTel} onChange={(e) => setClienteTel(e.target.value)} /></div>
-                </div>
-              )}
 
-              {atendimento === "retirada" && (
-                <div><Label>Horário previsto</Label><Input type="datetime-local" value={horario} onChange={(e) => setHorario(e.target.value)} /></div>
-              )}
-
-              {atendimento === "delivery" && (
-                <div className="space-y-2 rounded-lg border border-border p-3">
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div><Label>CEP *</Label><Input value={end.cep} onChange={(e) => lookupCep(e.target.value)} placeholder="00000-000" disabled={cepLoading} /></div>
-                    <div><Label>Rua *</Label><Input value={end.rua} onChange={(e) => setEnd({ ...end, rua: e.target.value })} /></div>
-                  </div>
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div><Label>Número *</Label><Input value={end.numero} onChange={(e) => setEnd({ ...end, numero: e.target.value })} /></div>
-                    <div><Label>Bairro *</Label><Input value={end.bairro} onChange={(e) => setEnd({ ...end, bairro: e.target.value })} /></div>
-                  </div>
-                  <div className="grid grid-cols-[2fr_1fr] gap-2">
-                    <div><Label>Cidade *</Label><Input value={end.cidade} onChange={(e) => setEnd({ ...end, cidade: e.target.value })} /></div>
-                    <div><Label>Estado *</Label><Input value={end.estado} maxLength={2} onChange={(e) => setEnd({ ...end, estado: e.target.value.toUpperCase() })} /></div>
-                  </div>
-                  <div><Label>Complemento</Label><Input value={end.complemento} onChange={(e) => setEnd({ ...end, complemento: e.target.value })} /></div>
-                  <div><Label>Ponto de referência</Label><Input value={end.referencia} onChange={(e) => setEnd({ ...end, referencia: e.target.value })} /></div>
-                </div>
-              )}
-
-              <div><Label>Observações do pedido</Label><Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
 
               {/* Pagamento múltiplo */}
               <div className="space-y-2 rounded-lg border border-border p-3">
