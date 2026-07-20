@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bell, Search, Plus } from "lucide-react";
+import { MasterMobileNav } from "@/components/master/MasterSidebar";
 
 function useNow() {
   const [now, setNow] = useState<Date | null>(null);
