@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { maskPhone, maskCEP, onlyDigits } from "@/lib/masks";
-import { useTenant } from "@/lib/tenant-session";
+import { useTenant, publicMenuHref } from "@/lib/tenant-session";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Finalizar pedido — Padaria" }] }),
@@ -112,7 +112,7 @@ function CheckoutPage() {
       <PublicLayout>
         <div className="mx-auto max-w-md px-4 py-16 text-center">
           <p className="text-muted-foreground">Seu carrinho está vazio.</p>
-          <Button className="mt-4" onClick={() => navigate({ to: (tenant?.codigo ? `/menu/${tenant.codigo}` : "/") as any })}>Ver cardápio</Button>
+          <Button className="mt-4" onClick={() => navigate({ to: publicMenuHref(tenant) as any })}>Ver cardápio</Button>
         </div>
       </PublicLayout>
     );
