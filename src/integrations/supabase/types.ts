@@ -1538,7 +1538,14 @@ export type Database = {
         | "caixa"
         | "cozinha"
         | "entregador"
-      cash_mov_tipo: "venda" | "entrada" | "sangria" | "suprimento" | "estorno"
+      cash_mov_tipo:
+        | "venda"
+        | "entrada"
+        | "sangria"
+        | "suprimento"
+        | "estorno"
+        | "reforco"
+        | "saida"
       cash_status: "aberta" | "fechada"
       fin_status: "pago" | "pendente" | "atrasado"
       fin_tipo: "receita" | "despesa"
@@ -1701,7 +1708,15 @@ export const Constants = {
         "cozinha",
         "entregador",
       ],
-      cash_mov_tipo: ["venda", "entrada", "sangria", "suprimento", "estorno"],
+      cash_mov_tipo: [
+        "venda",
+        "entrada",
+        "sangria",
+        "suprimento",
+        "estorno",
+        "reforco",
+        "saida",
+      ],
       cash_status: ["aberta", "fechada"],
       fin_status: ["pago", "pendente", "atrasado"],
       fin_tipo: ["receita", "despesa"],
