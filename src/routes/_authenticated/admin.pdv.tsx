@@ -487,10 +487,10 @@ function PDVPage() {
   });
 
   return (
-    <div className="grid gap-4 lg:h-[calc(100dvh-7rem)] lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
 
-      {/* ============ ESQUERDA: catálogo ============ */}
-      <div className="flex flex-col gap-3 overflow-hidden">
+      {/* ============ CABEÇALHO: identificação da venda ============ */}
+      <Card className="p-3 lg:p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {ATENDIMENTOS.map((a) => {
             const Icon = a.icon; const active = atendimento === a.key;
@@ -502,6 +502,114 @@ function PDVPage() {
             );
           })}
         </div>
+
+        {atendimento && (
+          <div className="mt-3 grid gap-3">
+            {atendimento === "mesa" && (
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><Coffee className="h-3 w-3" /> Mesa *</Label>
+                <Select value={mesaId} onValueChange={selectMesa}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a mesa" /></SelectTrigger>
+                  <SelectContent>
+                    {(mesas.data ?? []).map((m: any) => {
+                      const open = openOrderByMesa.get(m.id);
+                      const isThisSale = open && open.id === existingOrderId;
+                      const statusLabel = isThisSale
+                        ? `Pedido #${open!.numero} (esta venda)`
+                        : open
+                          ? `Ocupada — pedido #${open.numero}`
+                          : m.status === "reservada" ? "Reservada" : "Livre";
+                      const dotColor = open && !isThisSale ? "bg-amber-500" : m.status === "reservada" ? "bg-blue-500" : "bg-emerald-500";
+                      return (
+                        <SelectItem key={m.id} value={m.id} disabled={!!open && !isThisSale}>
+                          <span className="flex items-center gap-2">
+                            <span className={`inline-block h-2 w-2 rounded-full ${dotColor}`} />
+                            Mesa {m.numero} — <span className="text-muted-foreground">{statusLabel}</span>
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><User className="h-3 w-3" /> Cliente {atendimento === "delivery" && <span className="text-destructive">*</span>}</Label>
+                <Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} placeholder="Nome do cliente" />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1 text-xs"><Phone className="h-3 w-3" /> Telefone {atendimento === "delivery" && <span className="text-destructive">*</span>}</Label>
+                <Input value={clienteTel} onChange={(e) => setClienteTel(maskPhone(e.target.value))} placeholder="(00) 00000-0000" inputMode="numeric" />
+              </div>
+            </div>
+
+            {atendimento === "delivery" && (
+              <div className="rounded-lg border border-border p-3">
+                <div className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> Endereço de entrega
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[140px_1fr_100px]">
+                  <div>
+                    <Label className="text-xs">CEP *</Label>
+                    <Input value={end.cep} onChange={(e) => { const v = maskCEP(e.target.value); setEnd((s) => ({ ...s, cep: v })); if (v.replace(/\D/g, "").length === 8) lookupCep(v); }} placeholder="00000-000" disabled={cepLoading} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Rua *</Label>
+                    <Input value={end.rua} onChange={(e) => setEnd({ ...end, rua: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Número *</Label>
+                    <Input value={end.numero} onChange={(e) => setEnd({ ...end, numero: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_1fr_80px]">
+                  <div>
+                    <Label className="text-xs">Bairro *</Label>
+                    <Input value={end.bairro} onChange={(e) => setEnd({ ...end, bairro: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Complemento</Label>
+                    <Input value={end.complemento} onChange={(e) => setEnd({ ...end, complemento: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Cidade *</Label>
+                    <Input value={end.cidade} onChange={(e) => setEnd({ ...end, cidade: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">UF *</Label>
+                    <Input value={end.estado} maxLength={2} onChange={(e) => setEnd({ ...end, estado: e.target.value.toUpperCase() })} />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-xs">Ponto de referência</Label>
+                  <Input value={end.referencia} onChange={(e) => setEnd({ ...end, referencia: e.target.value })} placeholder="Ex: próximo ao mercado" />
+                </div>
+              </div>
+            )}
+
+            {atendimento === "retirada" && (
+              <div>
+                <Label className="text-xs">Horário previsto</Label>
+                <Input type="datetime-local" value={horario} onChange={(e) => setHorario(e.target.value)} />
+              </div>
+            )}
+
+            <div>
+              <Label className="flex items-center gap-1 text-xs"><NoteIcon className="h-3 w-3" /> Observações do pedido</Label>
+              <Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Ex: sem cebola, bem passado, cortar em 8 pedaços..." />
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* ============ CORPO: catálogo + comanda ============ */}
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
+
+      {/* ============ ESQUERDA: catálogo ============ */}
+      <div className="flex flex-col gap-3 overflow-hidden">
+
 
         <div className="flex flex-wrap gap-2">
           <div className="relative min-w-[220px] flex-1">
