@@ -165,6 +165,40 @@ function EmpresaPage() {
     <div className="space-y-4">
       <Card className="space-y-4 p-5">
         <div>
+          <h2 className="font-display text-lg font-semibold">Logo do estabelecimento</h2>
+          <p className="text-xs text-muted-foreground">Aparece no cabeçalho do cardápio público e nas telas de pedido do cliente.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
+            {f.logo_url ? (
+              <img src={f.logo_url} alt="Logo" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-[10px] text-muted-foreground">Sem logo</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent">
+              {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {f.logo_url ? "Substituir logo" : "Enviar logo"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingLogo}
+                onChange={(e) => { const file = e.target.files?.[0]; if (file) handleLogoUpload(file); e.currentTarget.value = ""; }}
+              />
+            </label>
+            {f.logo_url && (
+              <Button type="button" variant="ghost" size="sm" onClick={handleLogoRemove}>
+                <Trash2 className="mr-1 h-4 w-4" /> Remover
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      <Card className="space-y-4 p-5">
+        <div>
           <h2 className="font-display text-lg font-semibold">Identificação</h2>
           <p className="text-xs text-muted-foreground">Informações que aparecem em comandas, notas e no cardápio digital.</p>
         </div>
