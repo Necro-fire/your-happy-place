@@ -1,59 +1,121 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettingsConfig, SectionShell } from "@/components/admin/settings/useSettingsConfig";
+import { Store, Coffee, PackageCheck, Bike, Printer, HelpCircle, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/pdv")({
   component: PdvSettings,
 });
 
-const PAGAMENTOS = [
-  ["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Crédito"], ["debito", "Débito"], ["vale", "Vale-refeição"],
+type PosVenda = "auto" | "perguntar" | "nao";
+
+const TIPOS = [
+  { key: "balcao", label: "Balcão", icon: Store, desc: "Venda direta no balcão" },
+  { key: "retirada", label: "Retirada", icon: PackageCheck, desc: "Cliente retira no local" },
+  { key: "mesa", label: "Mesa", icon: Coffee, desc: "Controle de mesas e comandas" },
+  { key: "delivery", label: "Delivery", icon: Bike, desc: "Entrega com endereço e taxa" },
 ] as const;
+
+const POS_VENDA: { key: PosVenda; label: string; desc: string; icon: any }[] = [
+  { key: "auto", label: "Imprimir automaticamente", desc: "Imprime o comprovante ao finalizar", icon: Printer },
+  { key: "perguntar", label: "Perguntar antes de imprimir", desc: "Sistema pergunta se deseja imprimir", icon: HelpCircle },
+  { key: "nao", label: "Não imprimir", desc: "Finaliza a venda sem imprimir", icon: XCircle },
+];
 
 function PdvSettings() {
   const { state, setState, save, loading } = useSettingsConfig("pdv", {
-    pagamentos: { pix: true, dinheiro: true, credito: true, debito: true, vale: false } as Record<string, boolean>,
-    limite_desconto_pct: 10,
-    venda_sem_cliente: true,
-    venda_rapida: true,
-    permite_cancelar: true,
-    permite_alterar_preco: false,
+    tipos_venda: { balcao: true, retirada: true, mesa: true, delivery: true } as Record<string, boolean>,
+    pos_venda_impressao: "auto" as PosVenda,
+    som_confirmacao: true,
+    focar_busca_ao_abrir: true,
   });
   if (loading || !state) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
   return (
-    <SectionShell title="PDV" desc="Configuração do ponto de venda: pagamentos, permissões e limites." onSave={() => save.mutate({})} saving={save.isPending}>
+    <SectionShell
+      title="PDV"
+      desc="Comportamento do ponto de venda. Formas de pagamento e descontos possuem módulos próprios."
+      onSave={() => save.mutate({})}
+      saving={save.isPending}
+    >
       <div>
-        <Label className="text-sm font-semibold">Formas de pagamento aceitas</Label>
+        <Label className="text-sm font-semibold">Tipos de venda disponíveis</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">Selecione quais formas de atendimento aparecem no PDV.</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {PAGAMENTOS.map(([key, label]) => (
-            <label key={key} className="flex items-center justify-between rounded-md border border-border p-3">
-              <span className="text-sm">{label}</span>
-              <Switch checked={state.pagamentos[key]} onCheckedChange={(v) => setState({ ...state, pagamentos: { ...state.pagamentos, [key]: v } })} />
-            </label>
-          ))}
+          {TIPOS.map(({ key, label, desc, icon: Icon }) => {
+            const active = !!state.tipos_venda[key];
+            return (
+              <label
+                key={key}
+                className={cn(
+                  "flex cursor-pointer items-center justify-between gap-3 rounded-md border p-3 transition",
+                  active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn("grid h-9 w-9 place-items-center rounded-md", active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">{label}</div>
+                    <div className="text-xs text-muted-foreground">{desc}</div>
+                  </div>
+                </div>
+                <Switch
+                  checked={active}
+                  onCheckedChange={(v) => setState({ ...state, tipos_venda: { ...state.tipos_venda, [key]: v } })}
+                />
+              </label>
+            );
+          })}
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label>Limite de desconto (%)</Label>
-          <Input type="number" min={0} max={100} value={state.limite_desconto_pct} onChange={(e) => setState({ ...state, limite_desconto_pct: Number(e.target.value) })} />
+
+      <div>
+        <Label className="text-sm font-semibold">Finalização de venda</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">Comportamento de impressão após concluir uma venda.</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          {POS_VENDA.map(({ key, label, desc, icon: Icon }) => {
+            const active = state.pos_venda_impressao === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setState({ ...state, pos_venda_impressao: key })}
+                className={cn(
+                  "flex flex-col items-start gap-1 rounded-md border p-3 text-left transition",
+                  active ? "border-primary bg-primary/5 shadow-soft" : "border-border hover:border-primary/40",
+                )}
+              >
+                <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
+                <div className="text-sm font-medium">{label}</div>
+                <div className="text-xs text-muted-foreground">{desc}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
-      <div className="space-y-2">
-        {[
-          ["venda_sem_cliente", "Permitir venda sem cliente identificado"],
-          ["venda_rapida", "Habilitar modo venda rápida"],
-          ["permite_cancelar", "Permitir cancelamento de itens e vendas"],
-          ["permite_alterar_preco", "Permitir alterar preço no PDV"],
-        ].map(([key, label]) => (
-          <label key={key} className="flex items-center justify-between rounded-md border border-border p-3">
-            <span className="text-sm">{label}</span>
-            <Switch checked={(state as any)[key]} onCheckedChange={(v) => setState({ ...state, [key]: v } as any)} />
+
+      <div>
+        <Label className="text-sm font-semibold">Comportamento da tela</Label>
+        <div className="mt-2 space-y-2">
+          <label className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <div className="text-sm">Focar campo de busca ao abrir o PDV</div>
+              <div className="text-xs text-muted-foreground">Cursor pronto para pesquisar produtos.</div>
+            </div>
+            <Switch checked={state.focar_busca_ao_abrir} onCheckedChange={(v) => setState({ ...state, focar_busca_ao_abrir: v })} />
           </label>
-        ))}
+          <label className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <div className="text-sm">Som de confirmação ao adicionar produto</div>
+              <div className="text-xs text-muted-foreground">Feedback sonoro rápido ao inserir itens.</div>
+            </div>
+            <Switch checked={state.som_confirmacao} onCheckedChange={(v) => setState({ ...state, som_confirmacao: v })} />
+          </label>
+        </div>
       </div>
     </SectionShell>
   );
