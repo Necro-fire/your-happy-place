@@ -20,6 +20,10 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mesa: typeof search.mesa === "string" ? search.mesa : undefined,
+    order: typeof search.order === "string" ? search.order : undefined,
+  }),
   component: PDVPage,
 });
 
