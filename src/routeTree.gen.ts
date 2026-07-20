@@ -46,7 +46,6 @@ import { Route as AuthenticatedAdminConfiguracoesPdvRouteImport } from './routes
 import { Route as AuthenticatedAdminConfiguracoesPagamentosRouteImport } from './routes/_authenticated/admin.configuracoes.pagamentos'
 import { Route as AuthenticatedAdminConfiguracoesNotificacoesRouteImport } from './routes/_authenticated/admin.configuracoes.notificacoes'
 import { Route as AuthenticatedAdminConfiguracoesIntegracoesRouteImport } from './routes/_authenticated/admin.configuracoes.integracoes'
-import { Route as AuthenticatedAdminConfiguracoesImpressoesRouteImport } from './routes/_authenticated/admin.configuracoes.impressoes'
 import { Route as AuthenticatedAdminConfiguracoesFinanceiroRouteImport } from './routes/_authenticated/admin.configuracoes.financeiro'
 import { Route as AuthenticatedAdminConfiguracoesEstoqueRouteImport } from './routes/_authenticated/admin.configuracoes.estoque'
 import { Route as AuthenticatedAdminConfiguracoesEmpresaRouteImport } from './routes/_authenticated/admin.configuracoes.empresa'
@@ -258,12 +257,6 @@ const AuthenticatedAdminConfiguracoesIntegracoesRoute =
     path: '/integracoes',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
-const AuthenticatedAdminConfiguracoesImpressoesRoute =
-  AuthenticatedAdminConfiguracoesImpressoesRouteImport.update({
-    id: '/impressoes',
-    path: '/impressoes',
-    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
-  } as any)
 const AuthenticatedAdminConfiguracoesFinanceiroRoute =
   AuthenticatedAdminConfiguracoesFinanceiroRouteImport.update({
     id: '/financeiro',
@@ -343,7 +336,6 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
-  '/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
   '/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
@@ -386,7 +378,6 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
-  '/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
   '/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
@@ -434,7 +425,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes/empresa': typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   '/_authenticated/admin/configuracoes/estoque': typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   '/_authenticated/admin/configuracoes/financeiro': typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
-  '/_authenticated/admin/configuracoes/impressoes': typeof AuthenticatedAdminConfiguracoesImpressoesRoute
   '/_authenticated/admin/configuracoes/integracoes': typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   '/_authenticated/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/_authenticated/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
@@ -482,7 +472,6 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/empresa'
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
-    | '/admin/configuracoes/impressoes'
     | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/notificacoes'
     | '/admin/configuracoes/pagamentos'
@@ -525,7 +514,6 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/empresa'
     | '/admin/configuracoes/estoque'
     | '/admin/configuracoes/financeiro'
-    | '/admin/configuracoes/impressoes'
     | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/notificacoes'
     | '/admin/configuracoes/pagamentos'
@@ -572,7 +560,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes/empresa'
     | '/_authenticated/admin/configuracoes/estoque'
     | '/_authenticated/admin/configuracoes/financeiro'
-    | '/_authenticated/admin/configuracoes/impressoes'
     | '/_authenticated/admin/configuracoes/integracoes'
     | '/_authenticated/admin/configuracoes/notificacoes'
     | '/_authenticated/admin/configuracoes/pagamentos'
@@ -856,13 +843,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesIntegracoesRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
-    '/_authenticated/admin/configuracoes/impressoes': {
-      id: '/_authenticated/admin/configuracoes/impressoes'
-      path: '/impressoes'
-      fullPath: '/admin/configuracoes/impressoes'
-      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesImpressoesRouteImport
-      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
-    }
     '/_authenticated/admin/configuracoes/financeiro': {
       id: '/_authenticated/admin/configuracoes/financeiro'
       path: '/financeiro'
@@ -923,7 +903,6 @@ interface AuthenticatedAdminConfiguracoesRouteChildren {
   AuthenticatedAdminConfiguracoesEmpresaRoute: typeof AuthenticatedAdminConfiguracoesEmpresaRoute
   AuthenticatedAdminConfiguracoesEstoqueRoute: typeof AuthenticatedAdminConfiguracoesEstoqueRoute
   AuthenticatedAdminConfiguracoesFinanceiroRoute: typeof AuthenticatedAdminConfiguracoesFinanceiroRoute
-  AuthenticatedAdminConfiguracoesImpressoesRoute: typeof AuthenticatedAdminConfiguracoesImpressoesRoute
   AuthenticatedAdminConfiguracoesIntegracoesRoute: typeof AuthenticatedAdminConfiguracoesIntegracoesRoute
   AuthenticatedAdminConfiguracoesNotificacoesRoute: typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   AuthenticatedAdminConfiguracoesPagamentosRoute: typeof AuthenticatedAdminConfiguracoesPagamentosRoute
@@ -950,8 +929,6 @@ const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfigurac
       AuthenticatedAdminConfiguracoesEstoqueRoute,
     AuthenticatedAdminConfiguracoesFinanceiroRoute:
       AuthenticatedAdminConfiguracoesFinanceiroRoute,
-    AuthenticatedAdminConfiguracoesImpressoesRoute:
-      AuthenticatedAdminConfiguracoesImpressoesRoute,
     AuthenticatedAdminConfiguracoesIntegracoesRoute:
       AuthenticatedAdminConfiguracoesIntegracoesRoute,
     AuthenticatedAdminConfiguracoesNotificacoesRoute:
@@ -1067,13 +1044,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
