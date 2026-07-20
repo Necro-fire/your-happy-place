@@ -65,8 +65,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Padaria — Pedidos Online & Gestão" },
-      { name: "description", content: "Peça pães, bolos, salgados e cafés online. Gestão completa para sua padaria." },
+      { title: "SaborSys — Gestão inteligente para o seu negócio" },
+      { name: "description", content: "Cardápio digital, PDV, delivery e mesas em um único sistema. Encontre o cardápio da sua loja preferida pelo código de acesso." },
+      { property: "og:title", content: "SaborSys — Gestão inteligente para o seu negócio" },
+      { name: "twitter:title", content: "SaborSys — Gestão inteligente para o seu negócio" },
+      { property: "og:description", content: "Cardápio digital, PDV, delivery e mesas em um único sistema. Encontre o cardápio da sua loja preferida pelo código de acesso." },
+      { name: "twitter:description", content: "Cardápio digital, PDV, delivery e mesas em um único sistema. Encontre o cardápio da sua loja preferida pelo código de acesso." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02b97b56-6694-4b37-93b1-398f11be897f/id-preview-8440ded6--c9eec83d-8737-4ac3-8ae9-2b08c8ffbfe0.lovable.app-1784588535875.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02b97b56-6694-4b37-93b1-398f11be897f/id-preview-8440ded6--c9eec83d-8737-4ac3-8ae9-2b08c8ffbfe0.lovable.app-1784588535875.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
