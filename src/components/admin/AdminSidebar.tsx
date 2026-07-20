@@ -126,18 +126,18 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         {filtered.map((g) => (
-          <SidebarGroup key={g.id}>
+          <SidebarGroup key={g.id} className="p-0 px-2 pt-1">
             {!collapsed ? (
               <SidebarGroupLabel
                 className={cn(
-                  "pointer-events-none select-none px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70",
+                  "pointer-events-none select-none h-5 px-2 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70",
                 )}
               >
                 <g.icon className="mr-1.5 h-3 w-3 opacity-70" aria-hidden />
                 <span>{g.label}</span>
               </SidebarGroupLabel>
             ) : (
-              <div className="mx-2 my-1 h-px bg-sidebar-border/60" aria-hidden />
+              <div className="mx-2 my-0.5 h-px bg-sidebar-border/60" aria-hidden />
             )}
             <SidebarGroupContent>
               <SidebarMenu>
