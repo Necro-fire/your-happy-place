@@ -20,6 +20,7 @@ import {
   MapPin, User, Phone, StickyNote as NoteIcon, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ProductImage } from "@/components/ProductImage";
 import { dialog } from "@/components/ui/app-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/pdv")({
@@ -966,16 +967,19 @@ function ProductGrid({ list, onAdd, empty }: { list: any[]; onAdd: (p: any) => v
             key={p.id}
             onClick={() => onAdd(p)}
             disabled={indisponivel}
-            className="group relative flex flex-col rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary hover:shadow-elevated disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <div className="line-clamp-2 text-sm font-medium">{p.nome}</div>
-            {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
-            <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
-            {p.controla_estoque && (
-              <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
-                {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
-              </div>
-            )}
+            <ProductImage src={p.imagem_url} alt={p.nome} className="aspect-square w-full" />
+            <div className="flex flex-1 flex-col p-2">
+              <div className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-tight">{p.nome}</div>
+              {p.codigo && <div className="text-[10px] text-muted-foreground">#{p.codigo}</div>}
+              <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(p.preco_promo ?? p.preco))}</div>
+              {p.controla_estoque && (
+                <div className={`mt-1 text-[10px] ${p.estoque_atual <= p.estoque_minimo ? "text-destructive" : "text-muted-foreground"}`}>
+                  {indisponivel ? "Indisponível" : `estoque: ${p.estoque_atual} ${p.unidade}`}
+                </div>
+              )}
+            </div>
           </button>
         );
       })}
