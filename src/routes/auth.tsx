@@ -205,6 +205,21 @@ function AuthPage() {
                   </Button>
                 </form>
               ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={signInWithGoogle}
+                    disabled={loading}
+                    className="group mb-4 flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-background/70 px-4 text-sm font-semibold text-foreground shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevated disabled:opacity-60"
+                  >
+                    <GoogleIcon className="h-5 w-5" />
+                    Continuar com Google
+                  </button>
+                  <div className="mb-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+                    <span className="h-px flex-1 bg-border/70" />
+                    ou
+                    <span className="h-px flex-1 bg-border/70" />
+                  </div>
                 <Tabs defaultValue="login" className="w-full">
                   <TabsList className="mb-5 grid w-full grid-cols-2 rounded-xl bg-muted/70 p-1">
                     <TabsTrigger value="login" className="rounded-lg data-[state=active]:shadow-soft">
