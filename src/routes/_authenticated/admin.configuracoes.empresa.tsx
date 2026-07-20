@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { maskPhone, maskCEP, maskCPFOrCNPJ } from "@/lib/masks";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -115,14 +115,88 @@ function EmpresaPage() {
       } as any).eq("id", 1);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["settings"] }); toast.success("Dados da empresa salvos"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["public-settings"] });
+      toast.success("Dados da empresa salvos");
+    },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  async function handleLogoUpload(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Imagem muito grande (máx 2MB)"); return; }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("logos").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("logos").getPublicUrl(path);
+      const { error: dbErr } = await supabase.from("settings").update({ logo_url: pub.publicUrl } as any).eq("id", 1);
+      if (dbErr) throw dbErr;
+      setF((prev: any) => ({ ...prev, logo_url: pub.publicUrl }));
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["public-settings"] });
+      toast.success("Logo atualizada");
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao enviar logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+  async function handleLogoRemove() {
+    try {
+      const { error } = await supabase.from("settings").update({ logo_url: null } as any).eq("id", 1);
+      if (error) throw error;
+      setF((prev: any) => ({ ...prev, logo_url: null }));
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["public-settings"] });
+      toast.success("Logo removida");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
 
   if (!f) return <div className="text-sm text-muted-foreground">Carregando...</div>;
 
   return (
     <div className="space-y-4">
+      <Card className="space-y-4 p-5">
+        <div>
+          <h2 className="font-display text-lg font-semibold">Logo do estabelecimento</h2>
+          <p className="text-xs text-muted-foreground">Aparece no cabeçalho do cardápio público e nas telas de pedido do cliente.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
+            {f.logo_url ? (
+              <img src={f.logo_url} alt="Logo" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-[10px] text-muted-foreground">Sem logo</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent">
+              {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {f.logo_url ? "Substituir logo" : "Enviar logo"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingLogo}
+                onChange={(e) => { const file = e.target.files?.[0]; if (file) handleLogoUpload(file); e.currentTarget.value = ""; }}
+              />
+            </label>
+            {f.logo_url && (
+              <Button type="button" variant="ghost" size="sm" onClick={handleLogoRemove}>
+                <Trash2 className="mr-1 h-4 w-4" /> Remover
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
+
       <Card className="space-y-4 p-5">
         <div>
           <h2 className="font-display text-lg font-semibold">Identificação</h2>
