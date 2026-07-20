@@ -731,42 +731,59 @@ function PDVPage() {
       </div>
 
       {/* ============ DIREITA: comanda ============ */}
-      <Card className="flex min-h-[420px] flex-col overflow-hidden p-4 lg:min-h-0">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <ShoppingCart className="h-4 w-4" />
-          <h2 className="font-semibold">Comanda</h2>
-          {existingOrderNumero && (
-            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-              Continuando pedido #{existingOrderNumero}
-            </span>
-          )}
-          {atendimento && <span className="ml-auto text-xs text-muted-foreground">{ATENDIMENTOS.find((a) => a.key === atendimento)?.label}</span>}
+      <div className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm lg:min-h-0">
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-bold tracking-tight">Comanda</h2>
+            {existingOrderNumero && (
+              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                Continuando #{existingOrderNumero}
+              </span>
+            )}
+          </div>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            {cart.length} {cart.length === 1 ? "item" : "itens"}
+          </span>
         </div>
 
-
-        <div className="flex-1 space-y-1 overflow-y-auto">
-          {cart.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">Sem itens</div>}
+        <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+          {cart.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/60">
+                <ShoppingCart className="h-7 w-7 text-muted-foreground/70" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Carrinho vazio</p>
+                <p className="mt-1 text-xs text-muted-foreground">Toque em um produto para iniciar o pedido</p>
+              </div>
+            </div>
+          )}
           {cart.map((i) => (
-            <div key={i.key} className="rounded-md border border-border p-2 text-sm">
+            <div key={i.key} className="rounded-xl border border-border/60 bg-background/60 p-2.5 text-sm transition hover:border-border">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium leading-tight">{i.nome}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="truncate font-semibold leading-tight">{i.nome}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
                     {fmtMoney(i.preco)} {i.desconto > 0 && <span className="ml-1 text-destructive">-{fmtMoney(i.desconto)}</span>}
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-sm font-semibold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
+                <div className="shrink-0 text-right text-sm font-bold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
               </div>
-              <div className="mt-2 flex flex-wrap items-center justify-end gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: Math.max(1, x.quantidade - 1) } : x))}><Minus className="h-3 w-3" /></Button>
-                <span className="w-6 text-center">{i.quantidade}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: x.quantidade + 1 } : x))}><Plus className="h-3 w-3" /></Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setLineEdit(i)} title="Editar"><StickyNote className="h-3 w-3" /></Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCart((c) => c.filter((x) => x.key !== i.key))} title="Remover"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5">
+                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: Math.max(1, x.quantidade - 1) } : x))}><Minus className="h-3 w-3" /></button>
+                  <span className="w-6 text-center text-xs font-semibold">{i.quantidade}</span>
+                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" onClick={() => setCart((c) => c.map((x) => x.key === i.key ? { ...x, quantidade: x.quantidade + 1 } : x))}><Plus className="h-3 w-3" /></button>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setLineEdit(i)} title="Editar"><StickyNote className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => setCart((c) => c.filter((x) => x.key !== i.key))} title="Remover"><Trash2 className="h-3 w-3" /></Button>
+                </div>
               </div>
 
               {(i.complementos.length > 0 || i.observacoes) && (
-                <div className="mt-1 space-y-0.5 pl-1 text-xs text-muted-foreground">
+                <div className="mt-1.5 space-y-0.5 border-t border-border/60 pt-1.5 pl-1 text-xs text-muted-foreground">
                   {i.complementos.length > 0 && <div>+ {i.complementos.map((c) => c.nome).join(", ")}</div>}
                   {i.observacoes && <div>📝 {i.observacoes}</div>}
                 </div>
@@ -775,23 +792,23 @@ function PDVPage() {
           ))}
         </div>
 
-        <div className="space-y-2 border-t pt-3 text-sm">
-          <div className="flex justify-between"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
+        <div className="space-y-2 border-t border-border/60 bg-muted/30 px-4 py-3">
+          <div className="flex justify-between text-xs text-muted-foreground"><span>Subtotal</span><span>{fmtMoney(subtotal)}</span></div>
           {atendimento === "delivery" && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Taxa entrega</span>
-              <Input type="number" min={0} value={taxa} onChange={(e) => setTaxa(Number(e.target.value))} className="h-8 w-24 text-right" />
+              <Input type="number" min={0} value={taxa} onChange={(e) => setTaxa(Number(e.target.value))} className="h-8 w-24 rounded-lg text-right" />
             </div>
           )}
-          <div className="flex justify-between border-t pt-2 font-display text-xl font-bold">
-            <span>Total</span><span className="text-primary">{fmtMoney(total)}</span>
+          <div className="flex items-end justify-between border-t border-border/60 pt-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</span>
+            <span className="text-2xl font-bold tracking-tight text-primary">{fmtMoney(total)}</span>
           </div>
+          <Button size="lg" className="mt-1 h-12 w-full rounded-xl text-base font-bold shadow-sm shadow-primary/20" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
+            {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
+          </Button>
         </div>
-
-        <Button size="lg" className="mt-2" disabled={cart.length === 0 || !atendimento} onClick={openCheckout}>
-          {atendimento ? "Finalizar venda" : "Escolha o atendimento"}
-        </Button>
-      </Card>
+      </div>
       </div>
 
       {/* ============ Modal: complementos ============ */}
