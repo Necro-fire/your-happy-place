@@ -7,9 +7,10 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard, ShoppingCart, Package, ClipboardList, Calculator, Coffee, Wallet,
-  Settings, LogOut, Croissant, LifeBuoy, ChefHat, Users, QrCode, Search,
+  Settings, LogOut, Store, LifeBuoy, ChefHat, Users, QrCode, Search,
   DollarSign, Boxes, Building2, BarChart3, ConciergeBell, Globe,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,12 @@ export function AdminSidebar() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
+  const empresa = useQuery({
+    queryKey: ["sidebar-empresa"],
+    queryFn: async () => (await supabase.from("settings").select("nome_estabelecimento, nome_fantasia").eq("id", 1).maybeSingle()).data,
+    staleTime: 60_000,
+  });
+  const brand = empresa.data?.nome_fantasia || empresa.data?.nome_estabelecimento || "Meu Negócio";
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
@@ -91,9 +98,9 @@ export function AdminSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-gradient-primary text-primary-foreground">
-            <Croissant className="h-4 w-4" />
+            <Store className="h-4 w-4" />
           </div>
-          {!collapsed && <span className="font-display text-base font-bold text-sidebar-foreground">Padaria</span>}
+          {!collapsed && <span className="truncate font-display text-base font-bold text-sidebar-foreground">{brand}</span>}
         </div>
         {!collapsed && (
           <div className="px-2 pb-2">
