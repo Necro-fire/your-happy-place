@@ -47,25 +47,9 @@ function PagamentosSettings() {
       <div className="space-y-2">
         {state.metodos.map((m, i) => (
           <div key={m.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-md border border-border p-3">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div>
-                <Label className="text-xs">Nome</Label>
-                <Input value={m.label} onChange={(e) => update(i, { label: e.target.value })} />
-              </div>
-              <div>
-                <Label className="text-xs">Tipo</Label>
-                <select
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-                  value={m.tipo}
-                  onChange={(e) => update(i, { tipo: e.target.value as Method["tipo"] })}
-                >
-                  <option value="dinheiro">Dinheiro</option>
-                  <option value="pix">Pix</option>
-                  <option value="debito">Débito</option>
-                  <option value="credito">Crédito</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
+            <div>
+              <Label className="text-xs">Nome do pagamento</Label>
+              <Input value={m.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Ex.: Pix, Dinheiro, Cartão..." />
             </div>
             <Switch checked={m.ativo} onCheckedChange={(v) => update(i, { ativo: v })} />
             <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Remover">
