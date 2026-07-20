@@ -18,10 +18,10 @@ export function useAppSettings() {
     queryFn: async () => {
       const { data } = await supabase
         .from("settings")
-        .select("id, config, nome_estabelecimento, nome_fantasia, logo_url, endereco_completo, telefone, cnpj")
+        .select("*")
         .eq("id", 1)
         .maybeSingle();
-      return data;
+      return data as any;
     },
     staleTime: 30_000,
   });
