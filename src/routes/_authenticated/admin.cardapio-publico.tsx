@@ -57,7 +57,9 @@ function CardapioPublicoPage() {
   });
 
   const codigo: string | null = tenantQ.data?.public_codigo ?? null;
-  const url = codigo ? `${origin()}/c/${codigo}` : "";
+  const slug: string | null = tenantQ.data?.slug ?? null;
+  const path = slug ? `/cardapio/${slug}` : codigo ? `/c/${codigo}` : "";
+  const url = path ? `${origin()}${path}` : "";
 
   async function copy() {
     if (!url) return;
