@@ -154,8 +154,7 @@ function ProdutosTab() {
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.descricao}</p>
               <div className="mt-auto flex items-center justify-between gap-2 pt-2">
                 <div className="flex min-w-0 flex-wrap gap-x-2 text-xs">
-                  {p.ativo ? <span className="text-success">Ativo</span> : <span className="text-muted-foreground">Inativo</span>}
-                  {!p.disponivel && <span className="text-warning">Indisponível</span>}
+                  {p.ativo ? <span className="text-success">Ativado</span> : <span className="text-muted-foreground">Desativado</span>}
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <Button variant="ghost" size="icon" onClick={() => setEdit(p)}><Pencil className="h-4 w-4" /></Button>
@@ -183,7 +182,6 @@ function ProductDialog({ value, categories, onClose }: any) {
     preco_promo: value.preco_promo ?? "",
     imagem_url: value.imagem_url ?? "",
     ativo: value.ativo ?? true,
-    disponivel: value.disponivel ?? true,
     ordem: value.ordem ?? 0,
   });
 
@@ -227,10 +225,8 @@ function ProductDialog({ value, categories, onClose }: any) {
           </div>
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} />Ativo
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <Switch checked={form.disponivel} onCheckedChange={(v) => setForm({ ...form, disponivel: v })} />Disponível
+              <Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} />
+              {form.ativo ? "Ativado" : "Desativado"}
             </label>
           </div>
         </div>

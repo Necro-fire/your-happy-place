@@ -192,8 +192,13 @@ function PDVPage() {
   });
   const products = useQuery({
     queryKey: ["admin-products-pdv"],
-    queryFn: async () => (await supabase.from("products").select("*").eq("ativo", true).eq("disponivel", true).order("nome")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("*").eq("ativo", true).order("nome")).data ?? [],
     staleTime: 60_000,
+  });
+  const cashSession = useQuery({
+    queryKey: ["pdv-cash-session"],
+    queryFn: async () => (await supabase.from("cash_sessions").select("id").eq("status", "aberta").maybeSingle()).data,
+    refetchInterval: 15_000,
   });
   const combos = useQuery({
     queryKey: ["admin-combos-pdv"],
