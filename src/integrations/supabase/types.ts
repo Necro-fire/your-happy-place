@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: Json
+          entidade: string
+          entidade_id: string | null
+          id: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: Json
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: Json
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cash_movements: {
         Row: {
           created_at: string
@@ -1142,41 +1175,83 @@ export type Database = {
       settings: {
         Row: {
           aceita_pedidos_online: boolean
+          banner_url: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          config: Json
+          cor_primaria: string | null
+          cor_secundaria: string | null
           created_at: string
           descricao: string | null
+          dias_funcionamento: string[] | null
+          email: string | null
           endereco: string | null
+          estado: string | null
           horario_funcionamento: string | null
           id: number
+          inscricao_estadual: string | null
+          logo_url: string | null
           nome_estabelecimento: string
+          nome_fantasia: string | null
           taxa_entrega: number
           telefone: string | null
           updated_at: string
+          whatsapp: string | null
           whatsapp_suporte: string | null
         }
         Insert: {
           aceita_pedidos_online?: boolean
+          banner_url?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          config?: Json
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
           created_at?: string
           descricao?: string | null
+          dias_funcionamento?: string[] | null
+          email?: string | null
           endereco?: string | null
+          estado?: string | null
           horario_funcionamento?: string | null
           id: number
+          inscricao_estadual?: string | null
+          logo_url?: string | null
           nome_estabelecimento?: string
+          nome_fantasia?: string | null
           taxa_entrega?: number
           telefone?: string | null
           updated_at?: string
+          whatsapp?: string | null
           whatsapp_suporte?: string | null
         }
         Update: {
           aceita_pedidos_online?: boolean
+          banner_url?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          config?: Json
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
           created_at?: string
           descricao?: string | null
+          dias_funcionamento?: string[] | null
+          email?: string | null
           endereco?: string | null
+          estado?: string | null
           horario_funcionamento?: string | null
           id?: number
+          inscricao_estadual?: string | null
+          logo_url?: string | null
           nome_estabelecimento?: string
+          nome_fantasia?: string | null
           taxa_entrega?: number
           telefone?: string | null
           updated_at?: string
+          whatsapp?: string | null
           whatsapp_suporte?: string | null
         }
         Relationships: []
