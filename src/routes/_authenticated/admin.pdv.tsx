@@ -511,51 +511,55 @@ function PDVPage() {
   });
 
   return (
-    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-7rem)]">
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-7rem)]">
       {!cashSession.data && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          <strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline">Operações → Caixa</a> para finalizar vendas.
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-sm text-destructive">
+          <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-destructive" />
+          <span><strong>Caixa fechado.</strong> Abra o caixa em <a href="/admin/caixa" className="underline underline-offset-2">Operações → Caixa</a> para finalizar vendas.</span>
         </div>
       )}
 
-      {/* ============ CABEÇALHO: identificação da venda ============ */}
-      <Card className="p-3 lg:p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="grid min-w-[260px] flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
-            {tiposAtivos.map((a) => {
-              const Icon = a.icon; const active = atendimento === a.key;
-              return (
-                <button key={a.key} type="button" onClick={() => onSelectAtendimento(a.key)}
-                  className={`flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition ${active ? "border-primary bg-primary text-primary-foreground shadow" : "border-border bg-card hover:border-primary/40"}`}>
-                  <Icon className="h-4 w-4" /> {a.label}
-                </button>
-              );
-            })}
-          </div>
-          {atendimento && atendimento !== "balcao" && (
-            <Button variant="outline" size="sm" onClick={openAttendModal}>
-              <Pencil className="mr-1 h-3 w-3" /> Editar dados
-            </Button>
-          )}
+      {/* ============ CABEÇALHO: segmented service type + inline context ============ */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-card px-3 py-2.5 shadow-sm">
+        <div className="inline-flex flex-wrap gap-1 rounded-xl border border-border/60 bg-muted/40 p-1">
+          {tiposAtivos.map((a) => {
+            const Icon = a.icon; const active = atendimento === a.key;
+            return (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => onSelectAtendimento(a.key)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Icon className="h-4 w-4" /> {a.label}
+              </button>
+            );
+          })}
         </div>
 
         {atendimento && atendimento !== "balcao" && (
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             {atendimento === "mesa" && (
-              <span className="flex items-center gap-1"><Coffee className="h-3 w-3" /> Mesa: <b className="text-foreground">{(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero ?? "—"}</b></span>
+              <span className="inline-flex items-center gap-1"><Coffee className="h-3 w-3" /> Mesa <b className="text-foreground">{(mesas.data ?? []).find((m: any) => m.id === mesaId)?.numero ?? "—"}</b></span>
             )}
-            {clienteNome && <span className="flex items-center gap-1"><User className="h-3 w-3" /> <b className="text-foreground">{clienteNome}</b></span>}
-            {clienteTel && <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {clienteTel}</span>}
+            {clienteNome && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> <b className="text-foreground">{clienteNome}</b></span>}
+            {clienteTel && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {clienteTel}</span>}
             {atendimento === "delivery" && end.rua && (
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {end.rua}{end.numero ? `, ${end.numero}` : ""}{end.bairro ? ` — ${end.bairro}` : ""}</span>
+              <span className="inline-flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" /> {end.rua}{end.numero ? `, ${end.numero}` : ""}{end.bairro ? ` — ${end.bairro}` : ""}</span>
             )}
             {atendimento === "retirada" && horario && (
-              <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(horario).toLocaleString("pt-BR")}</span>
+              <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(horario).toLocaleString("pt-BR")}</span>
             )}
-            {obs && <span className="flex items-center gap-1"><NoteIcon className="h-3 w-3" /> {obs}</span>}
+            {obs && <span className="inline-flex items-center gap-1 truncate"><NoteIcon className="h-3 w-3 shrink-0" /> {obs}</span>}
           </div>
         )}
-      </Card>
+
+        {atendimento && atendimento !== "balcao" && (
+          <Button variant="outline" size="sm" className="rounded-lg" onClick={openAttendModal}>
+            <Pencil className="mr-1 h-3 w-3" /> Editar dados
+          </Button>
+        )}
+      </div>
 
       {/* ============ MODAL: dados do atendimento ============ */}
       {attendModalOpen && atendimento && atendimento !== "balcao" && (
