@@ -17,7 +17,7 @@ import { maskPhone, maskCEP } from "@/lib/masks";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, Coffee, Store, Bike, PackageCheck,
   Barcode, Clock, Pause, Play, Percent, Split, StickyNote, XCircle, Printer, Package,
-  MapPin, User, Phone, StickyNote as NoteIcon,
+  MapPin, User, Phone, StickyNote as NoteIcon, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 
