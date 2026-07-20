@@ -33,7 +33,6 @@ const groups: Group[] = [
     id: "financeiro", label: "Financeiro", icon: DollarSign,
     items: [
       { title: "Caixa", url: "/admin/caixa", icon: Wallet },
-      { title: "Métodos de pagamento", url: "/admin/configuracoes/pdv", icon: DollarSign },
     ],
   },
   {
