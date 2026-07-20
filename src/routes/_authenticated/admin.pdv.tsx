@@ -683,45 +683,51 @@ function PDVPage() {
       <div className="flex flex-col gap-3 overflow-hidden">
 
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1">
-            <Barcode className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onSearchKey}
-              className="pl-9" placeholder="Buscar por nome, código ou código de barras (Enter para adicionar)" />
+              className="h-10 rounded-xl border-transparent bg-muted/60 pl-9 focus-visible:border-primary focus-visible:bg-background" placeholder="Buscar produto, código ou código de barras (Enter para adicionar)" />
           </div>
-          <Select value={cat ?? "all"} onValueChange={(v) => setCat(v === "all" ? null : v)}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas categorias</SelectItem>
-              {(categories.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          
+          <div className="inline-flex rounded-xl border border-border/60 bg-muted/40 p-1">
+            <button type="button" onClick={() => setTab("produtos")}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${tab === "produtos" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              <Package className="h-3.5 w-3.5" /> Produtos
+            </button>
+            <button type="button" onClick={() => setTab("combos")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${tab === "combos" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              Combos
+            </button>
+          </div>
         </div>
 
+        {/* Categorias como pills roláveis */}
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 no-scrollbar">
+          <button type="button" onClick={() => setCat(null)}
+            className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${cat === null ? "border-transparent bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>Todas</button>
+          {(categories.data ?? []).map((c: any) => (
+            <button key={c.id} type="button" onClick={() => setCat(c.id)}
+              className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${cat === c.id ? "border-transparent bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>{c.nome}</button>
+          ))}
+        </div>
 
-
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="produtos"><Package className="mr-1 h-3 w-3" />Produtos</TabsTrigger>
-            <TabsTrigger value="combos">Combos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="produtos" className="mt-2 flex-1 overflow-hidden">
-            <ProductGrid list={filtered} onAdd={addProduct} />
-          </TabsContent>
-          <TabsContent value="combos" className="mt-2 flex-1 overflow-hidden">
-            <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {tab === "produtos" ? (
+            <div className="mt-1 flex-1 overflow-hidden">
+              <ProductGrid list={filtered} onAdd={addProduct} />
+            </div>
+          ) : (
+            <div className="mt-1 grid h-full auto-rows-max grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
               {filteredCombos.map((cb) => (
-                <button key={cb.id} onClick={() => addCombo(cb)} className="rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-accent/20">
-                  <div className="line-clamp-2 text-sm font-medium">🍽️ {cb.nome}</div>
-                  <div className="mt-1 font-display text-base font-bold text-primary">{fmtMoney(Number(cb.preco))}</div>
+                <button key={cb.id} onClick={() => addCombo(cb)} className="rounded-2xl border border-border bg-card p-3 text-left transition hover:border-primary/40 hover:shadow-sm">
+                  <div className="line-clamp-2 text-sm font-semibold">🍽️ {cb.nome}</div>
+                  <div className="mt-1 text-base font-bold text-primary">{fmtMoney(Number(cb.preco))}</div>
                 </button>
               ))}
               {filteredCombos.length === 0 && <div className="col-span-full py-8 text-center text-sm text-muted-foreground">Nenhum combo</div>}
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
 
       {/* ============ DIREITA: comanda ============ */}
