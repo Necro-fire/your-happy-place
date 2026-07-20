@@ -519,7 +519,7 @@ function PDVPage() {
         if (session) {
           await supabase.from("cash_movements").insert(pagsValidos.map((p) => ({
             session_id: session.id, tipo: "venda", valor: p.valor,
-            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: p.forma, order_id: order.id,
+            descricao: `${cfg.label} #${order.numero}`, forma_pagamento: methodToDbEnum(findMethod(p.methodId)?.tipo ?? "dinheiro"), order_id: order.id,
           })));
         }
       }
