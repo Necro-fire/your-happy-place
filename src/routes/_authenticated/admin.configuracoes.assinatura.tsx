@@ -30,43 +30,39 @@ const PRICES: Record<PlanId, Record<Cycle, number>> = {
 const CYCLE_LABEL: Record<Cycle, string> = { mes: "mês", tri: "trimestre", ano: "ano" };
 const CYCLE_MONTHS: Record<Cycle, number> = { mes: 1, tri: 3, ano: 12 };
 
-const BASICO_FEATURES = [
+// Durante a fase de desenvolvimento, ambos os planos oferecem os mesmos recursos.
+// A diferenciação por plano será ativada apenas quando o desenvolvimento estiver concluído.
+const ALL_FEATURES = [
+  "Cardápio público",
+  "Catálogos de produtos e categorias",
+  "Pedidos (delivery, mesa, balcão)",
   "PDV completo",
-  "Controle de estoque",
-  "Cadastro de produtos",
+  "Autoatendimento",
+  "Gestão de mesas",
+  "Dashboard e indicadores",
+  "Controle financeiro e fluxo de caixa",
+  "Relatórios completos",
   "Cadastro de clientes",
-  "Cadastro de fornecedores",
-  "Controle financeiro",
-  "Fluxo de caixa",
-  "Relatórios básicos",
-  "Dashboard",
-  "Controle de usuários",
+  "Cupons e descontos",
   "Impressão de comprovantes",
-  "Suporte padrão via WhatsApp",
-  "Atualizações do sistema",
+  "QR Code do cardápio",
+  "Configurações completas do sistema",
+  "Personalização visual da empresa",
+  "Gestão de funcionários e permissões",
+  "Notificações em tempo real",
+  "Controle de estoque",
+  "Cadastro de fornecedores",
+  "Backup e histórico",
+  "Suporte via WhatsApp",
+  "Atualizações e novas funcionalidades",
 ];
 
-const PLUS_EXTRAS = [
-  "Relatórios avançados",
-  "Dashboard avançado com indicadores personalizados",
-  "Exportação de relatórios (PDF e Excel)",
-  "Backup automático",
-  "Histórico avançado",
-  "Auditoria completa",
-  "Controle de permissões avançadas",
-  "Múltiplos caixas",
-  "Múltiplas empresas",
-  "Integrações premium",
-  "Acesso antecipado a novas funcionalidades",
-  "Suporte prioritário via WhatsApp",
-  "Atendimento com prioridade",
-  "Maior limite de armazenamento",
-];
+const BASICO_FEATURES = ALL_FEATURES;
+const PLUS_EXTRAS: string[] = [];
 
-const COMPARE: { label: string; basico: boolean; plus: boolean }[] = [
-  ...BASICO_FEATURES.map((f) => ({ label: f, basico: true, plus: true })),
-  ...PLUS_EXTRAS.map((f) => ({ label: f, basico: false, plus: true })),
-];
+const COMPARE: { label: string; basico: boolean; plus: boolean }[] =
+  ALL_FEATURES.map((f) => ({ label: f, basico: true, plus: true }));
+
 
 const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
