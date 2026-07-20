@@ -147,6 +147,15 @@ function PDVPage() {
 
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // === Dynamic settings ===
+  const settingsQ = useAppSettings();
+  const paymentMethods = useActivePaymentMethods();
+  const impressoes = useSettingsSection("impressoes", { auto_print: true, vias: 1 });
+  const findMethod = (id: string): PaymentMethod | undefined => paymentMethods.find((m) => m.id === id);
+  const methodLabel = (id: string) => findMethod(id)?.label ?? id;
+  const isDinheiroMethod = (id: string) => findMethod(id)?.tipo === "dinheiro";
+  const defaultMethodId = () => paymentMethods[0]?.id ?? "dinheiro";
+
   useEffect(() => { setHeld(loadHeld()); }, []);
 
   // Autoload mesa/order coming from /admin/mesas (Novo pedido / Continuar atendimento)
