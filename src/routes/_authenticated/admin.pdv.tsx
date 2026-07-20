@@ -180,6 +180,19 @@ function PDVPage() {
   const mesas = useQuery({
     queryKey: ["tables-pdv"],
     queryFn: async () => (await supabase.from("restaurant_tables").select("*").order("numero")).data ?? [],
+    refetchInterval: 15_000,
+  });
+  const openByMesa = useQuery({
+    queryKey: ["open-orders-by-mesa"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, mesa_id, numero, status")
+        .not("mesa_id", "is", null)
+        .not("status", "in", "(finalizado,cancelado)");
+      return data ?? [];
+    },
+    refetchInterval: 10_000,
   });
   const pcg = useQuery({
     queryKey: ["product-complement-groups"],
@@ -191,6 +204,21 @@ function PDVPage() {
     queryFn: async () => (await supabase.from("complement_groups").select("*, complements(*)").eq("ativo", true)).data ?? [],
     staleTime: 5 * 60_000,
   });
+
+  const openOrderByMesa = useMemo(() => {
+    const map = new Map<string, { id: string; numero: number }>();
+    for (const o of (openByMesa.data ?? []) as any[]) map.set(o.mesa_id, { id: o.id, numero: o.numero });
+    return map;
+  }, [openByMesa.data]);
+
+  function selectMesa(id: string) {
+    const open = openOrderByMesa.get(id);
+    if (open && open.id !== existingOrderId) {
+      toast.error(`Mesa já possui pedido #${open.numero} em aberto. Continue pelo módulo Mesas.`);
+      return;
+    }
+    setMesaId(id);
+  }
 
   const recent = loadRecent();
 
