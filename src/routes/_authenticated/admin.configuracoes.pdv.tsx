@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useSettingsConfig, SectionShell } from "@/components/admin/settings/useSettingsConfig";
 import { Store, Coffee, PackageCheck, Bike, Printer, HelpCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/pdv")({
   component: PdvSettings,
@@ -25,11 +26,13 @@ const POS_VENDA: { key: PosVenda; label: string; desc: string; icon: any }[] = [
 ];
 
 function PdvSettings() {
-  const { state, setState, save, loading } = useSettingsConfig("pdv", {
+  const { state, setState, save, loading, error, refetch } = useSettingsConfig("pdv", {
     tipos_venda: { balcao: true, retirada: true, mesa: true, delivery: true } as Record<string, boolean>,
     pos_venda_impressao: "auto" as PosVenda,
   });
-  if (loading || !state) return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  if (loading) return <InlineLoader />;
+  if (error) return <InlineError error={error} onRetry={() => refetch()} />;
+  if (!state) return null;
 
   return (
     <SectionShell

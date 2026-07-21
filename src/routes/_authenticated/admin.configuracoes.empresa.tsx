@@ -13,6 +13,7 @@ import { Loader2, Search, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getMySettingsRow, updateMySettings, uploadTenantAsset, friendlyStorageError } from "@/lib/settings-io";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/empresa")({
   component: EmpresaPage,
@@ -42,6 +43,9 @@ function EmpresaPage() {
   const q = useQuery({
     queryKey: ["settings"],
     queryFn: getMySettingsRow,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    retry: 1,
   });
 
   const [f, setF] = useState<any>(null);
@@ -52,16 +56,18 @@ function EmpresaPage() {
   const [cepLoading, setCepLoading] = useState(false);
 
   useEffect(() => {
-    if (q.data) {
-      const cfg = (q.data as any).config ?? {};
+    // Inicializa mesmo quando `data` é null (sem linha no banco) para evitar loader infinito.
+    if (q.isSuccess) {
+      const row = (q.data as any) ?? {};
+      const cfg = row.config ?? {};
       const empresa = cfg.empresa ?? {};
-      setF(q.data);
+      setF(row);
       setHorarios({ ...DEFAULT_HORARIOS, ...(empresa.horarios ?? {}) });
       setNumero(empresa.numero ?? "");
       setComplemento(empresa.complemento ?? "");
       setBairro(empresa.bairro ?? "");
     }
-  }, [q.data]);
+  }, [q.isSuccess, q.data]);
 
   async function lookupCep(rawCep: string) {
     const cep = rawCep.replace(/\D/g, "");
@@ -155,7 +161,9 @@ function EmpresaPage() {
     }
   }
 
-  if (!f) return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  if (q.isLoading) return <InlineLoader label="Carregando dados da empresa..." />;
+  if (q.error) return <InlineError error={q.error as Error} onRetry={() => q.refetch()} />;
+  if (!f) return <InlineLoader label="Preparando formulário..." />;
 
   return (
     <div className="space-y-4">

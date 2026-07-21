@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
 import { useSettingsConfig, SectionShell } from "@/components/admin/settings/useSettingsConfig";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/pagamentos")({
   component: PagamentosSettings,
@@ -22,8 +23,10 @@ const DEFAULTS = {
 };
 
 function PagamentosSettings() {
-  const { state, setState, save, loading } = useSettingsConfig("pagamentos", DEFAULTS);
-  if (loading || !state) return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  const { state, setState, save, loading, error, refetch } = useSettingsConfig("pagamentos", DEFAULTS);
+  if (loading) return <InlineLoader />;
+  if (error) return <InlineError error={error} onRetry={() => refetch()} />;
+  if (!state) return null;
 
   const update = (i: number, patch: Partial<Method>) => {
     const next = [...state.metodos];

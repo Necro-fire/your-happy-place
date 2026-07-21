@@ -7,6 +7,7 @@ import { Globe, Copy, ExternalLink, QrCode, RefreshCw, Check } from "lucide-reac
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 
 export const Route = createFileRoute("/_authenticated/admin/cardapio-publico")({
   component: CardapioPublicoPage,
@@ -23,6 +24,9 @@ function CardapioPublicoPage() {
 
   const tenantQ = useQuery({
     queryKey: ["my-tenant-public"],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    retry: 1,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
@@ -97,7 +101,9 @@ function CardapioPublicoPage() {
       </div>
 
       {tenantQ.isLoading ? (
-        <Card className="p-8 text-center text-sm text-muted-foreground">Carregando...</Card>
+        <InlineLoader label="Carregando informações da loja..." />
+      ) : tenantQ.error ? (
+        <InlineError error={tenantQ.error as Error} onRetry={() => tenantQ.refetch()} />
       ) : !codigo ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
           Nenhum código público disponível para esta loja.
