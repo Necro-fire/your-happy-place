@@ -46,7 +46,6 @@ function MasterConfiguracoesPage() {
     setStored(updated);
     saveStored(updated);
     applyTheme(updated);
-    toast.success(`Modo ${next === "dark" ? "escuro" : "claro"} ativado`);
   }
 
   function choosePreset(key: string) {
@@ -55,8 +54,8 @@ function MasterConfiguracoesPage() {
     setStored(updated);
     saveStored(updated);
     applyTheme(updated);
-    toast.success(`Tema “${PRESETS[key].label}” ativado`);
   }
+
 
   return (
     <div className="master-saas space-y-6">
