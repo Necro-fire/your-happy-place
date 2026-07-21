@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/master")({
 function MasterLayout() {
   useRealtimeSync();
   return (
-    <div className="master-saas flex min-h-dvh w-full bg-[#f7f8fa]">
+    <div className="master-saas flex min-h-dvh w-full" style={{ background: "var(--ms-bg)" }}>
       <MasterSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <MasterTopbar />
@@ -29,3 +29,4 @@ function MasterLayout() {
     </div>
   );
 }
+
