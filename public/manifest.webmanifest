@@ -1,0 +1,24 @@
+{
+  "name": "SaborSys — Gestão inteligente para o seu negócio",
+  "short_name": "SaborSys",
+  "description": "Cardápio digital, PDV, delivery e mesas em um único sistema.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#FF6B35",
+  "background_color": "#0F172A",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
