@@ -21,6 +21,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { AppDialogHost } from "@/components/ui/app-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { initTheme } from "@/lib/theme";
+import { PwaHost } from "@/components/PwaHost";
+import { PwaInstallFab } from "@/components/PwaInstallFab";
 
 function NotFoundComponent() {
   return (
@@ -64,9 +66,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "SaborSys — Gestão inteligente para o seu negócio" },
       { name: "description", content: "Cardápio digital, PDV, delivery e mesas em um único sistema. Encontre o cardápio da sua loja preferida pelo código de acesso." },
+      { name: "theme-color", content: "#FF6B35" },
+      { name: "application-name", content: "SaborSys" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "SaborSys" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:title", content: "SaborSys — Gestão inteligente para o seu negócio" },
       { name: "twitter:title", content: "SaborSys — Gestão inteligente para o seu negócio" },
       { property: "og:description", content: "Cardápio digital, PDV, delivery e mesas em um único sistema. Encontre o cardápio da sua loja preferida pelo código de acesso." },
@@ -78,6 +86,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "apple-touch-icon", sizes: "152x152", href: "/icon-152.png" },
+      { rel: "apple-touch-icon", sizes: "192x192", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Comic+Neue:wght@400;700&display=swap" },
@@ -118,6 +131,8 @@ function RootComponent() {
       <Outlet />
       <Toaster richColors position="top-right" />
       <AppDialogHost />
+      <PwaHost />
+      <PwaInstallFab />
     </QueryClientProvider>
   );
 }
