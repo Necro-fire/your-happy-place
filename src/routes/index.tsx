@@ -1,6 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Splash } from "@/components/admin/Splash";
 import {
   Store,
   ArrowRight,
@@ -26,6 +29,7 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Cardápio digital, PDV, mesas, delivery, estoque e financeiro em um único sistema." },
     ],
   }),
+  ssr: false,
   component: Landing,
 });
 
