@@ -68,7 +68,7 @@ export function AdminSidebar() {
   const [query, setQuery] = useState("");
   const empresa = useQuery({
     queryKey: ["sidebar-empresa"],
-    queryFn: async () => (await supabase.from("settings").select("nome_estabelecimento, nome_fantasia").eq("id", 1).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("settings").select("nome_estabelecimento, nome_fantasia").limit(1).maybeSingle()).data,
     staleTime: 60_000,
   });
   const brand = empresa.data?.nome_fantasia || empresa.data?.nome_estabelecimento || "Meu Negócio";
