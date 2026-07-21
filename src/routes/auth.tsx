@@ -59,14 +59,25 @@ function AuthPage() {
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { emailRedirectTo: window.location.origin + "/admin", data: { nome } },
     });
+    if (error) { setLoading(false); return toast.error(error.message); }
+    // Auto-confirm is enabled — session should be available immediately.
+    if (data.session) {
+      toast.success("Conta criada! Preparando seu painel...");
+      // Give the handle_new_user trigger a moment to seed roles/tenant.
+      await new Promise((r) => setTimeout(r, 600));
+      const roles = await fetchMyRoles();
+      setLoading(false);
+      navigate({ to: landingRouteFor(roles) });
+      return;
+    }
     setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Conta criada! Verifique seu email.");
+    toast.success("Conta criada! Verifique seu email para confirmar.");
   }
+
 
   async function forgot(e: React.FormEvent) {
     e.preventDefault();
