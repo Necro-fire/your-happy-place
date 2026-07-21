@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { getMySettingsRow, updateMySettings, friendlyStorageError } from "@/lib/settings-io";
 
 export function useSettingsConfig<T extends Record<string, any>>(section: string, defaults: T) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["settings"],
-    queryFn: async () => (await supabase.from("settings").select("id, config").eq("id", 1).single()).data,
+    queryFn: getMySettingsRow,
   });
   const [state, setState] = useState<T | null>(null);
 
@@ -25,11 +26,10 @@ export function useSettingsConfig<T extends Record<string, any>>(section: string
     mutationFn: async (patch: Partial<T>) => {
       const current = ((q.data?.config as any) ?? {}) as Record<string, any>;
       const merged = { ...current, [section]: { ...(current[section] ?? {}), ...state, ...patch } };
-      const { error } = await supabase.from("settings").update({ config: merged } as any).eq("id", 1);
-      if (error) throw error;
+      await updateMySettings({ config: merged });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["settings"] }); toast.success("Configurações salvas"); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(friendlyStorageError(e)),
   });
 
   return { state, setState, save, loading: !state };

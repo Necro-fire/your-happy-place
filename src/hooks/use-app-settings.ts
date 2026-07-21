@@ -19,7 +19,7 @@ export function useAppSettings() {
       const { data } = await supabase
         .from("settings")
         .select("*")
-        .eq("id", 1)
+        .limit(1)
         .maybeSingle();
       return data as any;
     },

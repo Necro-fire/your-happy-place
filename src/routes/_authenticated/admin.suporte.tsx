@@ -90,7 +90,7 @@ function Atendimento() {
   });
   const settings = useQuery({
     queryKey: ["settings"],
-    queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
+    queryFn: async () => (await supabase.from("settings").select("*").limit(1).maybeSingle()).data,
   });
 
   const buscaAll = useQuery({

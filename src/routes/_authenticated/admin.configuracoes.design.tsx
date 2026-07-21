@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { DesignConfig, CarrosselItem } from "@/hooks/use-public-settings";
 import { EMPTY_DESIGN } from "@/hooks/use-public-settings";
+import { getMySettingsRow, updateMySettings, uploadTenantAsset, friendlyStorageError } from "@/lib/settings-io";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/design")({
   component: DesignPage,
@@ -30,18 +31,15 @@ async function uploadImage(file: File, folder: string): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Arquivo precisa ser uma imagem");
   if (file.size > 5 * 1024 * 1024) throw new Error("Imagem muito grande (máx 5MB)");
   const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false, contentType: file.type });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const { publicUrl } = await uploadTenantAsset(BUCKET, folder, file, ext);
+  return publicUrl;
 }
 
 function DesignPage() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["settings"],
-    queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
+    queryFn: getMySettingsRow,
   });
 
   const [design, setDesign] = useState<DesignConfig>(EMPTY_DESIGN);
@@ -66,11 +64,7 @@ function DesignPage() {
     mutationFn: async () => {
       const currentCfg = ((q.data as any)?.config ?? {}) as Record<string, any>;
       const nextCfg = { ...currentCfg, design };
-      const { error } = await supabase
-        .from("settings")
-        .update({ config: nextCfg, logo_url: design.logo_url ?? null } as any)
-        .eq("id", 1);
-      if (error) throw error;
+      await updateMySettings({ config: nextCfg, logo_url: design.logo_url ?? null });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings"] });
@@ -78,7 +72,7 @@ function DesignPage() {
       setDirty(false);
       toast.success("Design atualizado");
     },
-    onError: (e: any) => toast.error(e.message ?? "Falha ao salvar"),
+    onError: (e: any) => toast.error(friendlyStorageError(e) || "Não foi possível atualizar as configurações da empresa."),
   });
 
   return (
@@ -183,7 +177,7 @@ function DesignPage() {
                     const url = await uploadImage(file, "galeria");
                     setDesign((prev) => ({ ...prev, galeria: [...prev.galeria, url] }));
                     setDirty(true);
-                  } catch (err: any) { toast.error(err.message); }
+                  } catch (err: any) { toast.error(friendlyStorageError(err)); }
                 }
               }}
             />
@@ -303,7 +297,7 @@ function SingleImageCard({
                   const url = await uploadImage(file, folder);
                   onChange(url);
                   toast.success("Imagem enviada");
-                } catch (err: any) { toast.error(err.message); }
+                } catch (err: any) { toast.error(friendlyStorageError(err)); }
                 finally { setBusy(false); }
               }}
             />
@@ -370,7 +364,7 @@ function CarrosselRow({
                   if (!file) return;
                   setBusy(true);
                   try { onChange({ image_url: await uploadImage(file, "carrossel") }); }
-                  catch (err: any) { toast.error(err.message); }
+                  catch (err: any) { toast.error(friendlyStorageError(err)); }
                   finally { setBusy(false); }
                 }}
               />
