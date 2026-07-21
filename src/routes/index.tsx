@@ -102,8 +102,9 @@ function Landing() {
   if (checking) return <Splash label="Carregando..." />;
 
   return (
-
+    <div className="min-h-dvh bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
+
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
