@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { DesignConfig, CarrosselItem } from "@/hooks/use-public-settings";
 import { EMPTY_DESIGN } from "@/hooks/use-public-settings";
+import { getMySettingsRow, updateMySettings, uploadTenantAsset, friendlyStorageError } from "@/lib/settings-io";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/design")({
   component: DesignPage,
@@ -30,18 +31,15 @@ async function uploadImage(file: File, folder: string): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Arquivo precisa ser uma imagem");
   if (file.size > 5 * 1024 * 1024) throw new Error("Imagem muito grande (máx 5MB)");
   const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false, contentType: file.type });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const { publicUrl } = await uploadTenantAsset(BUCKET, folder, file, ext);
+  return publicUrl;
 }
 
 function DesignPage() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["settings"],
-    queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
+    queryFn: getMySettingsRow,
   });
 
   const [design, setDesign] = useState<DesignConfig>(EMPTY_DESIGN);
