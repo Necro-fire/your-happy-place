@@ -148,16 +148,20 @@ export function MasterMobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#e5e7eb] bg-white text-[#4b5563] hover:bg-[#f9fafb] lg:hidden"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#d1d5db] bg-white text-[#0f172a] shadow-sm hover:bg-[#f3f4f6] lg:hidden"
         aria-label="Abrir menu"
       >
-        <Menu className="h-4 w-4" />
+        <Menu className="h-5 w-5" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 border-r border-[#e5e7eb] bg-white p-0">
+      <SheetContent
+        side="left"
+        className="master-saas w-72 border-r border-[#e5e7eb] bg-white p-0 text-[#0f172a] shadow-xl"
+      >
         <SheetTitle className="sr-only">Menu do Painel Master</SheetTitle>
         <NavBody onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );
 }
+
 
