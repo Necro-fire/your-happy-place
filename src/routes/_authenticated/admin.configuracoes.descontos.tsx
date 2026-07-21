@@ -3,6 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettingsConfig, SectionShell } from "@/components/admin/settings/useSettingsConfig";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 import { cn } from "@/lib/utils";
 import { Percent, DollarSign } from "lucide-react";
 
@@ -20,7 +21,7 @@ const ROLES = [
 ] as const;
 
 function DescontosSettings() {
-  const { state, setState, save, loading } = useSettingsConfig("descontos", {
+  const { state, setState, save, loading, error, refetch } = useSettingsConfig("descontos", {
     ativo: true,
     tipo: "percentual" as Tipo,
     limite_pct: 20,
@@ -29,7 +30,10 @@ function DescontosSettings() {
     registrar_auditoria: true,
     permissoes: { owner: true, manager: true, cashier: false, waiter: false } as Record<string, boolean>,
   });
-  if (loading || !state) return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  if (loading) return <InlineLoader />;
+  if (error) return <InlineError error={error} onRetry={() => refetch()} />;
+  if (!state) return null;
+
 
   return (
     <SectionShell

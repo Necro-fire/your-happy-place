@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useSettingsConfig, SectionShell } from "@/components/admin/settings/useSettingsConfig";
 import { Store, Coffee, PackageCheck, Bike, Printer, HelpCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/pdv")({
   component: PdvSettings,
