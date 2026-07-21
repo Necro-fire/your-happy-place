@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Check, Palette as PaletteIcon, Sun, Moon, Settings as SettingsIcon } from "lucide-react";
 import {
   PRESETS,
@@ -14,6 +13,7 @@ import {
 export const Route = createFileRoute("/_authenticated/master/configuracoes")({
   component: MasterConfiguracoesPage,
 });
+
 
 function ThemeSwatches({ palette }: { palette: Palette }) {
   const keys: (keyof Palette)[] = ["primary", "accent", "secondary", "sidebar", "sidebar-primary"];
@@ -46,7 +46,6 @@ function MasterConfiguracoesPage() {
     setStored(updated);
     saveStored(updated);
     applyTheme(updated);
-    toast.success(`Modo ${next === "dark" ? "escuro" : "claro"} ativado`);
   }
 
   function choosePreset(key: string) {
@@ -55,8 +54,8 @@ function MasterConfiguracoesPage() {
     setStored(updated);
     saveStored(updated);
     applyTheme(updated);
-    toast.success(`Tema “${PRESETS[key].label}” ativado`);
   }
+
 
   return (
     <div className="master-saas space-y-6">
