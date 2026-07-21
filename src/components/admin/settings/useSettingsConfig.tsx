@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -11,16 +10,21 @@ export function useSettingsConfig<T extends Record<string, any>>(section: string
   const q = useQuery({
     queryKey: ["settings"],
     queryFn: getMySettingsRow,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    retry: 1,
   });
   const [state, setState] = useState<T | null>(null);
 
   useEffect(() => {
-    if (q.data) {
-      const cfg = (q.data.config as any) ?? {};
+    // Inicializa o formulário assim que a query resolve — mesmo sem linha no banco,
+    // evitando o loader infinito quando `data` volta como null.
+    if (q.isSuccess) {
+      const cfg = (q.data?.config as any) ?? {};
       setState({ ...defaults, ...(cfg[section] ?? {}) });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q.data]);
+  }, [q.isSuccess, q.data]);
 
   const save = useMutation({
     mutationFn: async (patch: Partial<T>) => {
@@ -32,7 +36,14 @@ export function useSettingsConfig<T extends Record<string, any>>(section: string
     onError: (e: any) => toast.error(friendlyStorageError(e)),
   });
 
-  return { state, setState, save, loading: !state };
+  return {
+    state,
+    setState,
+    save,
+    loading: q.isLoading,
+    error: q.error as Error | null,
+    refetch: q.refetch,
+  };
 }
 
 export function SectionShell({ title, desc, children, onSave, saving }: {
