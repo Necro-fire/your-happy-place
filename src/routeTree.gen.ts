@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as MesaNumeroPedidosRouteImport } from './routes/mesa.$numero.pedidos'
+import { Route as AuthenticatedMasterPaletasRouteImport } from './routes/_authenticated/master.paletas'
 import { Route as AuthenticatedMasterLogsRouteImport } from './routes/_authenticated/master.logs'
 import { Route as AuthenticatedMasterLicencasRouteImport } from './routes/_authenticated/master.licencas'
 import { Route as AuthenticatedMasterClientesRouteImport } from './routes/_authenticated/master.clientes'
@@ -143,6 +144,12 @@ const MesaNumeroPedidosRoute = MesaNumeroPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => MesaNumeroRoute,
 } as any)
+const AuthenticatedMasterPaletasRoute =
+  AuthenticatedMasterPaletasRouteImport.update({
+    id: '/paletas',
+    path: '/paletas',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
 const AuthenticatedMasterLogsRoute = AuthenticatedMasterLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/master/paletas': typeof AuthenticatedMasterPaletasRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/master/': typeof AuthenticatedMasterIndexRoute
@@ -401,6 +409,7 @@ export interface FileRoutesByTo {
   '/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/master/paletas': typeof AuthenticatedMasterPaletasRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/master': typeof AuthenticatedMasterIndexRoute
@@ -452,6 +461,7 @@ export interface FileRoutesById {
   '/_authenticated/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/_authenticated/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/_authenticated/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/_authenticated/master/paletas': typeof AuthenticatedMasterPaletasRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/master/': typeof AuthenticatedMasterIndexRoute
@@ -503,6 +513,7 @@ export interface FileRouteTypes {
     | '/master/clientes'
     | '/master/licencas'
     | '/master/logs'
+    | '/master/paletas'
     | '/mesa/$numero/pedidos'
     | '/admin/'
     | '/master/'
@@ -549,6 +560,7 @@ export interface FileRouteTypes {
     | '/master/clientes'
     | '/master/licencas'
     | '/master/logs'
+    | '/master/paletas'
     | '/mesa/$numero/pedidos'
     | '/admin'
     | '/master'
@@ -599,6 +611,7 @@ export interface FileRouteTypes {
     | '/_authenticated/master/clientes'
     | '/_authenticated/master/licencas'
     | '/_authenticated/master/logs'
+    | '/_authenticated/master/paletas'
     | '/mesa/$numero/pedidos'
     | '/_authenticated/admin/'
     | '/_authenticated/master/'
@@ -755,6 +768,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/mesa/$numero/pedidos'
       preLoaderRoute: typeof MesaNumeroPedidosRouteImport
       parentRoute: typeof MesaNumeroRoute
+    }
+    '/_authenticated/master/paletas': {
+      id: '/_authenticated/master/paletas'
+      path: '/paletas'
+      fullPath: '/master/paletas'
+      preLoaderRoute: typeof AuthenticatedMasterPaletasRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
     }
     '/_authenticated/master/logs': {
       id: '/_authenticated/master/logs'
@@ -1077,6 +1097,7 @@ interface AuthenticatedMasterRouteChildren {
   AuthenticatedMasterClientesRoute: typeof AuthenticatedMasterClientesRoute
   AuthenticatedMasterLicencasRoute: typeof AuthenticatedMasterLicencasRoute
   AuthenticatedMasterLogsRoute: typeof AuthenticatedMasterLogsRoute
+  AuthenticatedMasterPaletasRoute: typeof AuthenticatedMasterPaletasRoute
   AuthenticatedMasterIndexRoute: typeof AuthenticatedMasterIndexRoute
 }
 
@@ -1084,6 +1105,7 @@ const AuthenticatedMasterRouteChildren: AuthenticatedMasterRouteChildren = {
   AuthenticatedMasterClientesRoute: AuthenticatedMasterClientesRoute,
   AuthenticatedMasterLicencasRoute: AuthenticatedMasterLicencasRoute,
   AuthenticatedMasterLogsRoute: AuthenticatedMasterLogsRoute,
+  AuthenticatedMasterPaletasRoute: AuthenticatedMasterPaletasRoute,
   AuthenticatedMasterIndexRoute: AuthenticatedMasterIndexRoute,
 }
 

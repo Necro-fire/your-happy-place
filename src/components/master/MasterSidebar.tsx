@@ -3,7 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Building2, KeyRound, ScrollText, LogOut,
-  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu,
+  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ const items: Item[] = [
   { title: "Dashboard", url: "/master", icon: LayoutDashboard, exact: true },
   { title: "Empresas", url: "/master/clientes", icon: Building2 },
   { title: "Licenças", url: "/master/licencas", icon: KeyRound },
+  { title: "Paletas de Cores", url: "/master/paletas", icon: Palette },
   { title: "Assinaturas", icon: Receipt, soon: true },
   { title: "Pagamentos", icon: CreditCard, soon: true },
   { title: "Usuários", icon: Users, soon: true },
@@ -25,6 +26,7 @@ const items: Item[] = [
   { title: "Segurança", icon: ShieldCheck, soon: true },
   { title: "Configurações", icon: Settings, soon: true },
 ];
+
 
 function useMasterNav() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -146,16 +148,20 @@ export function MasterMobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#e5e7eb] bg-white text-[#4b5563] hover:bg-[#f9fafb] lg:hidden"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#d1d5db] bg-white text-[#0f172a] shadow-sm hover:bg-[#f3f4f6] lg:hidden"
         aria-label="Abrir menu"
       >
-        <Menu className="h-4 w-4" />
+        <Menu className="h-5 w-5" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 border-r border-[#e5e7eb] bg-white p-0">
+      <SheetContent
+        side="left"
+        className="master-saas w-72 border-r border-[#e5e7eb] bg-white p-0 text-[#0f172a] shadow-xl"
+      >
         <SheetTitle className="sr-only">Menu do Painel Master</SheetTitle>
         <NavBody onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );
 }
+
 
