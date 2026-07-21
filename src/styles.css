@@ -319,6 +319,47 @@ body { overscroll-behavior-y: none; overflow-x: hidden; }
 .master-saas table.ms-table tbody tr:hover { background: var(--ms-hover); }
 .master-saas table.ms-table tbody tr:last-child td { border-bottom: none; }
 
+/* --- Dark-mode contrast bridge for legacy hardcoded palette --------
+   Master pages still use arbitrary hex Tailwind classes (`text-[#0f172a]`,
+   `bg-white`, `border-[#e5e7eb]`, etc.). In dark mode those turn illegible
+   against the dark surface. Remap them to the master tokens so the entire
+   panel follows the active theme without touching every page file. */
+.dark .master-saas .text-\[\#0f172a\],
+.dark .master-saas .text-\[\#111827\],
+.dark .master-saas .text-\[\#1f2937\] { color: var(--ms-text) !important; }
+.dark .master-saas .text-\[\#4b5563\],
+.dark .master-saas .text-\[\#475569\],
+.dark .master-saas .text-\[\#6b7280\] { color: var(--ms-text-muted) !important; }
+.dark .master-saas .text-\[\#9ca3af\] { color: var(--ms-text-subtle) !important; }
+.dark .master-saas .text-\[\#2563eb\] { color: var(--ms-primary) !important; }
+
+.dark .master-saas .bg-white,
+.dark .master-saas .bg-\[\#ffffff\] { background-color: var(--ms-surface) !important; }
+.dark .master-saas .bg-\[\#f9fafb\],
+.dark .master-saas .bg-\[\#f7f8fa\],
+.dark .master-saas .bg-\[\#f3f4f6\],
+.dark .master-saas .bg-\[\#f1f5f9\],
+.dark .master-saas .bg-\[\#e5e7eb\] { background-color: var(--ms-hover) !important; }
+.dark .master-saas .bg-\[\#eff6ff\],
+.dark .master-saas .bg-\[\#ecfdf5\],
+.dark .master-saas .bg-\[\#fffbeb\],
+.dark .master-saas .bg-\[\#fef2f2\],
+.dark .master-saas .bg-\[\#f5f3ff\] { background-color: color-mix(in oklab, var(--ms-primary) 18%, var(--ms-surface)) !important; }
+
+.dark .master-saas .border-\[\#e5e7eb\],
+.dark .master-saas .border-\[\#e2e8f0\],
+.dark .master-saas .border-\[\#d1d5db\] { border-color: var(--ms-border) !important; }
+.dark .master-saas .border-\[\#2563eb\] { border-color: var(--ms-primary) !important; }
+.dark .master-saas .hover\:bg-\[\#f9fafb\]:hover,
+.dark .master-saas .hover\:bg-\[\#f1f5f9\]:hover,
+.dark .master-saas .hover\:bg-\[\#eff6ff\]:hover,
+.dark .master-saas .hover\:bg-\[\#fef2f2\]:hover,
+.dark .master-saas .hover\:bg-\[\#ecfdf5\]:hover { background-color: var(--ms-hover) !important; }
+
+/* Active-preset chip on the Configurações page uses inline blue tokens;
+   keep the accent as the current primary so the highlight follows theme. */
+.dark .master-saas [style*="rgba(37,99,235"] { box-shadow: 0 0 0 3px var(--ms-ring) !important; }
+
 
 /* --- Legacy `.master-doodle` alias: restyle old classes as SaaS so any
    remaining markup keeps working while we migrate. --- */
