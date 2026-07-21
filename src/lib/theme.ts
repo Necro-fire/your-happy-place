@@ -236,7 +236,18 @@ export function applyTheme(stored: Stored) {
   for (const [k, v] of Object.entries(palette) as [keyof Palette, string][]) {
     html.style.setProperty(VAR_MAP[k], v);
   }
+  // Drive the Master panel accent from the active preset too.
+  html.style.setProperty("--ms-primary", palette.primary);
+  html.style.setProperty(
+    "--ms-primary-hover",
+    `color-mix(in oklab, ${palette.primary} 82%, black)`,
+  );
+  html.style.setProperty(
+    "--ms-ring",
+    `color-mix(in oklab, ${palette.primary} 30%, transparent)`,
+  );
 }
+
 
 export function setMode(mode: ThemeMode) {
   const next = { ...loadStored(), mode };
