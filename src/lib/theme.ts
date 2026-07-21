@@ -1,9 +1,10 @@
 // Theme + palette manager. Persists to localStorage; applies CSS variables and
-// the `.dark` class to <html>. Public routes and admin routes both use this.
+// the `.dark` class to <html>. Only official presets are available — no custom
+// palettes or per-color overrides.
 
-export type ThemeMode = "light" | "dark" | "auto";
+export type ThemeMode = "light" | "dark";
 export type Palette = {
-  primary: string;      // oklch()
+  primary: string;
   secondary: string;
   accent: string;
   ring: string;
@@ -11,279 +12,207 @@ export type Palette = {
   "sidebar-primary": string;
 };
 
-const STORAGE_KEY = "app-theme-v1";
+const STORAGE_KEY = "app-theme-v2";
+const LEGACY_KEY = "app-theme-v1";
 
-type Stored = { mode: ThemeMode; palette?: Partial<Palette>; preset?: string };
+type Stored = { mode: ThemeMode; preset: string };
 
 export const PRESETS: Record<string, { label: string; light: Palette; dark: Palette }> = {
-  profissional: {
-    label: "Profissional (padrão)",
+  azul: {
+    label: "Azul",
     light: {
-      primary: "oklch(0.45 0.10 250)",
-      secondary: "oklch(0.94 0.02 250)",
-      accent: "oklch(0.68 0.14 220)",
-      ring: "oklch(0.45 0.10 250)",
-      sidebar: "oklch(0.22 0.03 250)",
-      "sidebar-primary": "oklch(0.68 0.14 220)",
+      primary: "oklch(0.55 0.18 255)",
+      secondary: "oklch(0.94 0.02 255)",
+      accent: "oklch(0.70 0.14 240)",
+      ring: "oklch(0.55 0.18 255)",
+      sidebar: "oklch(0.22 0.04 255)",
+      "sidebar-primary": "oklch(0.70 0.14 240)",
     },
     dark: {
-      primary: "oklch(0.72 0.13 240)",
-      secondary: "oklch(0.28 0.025 250)",
-      accent: "oklch(0.72 0.14 220)",
-      ring: "oklch(0.72 0.13 240)",
-      sidebar: "oklch(0.15 0.02 250)",
-      "sidebar-primary": "oklch(0.72 0.14 220)",
+      primary: "oklch(0.72 0.15 250)",
+      secondary: "oklch(0.28 0.03 255)",
+      accent: "oklch(0.75 0.14 240)",
+      ring: "oklch(0.72 0.15 250)",
+      sidebar: "oklch(0.14 0.02 255)",
+      "sidebar-primary": "oklch(0.75 0.14 240)",
     },
   },
-  moderno: {
-    label: "Moderno",
+  verde: {
+    label: "Verde",
+    light: {
+      primary: "oklch(0.55 0.15 150)",
+      secondary: "oklch(0.94 0.02 150)",
+      accent: "oklch(0.72 0.15 155)",
+      ring: "oklch(0.55 0.15 150)",
+      sidebar: "oklch(0.22 0.03 150)",
+      "sidebar-primary": "oklch(0.72 0.15 155)",
+    },
+    dark: {
+      primary: "oklch(0.75 0.16 150)",
+      secondary: "oklch(0.26 0.02 150)",
+      accent: "oklch(0.78 0.15 155)",
+      ring: "oklch(0.75 0.16 150)",
+      sidebar: "oklch(0.13 0.015 150)",
+      "sidebar-primary": "oklch(0.78 0.15 155)",
+    },
+  },
+  roxo: {
+    label: "Roxo",
     light: {
       primary: "oklch(0.55 0.20 300)",
       secondary: "oklch(0.94 0.02 300)",
-      accent: "oklch(0.72 0.17 340)",
+      accent: "oklch(0.72 0.17 315)",
       ring: "oklch(0.55 0.20 300)",
       sidebar: "oklch(0.22 0.04 300)",
-      "sidebar-primary": "oklch(0.72 0.17 340)",
+      "sidebar-primary": "oklch(0.72 0.17 315)",
     },
     dark: {
-      primary: "oklch(0.72 0.18 310)",
+      primary: "oklch(0.72 0.18 305)",
       secondary: "oklch(0.28 0.03 300)",
-      accent: "oklch(0.75 0.16 340)",
-      ring: "oklch(0.72 0.18 310)",
+      accent: "oklch(0.75 0.16 315)",
+      ring: "oklch(0.72 0.18 305)",
       sidebar: "oklch(0.14 0.02 300)",
-      "sidebar-primary": "oklch(0.75 0.16 340)",
+      "sidebar-primary": "oklch(0.75 0.16 315)",
     },
   },
-  esmeralda: {
-    label: "Esmeralda",
+  vermelho: {
+    label: "Vermelho",
     light: {
-      primary: "oklch(0.50 0.13 160)",
-      secondary: "oklch(0.94 0.02 160)",
-      accent: "oklch(0.72 0.15 160)",
-      ring: "oklch(0.50 0.13 160)",
-      sidebar: "oklch(0.20 0.03 160)",
-      "sidebar-primary": "oklch(0.72 0.15 160)",
+      primary: "oklch(0.55 0.20 25)",
+      secondary: "oklch(0.94 0.02 25)",
+      accent: "oklch(0.70 0.18 25)",
+      ring: "oklch(0.55 0.20 25)",
+      sidebar: "oklch(0.22 0.04 25)",
+      "sidebar-primary": "oklch(0.70 0.18 25)",
     },
     dark: {
-      primary: "oklch(0.72 0.16 160)",
-      secondary: "oklch(0.26 0.02 160)",
-      accent: "oklch(0.78 0.15 160)",
-      ring: "oklch(0.72 0.16 160)",
-      sidebar: "oklch(0.12 0.015 160)",
-      "sidebar-primary": "oklch(0.78 0.15 160)",
+      primary: "oklch(0.72 0.19 25)",
+      secondary: "oklch(0.28 0.03 25)",
+      accent: "oklch(0.76 0.18 25)",
+      ring: "oklch(0.72 0.19 25)",
+      sidebar: "oklch(0.14 0.02 25)",
+      "sidebar-primary": "oklch(0.76 0.18 25)",
     },
   },
-  oceano: {
-    label: "Oceano",
+  laranja: {
+    label: "Laranja",
     light: {
-      primary: "oklch(0.48 0.12 220)",
-      secondary: "oklch(0.94 0.02 220)",
-      accent: "oklch(0.70 0.13 200)",
-      ring: "oklch(0.48 0.12 220)",
-      sidebar: "oklch(0.20 0.04 230)",
-      "sidebar-primary": "oklch(0.70 0.13 200)",
+      primary: "oklch(0.65 0.17 55)",
+      secondary: "oklch(0.94 0.03 55)",
+      accent: "oklch(0.75 0.15 65)",
+      ring: "oklch(0.65 0.17 55)",
+      sidebar: "oklch(0.24 0.04 55)",
+      "sidebar-primary": "oklch(0.75 0.15 65)",
     },
     dark: {
-      primary: "oklch(0.72 0.13 220)",
-      secondary: "oklch(0.28 0.03 220)",
-      accent: "oklch(0.75 0.13 200)",
-      ring: "oklch(0.72 0.13 220)",
-      sidebar: "oklch(0.14 0.02 230)",
-      "sidebar-primary": "oklch(0.75 0.13 200)",
+      primary: "oklch(0.75 0.16 55)",
+      secondary: "oklch(0.28 0.03 55)",
+      accent: "oklch(0.80 0.14 65)",
+      ring: "oklch(0.75 0.16 55)",
+      sidebar: "oklch(0.15 0.02 55)",
+      "sidebar-primary": "oklch(0.80 0.14 65)",
     },
   },
-  rubi: {
-    label: "Rubi",
+  ciano: {
+    label: "Ciano",
     light: {
-      primary: "oklch(0.52 0.20 20)",
-      secondary: "oklch(0.94 0.02 20)",
-      accent: "oklch(0.68 0.18 25)",
-      ring: "oklch(0.52 0.20 20)",
-      sidebar: "oklch(0.22 0.04 20)",
-      "sidebar-primary": "oklch(0.68 0.18 25)",
+      primary: "oklch(0.60 0.12 200)",
+      secondary: "oklch(0.94 0.02 200)",
+      accent: "oklch(0.72 0.13 195)",
+      ring: "oklch(0.60 0.12 200)",
+      sidebar: "oklch(0.22 0.03 200)",
+      "sidebar-primary": "oklch(0.72 0.13 195)",
     },
     dark: {
-      primary: "oklch(0.70 0.19 25)",
-      secondary: "oklch(0.28 0.03 20)",
-      accent: "oklch(0.74 0.18 25)",
-      ring: "oklch(0.70 0.19 25)",
-      sidebar: "oklch(0.14 0.02 20)",
-      "sidebar-primary": "oklch(0.74 0.18 25)",
+      primary: "oklch(0.75 0.13 200)",
+      secondary: "oklch(0.28 0.03 200)",
+      accent: "oklch(0.78 0.13 195)",
+      ring: "oklch(0.75 0.13 200)",
+      sidebar: "oklch(0.14 0.02 200)",
+      "sidebar-primary": "oklch(0.78 0.13 195)",
     },
   },
-  ambar: {
-    label: "Âmbar",
+  indigo: {
+    label: "Índigo",
     light: {
-      primary: "oklch(0.60 0.16 60)",
-      secondary: "oklch(0.94 0.03 70)",
-      accent: "oklch(0.75 0.15 70)",
-      ring: "oklch(0.60 0.16 60)",
-      sidebar: "oklch(0.24 0.04 60)",
-      "sidebar-primary": "oklch(0.75 0.15 70)",
-    },
-    dark: {
-      primary: "oklch(0.75 0.15 65)",
-      secondary: "oklch(0.28 0.03 60)",
-      accent: "oklch(0.80 0.14 70)",
-      ring: "oklch(0.75 0.15 65)",
-      sidebar: "oklch(0.15 0.02 60)",
-      "sidebar-primary": "oklch(0.80 0.14 70)",
-    },
-  },
-  grafite: {
-    label: "Grafite",
-    light: {
-      primary: "oklch(0.35 0.02 260)",
-      secondary: "oklch(0.94 0.005 260)",
-      accent: "oklch(0.55 0.03 260)",
-      ring: "oklch(0.35 0.02 260)",
-      sidebar: "oklch(0.20 0.01 260)",
-      "sidebar-primary": "oklch(0.65 0.03 260)",
-    },
-    dark: {
-      primary: "oklch(0.75 0.02 260)",
-      secondary: "oklch(0.26 0.01 260)",
-      accent: "oklch(0.60 0.03 260)",
-      ring: "oklch(0.75 0.02 260)",
-      sidebar: "oklch(0.13 0.005 260)",
-      "sidebar-primary": "oklch(0.75 0.02 260)",
-    },
-  },
-  rosa: {
-    label: "Rosa",
-    light: {
-      primary: "oklch(0.60 0.20 350)",
-      secondary: "oklch(0.94 0.02 350)",
-      accent: "oklch(0.75 0.15 350)",
-      ring: "oklch(0.60 0.20 350)",
-      sidebar: "oklch(0.22 0.04 350)",
-      "sidebar-primary": "oklch(0.75 0.15 350)",
-    },
-    dark: {
-      primary: "oklch(0.75 0.17 350)",
-      secondary: "oklch(0.28 0.03 350)",
-      accent: "oklch(0.78 0.15 350)",
-      ring: "oklch(0.75 0.17 350)",
-      sidebar: "oklch(0.14 0.02 350)",
-      "sidebar-primary": "oklch(0.78 0.15 350)",
-    },
-  },
-  lima: {
-    label: "Lima",
-    light: {
-      primary: "oklch(0.60 0.16 135)",
-      secondary: "oklch(0.94 0.03 135)",
-      accent: "oklch(0.75 0.17 135)",
-      ring: "oklch(0.60 0.16 135)",
-      sidebar: "oklch(0.22 0.03 135)",
-      "sidebar-primary": "oklch(0.75 0.17 135)",
-    },
-    dark: {
-      primary: "oklch(0.78 0.17 135)",
-      secondary: "oklch(0.28 0.03 135)",
-      accent: "oklch(0.82 0.17 135)",
-      ring: "oklch(0.78 0.17 135)",
-      sidebar: "oklch(0.14 0.02 135)",
-      "sidebar-primary": "oklch(0.82 0.17 135)",
-    },
-  },
-  turquesa: {
-    label: "Turquesa",
-    light: {
-      primary: "oklch(0.55 0.12 190)",
-      secondary: "oklch(0.94 0.02 190)",
-      accent: "oklch(0.72 0.13 190)",
-      ring: "oklch(0.55 0.12 190)",
-      sidebar: "oklch(0.22 0.03 190)",
-      "sidebar-primary": "oklch(0.72 0.13 190)",
-    },
-    dark: {
-      primary: "oklch(0.75 0.13 190)",
-      secondary: "oklch(0.28 0.03 190)",
-      accent: "oklch(0.78 0.13 190)",
-      ring: "oklch(0.75 0.13 190)",
-      sidebar: "oklch(0.14 0.02 190)",
-      "sidebar-primary": "oklch(0.78 0.13 190)",
-    },
-  },
-  vinho: {
-    label: "Vinho",
-    light: {
-      primary: "oklch(0.40 0.13 15)",
-      secondary: "oklch(0.94 0.02 15)",
-      accent: "oklch(0.60 0.15 15)",
-      ring: "oklch(0.40 0.13 15)",
-      sidebar: "oklch(0.20 0.04 15)",
-      "sidebar-primary": "oklch(0.60 0.15 15)",
-    },
-    dark: {
-      primary: "oklch(0.65 0.15 15)",
-      secondary: "oklch(0.26 0.03 15)",
-      accent: "oklch(0.72 0.15 15)",
-      ring: "oklch(0.65 0.15 15)",
-      sidebar: "oklch(0.13 0.02 15)",
-      "sidebar-primary": "oklch(0.72 0.15 15)",
-    },
-  },
-  cobre: {
-    label: "Cobre",
-    light: {
-      primary: "oklch(0.55 0.13 45)",
-      secondary: "oklch(0.94 0.02 45)",
-      accent: "oklch(0.72 0.14 50)",
-      ring: "oklch(0.55 0.13 45)",
-      sidebar: "oklch(0.22 0.03 45)",
-      "sidebar-primary": "oklch(0.72 0.14 50)",
-    },
-    dark: {
-      primary: "oklch(0.72 0.14 45)",
-      secondary: "oklch(0.28 0.03 45)",
-      accent: "oklch(0.78 0.14 50)",
-      ring: "oklch(0.72 0.14 45)",
-      sidebar: "oklch(0.14 0.02 45)",
-      "sidebar-primary": "oklch(0.78 0.14 50)",
-    },
-  },
-  midnight: {
-    label: "Midnight",
-    light: {
-      primary: "oklch(0.32 0.10 275)",
+      primary: "oklch(0.48 0.18 275)",
       secondary: "oklch(0.94 0.02 275)",
-      accent: "oklch(0.60 0.16 275)",
-      ring: "oklch(0.32 0.10 275)",
-      sidebar: "oklch(0.16 0.04 275)",
+      accent: "oklch(0.65 0.17 275)",
+      ring: "oklch(0.48 0.18 275)",
+      sidebar: "oklch(0.20 0.04 275)",
       "sidebar-primary": "oklch(0.65 0.17 275)",
     },
     dark: {
       primary: "oklch(0.70 0.16 275)",
-      secondary: "oklch(0.24 0.03 275)",
-      accent: "oklch(0.72 0.16 275)",
+      secondary: "oklch(0.26 0.03 275)",
+      accent: "oklch(0.75 0.16 275)",
       ring: "oklch(0.70 0.16 275)",
-      sidebar: "oklch(0.10 0.02 275)",
-      "sidebar-primary": "oklch(0.72 0.16 275)",
+      sidebar: "oklch(0.12 0.02 275)",
+      "sidebar-primary": "oklch(0.75 0.16 275)",
+    },
+  },
+  cinza: {
+    label: "Cinza",
+    light: {
+      primary: "oklch(0.40 0.02 260)",
+      secondary: "oklch(0.94 0.005 260)",
+      accent: "oklch(0.58 0.03 260)",
+      ring: "oklch(0.40 0.02 260)",
+      sidebar: "oklch(0.22 0.01 260)",
+      "sidebar-primary": "oklch(0.62 0.03 260)",
+    },
+    dark: {
+      primary: "oklch(0.75 0.02 260)",
+      secondary: "oklch(0.26 0.01 260)",
+      accent: "oklch(0.62 0.03 260)",
+      ring: "oklch(0.75 0.02 260)",
+      sidebar: "oklch(0.13 0.005 260)",
+      "sidebar-primary": "oklch(0.72 0.02 260)",
     },
   },
 };
 
+const DEFAULT: Stored = { mode: "light", preset: "azul" };
+
 export function loadStored(): Stored {
-  if (typeof window === "undefined") return { mode: "light" };
+  if (typeof window === "undefined") return { ...DEFAULT };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { mode: "light" };
-    return JSON.parse(raw) as Stored;
-  } catch { return { mode: "light" }; }
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<Stored>;
+      const mode: ThemeMode = parsed.mode === "dark" ? "dark" : "light";
+      const preset = parsed.preset && PRESETS[parsed.preset] ? parsed.preset : DEFAULT.preset;
+      return { mode, preset };
+    }
+    // Migrate legacy v1 (may contain custom palette + auto mode)
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const parsed = JSON.parse(legacy) as { mode?: string; preset?: string };
+      const mode: ThemeMode =
+        parsed.mode === "dark"
+          ? "dark"
+          : parsed.mode === "auto"
+          ? window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+          : "light";
+      const preset = parsed.preset && PRESETS[parsed.preset] ? parsed.preset : DEFAULT.preset;
+      const migrated = { mode, preset };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch {
+    /* noop */
+  }
+  return { ...DEFAULT };
 }
 
 export function saveStored(s: Stored) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch { /* empty */ }
-}
-
-export function resolveMode(mode: ThemeMode): "light" | "dark" {
-  if (mode === "auto") {
-    if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch {
+    /* noop */
   }
-  return mode;
 }
 
 const VAR_MAP: Record<keyof Palette, string> = {
@@ -298,32 +227,30 @@ const VAR_MAP: Record<keyof Palette, string> = {
 export function applyTheme(stored: Stored) {
   if (typeof document === "undefined") return;
   const html = document.documentElement;
-  const resolved = resolveMode(stored.mode);
-  html.classList.toggle("dark", resolved === "dark");
+  html.classList.toggle("dark", stored.mode === "dark");
 
-  // Clear previous overrides
   for (const cssVar of Object.values(VAR_MAP)) html.style.removeProperty(cssVar);
 
-  // Apply preset baseline first, then user overrides
-  const presetKey = stored.preset && PRESETS[stored.preset] ? stored.preset : "profissional";
-  const preset = PRESETS[presetKey][resolved];
-  for (const [k, v] of Object.entries(preset) as [keyof Palette, string][]) {
+  const presetKey = PRESETS[stored.preset] ? stored.preset : DEFAULT.preset;
+  const palette = PRESETS[presetKey][stored.mode];
+  for (const [k, v] of Object.entries(palette) as [keyof Palette, string][]) {
     html.style.setProperty(VAR_MAP[k], v);
   }
-  if (stored.palette) {
-    for (const [k, v] of Object.entries(stored.palette) as [keyof Palette, string | undefined][]) {
-      if (v) html.style.setProperty(VAR_MAP[k], v);
-    }
-  }
+}
+
+export function setMode(mode: ThemeMode) {
+  const next = { ...loadStored(), mode };
+  saveStored(next);
+  applyTheme(next);
+}
+
+export function setPreset(preset: string) {
+  if (!PRESETS[preset]) return;
+  const next = { ...loadStored(), preset };
+  saveStored(next);
+  applyTheme(next);
 }
 
 export function initTheme() {
   applyTheme(loadStored());
-  if (typeof window !== "undefined") {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener?.("change", () => {
-      const s = loadStored();
-      if (s.mode === "auto") applyTheme(s);
-    });
-  }
 }

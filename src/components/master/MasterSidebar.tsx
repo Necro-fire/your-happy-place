@@ -3,7 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Building2, KeyRound, ScrollText, LogOut,
-  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu, Palette,
+  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,14 +17,13 @@ const items: Item[] = [
   { title: "Dashboard", url: "/master", icon: LayoutDashboard, exact: true },
   { title: "Empresas", url: "/master/clientes", icon: Building2 },
   { title: "Licenças", url: "/master/licencas", icon: KeyRound },
-  { title: "Paletas de Cores", url: "/master/paletas", icon: Palette },
   { title: "Assinaturas", icon: Receipt, soon: true },
   { title: "Pagamentos", icon: CreditCard, soon: true },
   { title: "Usuários", icon: Users, soon: true },
   { title: "Relatórios", icon: BarChart3, soon: true },
   { title: "Logs", url: "/master/logs", icon: ScrollText },
   { title: "Segurança", icon: ShieldCheck, soon: true },
-  { title: "Configurações", icon: Settings, soon: true },
+  { title: "Configurações", url: "/master/configuracoes", icon: Settings },
 ];
 
 
