@@ -177,7 +177,7 @@ function DesignPage() {
                     const url = await uploadImage(file, "galeria");
                     setDesign((prev) => ({ ...prev, galeria: [...prev.galeria, url] }));
                     setDirty(true);
-                  } catch (err: any) { toast.error(err.message); }
+                  } catch (err: any) { toast.error(friendlyStorageError(err)); }
                 }
               }}
             />
@@ -297,7 +297,7 @@ function SingleImageCard({
                   const url = await uploadImage(file, folder);
                   onChange(url);
                   toast.success("Imagem enviada");
-                } catch (err: any) { toast.error(err.message); }
+                } catch (err: any) { toast.error(friendlyStorageError(err)); }
                 finally { setBusy(false); }
               }}
             />
@@ -364,7 +364,7 @@ function CarrosselRow({
                   if (!file) return;
                   setBusy(true);
                   try { onChange({ image_url: await uploadImage(file, "carrossel") }); }
-                  catch (err: any) { toast.error(err.message); }
+                  catch (err: any) { toast.error(friendlyStorageError(err)); }
                   finally { setBusy(false); }
                 }}
               />

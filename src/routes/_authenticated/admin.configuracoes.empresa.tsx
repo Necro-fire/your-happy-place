@@ -12,6 +12,7 @@ import { maskPhone, maskCEP, maskCPFOrCNPJ } from "@/lib/masks";
 import { Loader2, Search, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getMySettingsRow, updateMySettings, uploadTenantAsset, friendlyStorageError } from "@/lib/settings-io";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/empresa")({
   component: EmpresaPage,
@@ -40,7 +41,7 @@ function EmpresaPage() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["settings"],
-    queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data,
+    queryFn: getMySettingsRow,
   });
 
   const [f, setF] = useState<any>(null);
@@ -99,7 +100,7 @@ function EmpresaPage() {
         empresa: { ...(currentCfg.empresa ?? {}), horarios, numero, complemento, bairro },
       };
       const diasAtivos = DIAS.filter((d) => horarios[d.key]?.open).map((d) => d.label.slice(0, 3));
-      const { error } = await supabase.from("settings").update({
+      await updateMySettings({
         nome_estabelecimento: f.nome_estabelecimento,
         nome_fantasia: f.nome_fantasia,
         descricao: f.descricao,
@@ -113,15 +114,14 @@ function EmpresaPage() {
         estado: f.estado,
         dias_funcionamento: diasAtivos,
         config: nextCfg,
-      } as any).eq("id", 1);
-      if (error) throw error;
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings"] });
       qc.invalidateQueries({ queryKey: ["public-settings"] });
       toast.success("Dados da empresa salvos");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(friendlyStorageError(e)),
   });
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -131,32 +131,27 @@ function EmpresaPage() {
     setUploadingLogo(true);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const path = `logo-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("logos").upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("logos").getPublicUrl(path);
-      const { error: dbErr } = await supabase.from("settings").update({ logo_url: pub.publicUrl } as any).eq("id", 1);
-      if (dbErr) throw dbErr;
-      setF((prev: any) => ({ ...prev, logo_url: pub.publicUrl }));
+      const { publicUrl } = await uploadTenantAsset("logos", "logo", file, ext);
+      await updateMySettings({ logo_url: publicUrl });
+      setF((prev: any) => ({ ...prev, logo_url: publicUrl }));
       qc.invalidateQueries({ queryKey: ["settings"] });
       qc.invalidateQueries({ queryKey: ["public-settings"] });
       toast.success("Logo atualizada");
     } catch (e: any) {
-      toast.error(e.message ?? "Falha ao enviar logo");
+      toast.error(friendlyStorageError(e));
     } finally {
       setUploadingLogo(false);
     }
   }
   async function handleLogoRemove() {
     try {
-      const { error } = await supabase.from("settings").update({ logo_url: null } as any).eq("id", 1);
-      if (error) throw error;
+      await updateMySettings({ logo_url: null });
       setF((prev: any) => ({ ...prev, logo_url: null }));
       qc.invalidateQueries({ queryKey: ["settings"] });
       qc.invalidateQueries({ queryKey: ["public-settings"] });
       toast.success("Logo removida");
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(friendlyStorageError(e));
     }
   }
 
