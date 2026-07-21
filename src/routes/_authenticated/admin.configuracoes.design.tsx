@@ -64,11 +64,7 @@ function DesignPage() {
     mutationFn: async () => {
       const currentCfg = ((q.data as any)?.config ?? {}) as Record<string, any>;
       const nextCfg = { ...currentCfg, design };
-      const { error } = await supabase
-        .from("settings")
-        .update({ config: nextCfg, logo_url: design.logo_url ?? null } as any)
-        .eq("id", 1);
-      if (error) throw error;
+      await updateMySettings({ config: nextCfg, logo_url: design.logo_url ?? null });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings"] });
@@ -76,7 +72,7 @@ function DesignPage() {
       setDirty(false);
       toast.success("Design atualizado");
     },
-    onError: (e: any) => toast.error(e.message ?? "Falha ao salvar"),
+    onError: (e: any) => toast.error(friendlyStorageError(e) || "Não foi possível atualizar as configurações da empresa."),
   });
 
   return (
