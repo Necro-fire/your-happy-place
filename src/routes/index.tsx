@@ -74,8 +74,35 @@ const FAQ = [
 ];
 
 function Landing() {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          const userId = data.session.user.id;
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId);
+          const isMaster = roles?.some((r: any) => r.role === "master");
+          navigate({ to: isMaster ? "/master" : "/admin", replace: true });
+          return;
+        }
+      } catch {}
+      if (!cancelled) setChecking(false);
+    })();
+    return () => { cancelled = true; };
+  }, [navigate]);
+
+  if (checking) return <Splash label="Carregando..." />;
+
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-background via-background to-primary/5">
+
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
