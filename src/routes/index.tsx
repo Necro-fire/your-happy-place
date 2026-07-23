@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Splash } from "@/components/admin/Splash";
@@ -10,7 +10,6 @@ import {
   ShoppingCart,
   Utensils,
   QrCode,
-
   Users,
   Check,
   LayoutDashboard,
@@ -33,7 +32,16 @@ import {
   TrendingUp,
   CreditCard,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  CalendarCheck2,
+  CreditCard as CreditCardIcon,
+  BadgeCheck as BadgeCheckIcon,
+  XCircle,
 } from "lucide-react";
+
 import dashboardShot from "@/assets/landing/dashboard.png.asset.json";
 import pdvShot from "@/assets/landing/pdv.png.asset.json";
 import mesasShot from "@/assets/landing/mesas.png.asset.json";
