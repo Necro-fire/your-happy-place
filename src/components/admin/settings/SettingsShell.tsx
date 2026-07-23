@@ -25,7 +25,7 @@ export const SECTIONS: SettingsSection[] = [
 
   { slug: "financeiro", title: "Financeiro", desc: "Moeda, formatação e categorias", icon: CreditCard, group: "Financeiro", comingSoon: true },
   { slug: "pagamentos", title: "Formas de pagamento", desc: "Métodos aceitos no sistema", icon: Wallet, group: "Financeiro" },
-  { slug: "descontos", title: "Descontos", desc: "Regras, limites e permissões", icon: Tag, group: "Financeiro" },
+  { slug: "descontos", title: "Descontos", desc: "Regras, limites e permissões", icon: Tag, group: "Financeiro", comingSoon: true },
 
   { slug: "notificacoes", title: "Notificações", desc: "Alertas do sistema e canais", icon: Bell, group: "Sistema", comingSoon: true },
   { slug: "seguranca", title: "Segurança", desc: "Sessões, senhas e auditoria", icon: Lock, group: "Sistema", comingSoon: true },

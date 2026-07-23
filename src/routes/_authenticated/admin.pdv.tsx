@@ -765,8 +765,9 @@ function PDVPage() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold leading-tight">{i.nome}</div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
-                    {fmtMoney(i.preco)} {i.desconto > 0 && <span className="ml-1 text-destructive">-{fmtMoney(i.desconto)}</span>}
+                    {fmtMoney(i.preco)}
                   </div>
+
                 </div>
                 <div className="shrink-0 text-right text-sm font-bold">{fmtMoney(i.preco * i.quantidade - i.desconto)}</div>
               </div>
@@ -837,17 +838,16 @@ function PDVPage() {
             <DialogHeader><DialogTitle>Editar item — {lineEdit.nome}</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div><Label>Observações</Label><Textarea rows={2} defaultValue={lineEdit.observacoes} id="edit-obs" /></div>
-              <div><Label>Desconto no item (R$)</Label><Input type="number" min={0} defaultValue={lineEdit.desconto} id="edit-desc" /></div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setLineEdit(null)}>Cancelar</Button>
               <Button onClick={() => {
                 const obsEl = document.getElementById("edit-obs") as HTMLTextAreaElement;
-                const descEl = document.getElementById("edit-desc") as HTMLInputElement;
-                setCart((c) => c.map((x) => x.key === lineEdit.key ? { ...x, observacoes: obsEl.value || undefined, desconto: Number(descEl.value) || 0 } : x));
+                setCart((c) => c.map((x) => x.key === lineEdit.key ? { ...x, observacoes: obsEl.value || undefined } : x));
                 setLineEdit(null);
               }}>Salvar</Button>
             </DialogFooter>
+
           </DialogContent>
         </Dialog>
       )}
