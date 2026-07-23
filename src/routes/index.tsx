@@ -423,27 +423,30 @@ function Landing() {
             </div>
           </Reveal>
 
-          {/* Row 1: Notebook + Tablet */}
-          <div className="mt-14 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+          {/* Smart carousel */}
+          <div className="mt-12">
+            <SmartCarousel
+              slides={[
+                { src: dashboardShot.url, label: "Dashboard", desc: "Indicadores em tempo real do seu negócio." },
+                { src: pdvShot.url, label: "PDV", desc: "Frente de caixa ágil, com categorias e comanda." },
+                { src: mesasShot.url, label: "Controle de Mesas", desc: "Mapa do salão integrado ao PDV." },
+                { src: caixaShot.url, label: "Caixa", desc: "Abertura, movimentações e fechamento com conferência." },
+                { src: pedidosShot.url, label: "Pedidos", desc: "Acompanhe pedidos por status, mesa e entrega." },
+                { src: catalogoShot.url, label: "Produtos", desc: "Cadastro completo do seu catálogo." },
+              ]}
+            />
+          </div>
+
+          {/* Device mockups */}
+          <div className="mt-16 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
             <Reveal><LaptopMockup src={pdvShot.url} label="PDV · Frente de caixa" /></Reveal>
             <Reveal delay={120}><TabletMockup src={mesasShot.url} label="Controle de Mesas" /></Reveal>
           </div>
-
-          {/* Row 2: Phone + Notebook */}
           <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_1.35fr] lg:items-center">
             <Reveal><PhoneMockup src={pedidosShot.url} label="Pedidos" /></Reveal>
             <Reveal delay={120}><LaptopMockup src={caixaShot.url} label="Caixa" /></Reveal>
           </div>
 
-          {/* Row 3: Two cards */}
-          <div className="mt-16 grid gap-6 md:grid-cols-2">
-            <Reveal>
-              <DemoCard title="Dashboard" desc="Indicadores em tempo real do seu negócio." src={dashboardShot.url} />
-            </Reveal>
-            <Reveal delay={100}>
-              <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
-            </Reveal>
-          </div>
         </div>
         <WaveDivider from={C.snowWarm} to={C.snow} flip />
       </section>
