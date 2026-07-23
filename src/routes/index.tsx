@@ -328,7 +328,11 @@ function Landing() {
         <WaveDivider from={C.snow} to={C.snowSoft} />
       </section>
 
+      {/* ========== TRUST STRIP ========== */}
+      <TrustStrip />
+
       {/* ========== INSTITUCIONAL ========== */}
+
       <section style={{ background: C.snowSoft }} className="relative">
         <div className="mx-auto max-w-6xl px-4 py-20">
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
