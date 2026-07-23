@@ -16,16 +16,19 @@ function withTimeout<T>(p: Promise<T>, ms: number, label = "timeout"): Promise<T
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  pendingMs: 0,
+  // Só mostra splash em tela cheia se o beforeLoad demorar > 1.5s.
+  // getSession é local (storage), então navegação interna nunca dispara splash.
+  pendingMs: 1500,
+  pendingMinMs: 0,
   pendingComponent: () => <Splash label="Inicializando sessão..." />,
   beforeLoad: async () => {
     try {
-      const { data, error } = await withTimeout(supabase.auth.getUser(), AUTH_TIMEOUT_MS, "auth-timeout");
-      if (error || !data.user) throw redirect({ to: "/auth" });
-      return { user: data.user };
+      const { data } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS, "auth-timeout");
+      const user = data.session?.user;
+      if (!user) throw redirect({ to: "/auth" });
+      return { user };
     } catch (e: any) {
       if (e?.isRedirect) throw e;
-      // Timeout ou falha de rede: força retorno ao login para evitar tela presa.
       throw redirect({ to: "/auth" });
     }
   },
