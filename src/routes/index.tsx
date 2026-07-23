@@ -284,14 +284,18 @@ function Landing() {
       <section id="demonstracao" className="mx-auto max-w-6xl px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Conheça algumas telas do sistema</h2>
-          <p className="mt-3 text-muted-foreground">Demonstrações fiéis à experiência que você encontra após o login.</p>
+          <p className="mt-3 text-muted-foreground">Capturas reais da plataforma — a mesma experiência que você encontra após o login.</p>
         </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          <DemoCard title="Dashboard" desc="Indicadores em tempo real do seu dia."><MockDashboard /></DemoCard>
-          <DemoCard title="PDV" desc="Frente de caixa ágil e organizada."><MockPDV /></DemoCard>
-          <DemoCard title="Controle de Mesas" desc="Mapa do salão com status atualizado."><MockMesas /></DemoCard>
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <DemoCard title="Dashboard" desc="Visão geral do negócio com indicadores em tempo real." src={dashboardShot.url} />
+          <DemoCard title="PDV" desc="Frente de caixa ágil, com categorias e comanda em tempo real." src={pdvShot.url} />
+          <DemoCard title="Controle de Mesas" desc="Mapa do salão integrado ao PDV." src={mesasShot.url} />
+          <DemoCard title="Caixa" desc="Abertura, movimentações e fechamento com conferência." src={caixaShot.url} />
+          <DemoCard title="Pedidos" desc="Acompanhe pedidos por status, mesa e entrega." src={pedidosShot.url} />
+          <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
         </div>
       </section>
+
 
       {/* Como funciona */}
       <section id="como-funciona" className="border-y border-border/60 bg-muted/20">
