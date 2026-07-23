@@ -885,6 +885,24 @@ function PhoneMockup({ src, label }: { src: string; label: string }) {
   );
 }
 
+function ScreenFrame({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="relative">
+      <div
+        className="pointer-events-none absolute -inset-8 -z-10 rounded-[32px]"
+        style={{ background: `radial-gradient(60% 60% at 50% 40%, ${C.brandSoft} 0%, transparent 70%)` }}
+      />
+      <div
+        className="overflow-hidden rounded-2xl"
+        style={{ background: "#fff", border: `1px solid ${C.line}`, boxShadow: C.cardShadowLg }}
+      >
+        <DeviceBar label={label} />
+        <img src={src} alt={`Tela real — ${label}`} loading="lazy" className="block w-full" />
+      </div>
+    </div>
+  );
+}
+
 function DemoCard({ title, desc, src }: { title: string; desc: string; src: string }) {
   return (
     <div className="lp-card overflow-hidden">
