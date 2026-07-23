@@ -11,12 +11,15 @@ export type CarrosselItem = {
   ativo: boolean;
 };
 
+export type HeroMode = "banner" | "carousel";
+
 export type DesignConfig = {
   logo_url: string | null;
   banner_url: string | null;
   cover_url: string | null;
   carrossel: CarrosselItem[];
   galeria: string[];
+  hero_mode: HeroMode;
 };
 
 export const EMPTY_DESIGN: DesignConfig = {
@@ -25,6 +28,7 @@ export const EMPTY_DESIGN: DesignConfig = {
   cover_url: null,
   carrossel: [],
   galeria: [],
+  hero_mode: "banner",
 };
 
 export type PublicSettings = {
