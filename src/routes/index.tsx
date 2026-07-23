@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Splash } from "@/components/admin/Splash";
@@ -10,7 +10,6 @@ import {
   ShoppingCart,
   Utensils,
   QrCode,
-
   Users,
   Check,
   LayoutDashboard,
@@ -33,7 +32,16 @@ import {
   TrendingUp,
   CreditCard,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  CalendarCheck2,
+  CreditCard as CreditCardIcon,
+  BadgeCheck as BadgeCheckIcon,
+  XCircle,
 } from "lucide-react";
+
 import dashboardShot from "@/assets/landing/dashboard.png.asset.json";
 import pdvShot from "@/assets/landing/pdv.png.asset.json";
 import mesasShot from "@/assets/landing/mesas.png.asset.json";
@@ -320,7 +328,11 @@ function Landing() {
         <WaveDivider from={C.snow} to={C.snowSoft} />
       </section>
 
+      {/* ========== TRUST STRIP ========== */}
+      <TrustStrip />
+
       {/* ========== INSTITUCIONAL ========== */}
+
       <section style={{ background: C.snowSoft }} className="relative">
         <div className="mx-auto max-w-6xl px-4 py-20">
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
@@ -411,27 +423,30 @@ function Landing() {
             </div>
           </Reveal>
 
-          {/* Row 1: Notebook + Tablet */}
-          <div className="mt-14 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+          {/* Smart carousel */}
+          <div className="mt-12">
+            <SmartCarousel
+              slides={[
+                { src: dashboardShot.url, label: "Dashboard", desc: "Indicadores em tempo real do seu negócio." },
+                { src: pdvShot.url, label: "PDV", desc: "Frente de caixa ágil, com categorias e comanda." },
+                { src: mesasShot.url, label: "Controle de Mesas", desc: "Mapa do salão integrado ao PDV." },
+                { src: caixaShot.url, label: "Caixa", desc: "Abertura, movimentações e fechamento com conferência." },
+                { src: pedidosShot.url, label: "Pedidos", desc: "Acompanhe pedidos por status, mesa e entrega." },
+                { src: catalogoShot.url, label: "Produtos", desc: "Cadastro completo do seu catálogo." },
+              ]}
+            />
+          </div>
+
+          {/* Device mockups */}
+          <div className="mt-16 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
             <Reveal><LaptopMockup src={pdvShot.url} label="PDV · Frente de caixa" /></Reveal>
             <Reveal delay={120}><TabletMockup src={mesasShot.url} label="Controle de Mesas" /></Reveal>
           </div>
-
-          {/* Row 2: Phone + Notebook */}
           <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_1.35fr] lg:items-center">
             <Reveal><PhoneMockup src={pedidosShot.url} label="Pedidos" /></Reveal>
             <Reveal delay={120}><LaptopMockup src={caixaShot.url} label="Caixa" /></Reveal>
           </div>
 
-          {/* Row 3: Two cards */}
-          <div className="mt-16 grid gap-6 md:grid-cols-2">
-            <Reveal>
-              <DemoCard title="Dashboard" desc="Indicadores em tempo real do seu negócio." src={dashboardShot.url} />
-            </Reveal>
-            <Reveal delay={100}>
-              <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
-            </Reveal>
-          </div>
         </div>
         <WaveDivider from={C.snowWarm} to={C.snow} flip />
       </section>
@@ -845,3 +860,181 @@ function FooterCol({ title, items }: { title: string; items: { label: string; hr
     </div>
   );
 }
+
+/* =================================================
+   Trust Strip — under hero
+   ================================================= */
+function TrustStrip() {
+  const items = [
+    { icon: CalendarCheck2, title: "7 dias grátis", desc: "Experimente sem compromisso." },
+    { icon: CreditCardIcon, title: "Sem cartão", desc: "Não pedimos dados de pagamento." },
+    { icon: BadgeCheckIcon, title: "Acesso completo", desc: "Todos os módulos liberados no teste." },
+    { icon: XCircle, title: "Cancele quando quiser", desc: "Sem multas, sem burocracia." },
+  ];
+  return (
+    <section className="relative -mt-8 md:-mt-14" style={{ background: C.snowSoft }}>
+      <div className="mx-auto max-w-6xl px-4">
+        <div
+          className="grid gap-4 rounded-2xl p-4 sm:p-6 md:grid-cols-4"
+          style={{ background: "#fff", border: `1px solid ${C.line}`, boxShadow: C.cardShadowLg }}
+        >
+          {items.map((it, i) => (
+            <Reveal key={it.title} delay={i * 60}>
+              <div className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-[color:var(--soft)]" style={{ ["--soft" as any]: C.snowSoft }}>
+                <div className="lp-3d-tile grid h-11 w-11 shrink-0 place-items-center rounded-xl" style={{ color: C.brand }}>
+                  <it.icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate font-display text-sm font-semibold" style={{ color: C.ink }}>{it.title}</div>
+                  <div className="truncate text-xs" style={{ color: C.inkSoft }}>{it.desc}</div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* =================================================
+   Smart Carousel — real system screenshots
+   ================================================= */
+type Slide = { src: string; label: string; desc: string };
+
+function SmartCarousel({ slides }: { slides: Slide[] }) {
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [hover, setHover] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const startX = useRef<number | null>(null);
+  const deltaX = useRef(0);
+
+  const total = slides.length;
+  const goTo = useCallback((i: number) => setIndex(((i % total) + total) % total), [total]);
+  const next = useCallback(() => goTo(index + 1), [goTo, index]);
+  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
+
+  useEffect(() => {
+    if (!playing || hover) return;
+    const t = setInterval(() => setIndex((i) => (i + 1) % total), 5000);
+    return () => clearInterval(t);
+  }, [playing, hover, total]);
+
+  const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; deltaX.current = 0; };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (startX.current == null) return;
+    deltaX.current = e.touches[0].clientX - startX.current;
+  };
+  const onTouchEnd = () => {
+    if (Math.abs(deltaX.current) > 50) { deltaX.current < 0 ? next() : prev(); }
+    startX.current = null; deltaX.current = 0;
+  };
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div
+        className="lp-mockup select-none"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className="lp-mockup-bar">
+          <div className="flex items-center gap-1.5">
+            <span className="lp-dot" style={{ background: "#F87171" }} />
+            <span className="lp-dot" style={{ background: "#FBBF24" }} />
+            <span className="lp-dot" style={{ background: "#34D399" }} />
+          </div>
+          <span>app.saborsys · {slides[index].label}</span>
+          <button
+            onClick={() => setPlaying((p) => !p)}
+            aria-label={playing ? "Pausar carrossel" : "Reproduzir carrossel"}
+            className="grid h-6 w-6 place-items-center rounded-full transition-colors hover:bg-[color:var(--soft)]"
+            style={{ ["--soft" as any]: C.snowSoft, color: C.muted }}
+          >
+            {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+          </button>
+        </div>
+
+        <div className="relative overflow-hidden" style={{ background: C.snowSoft }}>
+          <div
+            ref={trackRef}
+            className="flex transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
+            {slides.map((s) => (
+              <div key={s.src} className="w-full shrink-0">
+                <img src={s.src} alt={`Tela real do sistema — ${s.label}`} loading="lazy" className="block w-full" draggable={false} />
+              </div>
+            ))}
+          </div>
+
+          {/* Arrows */}
+          <button
+            onClick={prev}
+            aria-label="Anterior"
+            className="absolute left-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full transition-all hover:scale-105"
+            style={{ background: "rgba(255,255,255,.9)", border: `1px solid ${C.line}`, color: C.ink, boxShadow: C.cardShadow }}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={next}
+            aria-label="Próximo"
+            className="absolute right-3 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full transition-all hover:scale-105"
+            style={{ background: "rgba(255,255,255,.9)", border: `1px solid ${C.line}`, color: C.ink, boxShadow: C.cardShadow }}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 px-5 py-4" style={{ borderTop: `1px solid ${C.line}`, background: "#fff" }}>
+          <div className="min-w-0">
+            <div className="truncate font-display text-sm font-semibold" style={{ color: C.ink }}>{slides[index].label}</div>
+            <div className="truncate text-xs" style={{ color: C.inkSoft }}>{slides[index].desc}</div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Ir para slide ${i + 1}`}
+                className="transition-all"
+                style={{
+                  width: i === index ? 22 : 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: i === index ? C.brand : C.line,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Thumbnails */}
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {slides.map((s, i) => (
+          <button
+            key={s.src}
+            onClick={() => goTo(i)}
+            className="group overflow-hidden rounded-lg transition-all"
+            style={{
+              border: `1px solid ${i === index ? C.brand : C.line}`,
+              boxShadow: i === index ? C.cardShadow : "none",
+              opacity: i === index ? 1 : 0.75,
+            }}
+            aria-label={`Ver ${s.label}`}
+          >
+            <img src={s.src} alt="" loading="lazy" className="block h-14 w-full object-cover object-top transition-transform group-hover:scale-105" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
