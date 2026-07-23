@@ -36,6 +36,12 @@ import {
   Bell,
   TrendingUp,
 } from "lucide-react";
+import dashboardShot from "@/assets/landing/dashboard.png.asset.json";
+import pdvShot from "@/assets/landing/pdv.png.asset.json";
+import mesasShot from "@/assets/landing/mesas.png.asset.json";
+import caixaShot from "@/assets/landing/caixa.png.asset.json";
+import pedidosShot from "@/assets/landing/pedidos.png.asset.json";
+import catalogoShot from "@/assets/landing/catalogo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -278,14 +284,18 @@ function Landing() {
       <section id="demonstracao" className="mx-auto max-w-6xl px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Conheça algumas telas do sistema</h2>
-          <p className="mt-3 text-muted-foreground">Demonstrações fiéis à experiência que você encontra após o login.</p>
+          <p className="mt-3 text-muted-foreground">Capturas reais da plataforma — a mesma experiência que você encontra após o login.</p>
         </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          <DemoCard title="Dashboard" desc="Indicadores em tempo real do seu dia."><MockDashboard /></DemoCard>
-          <DemoCard title="PDV" desc="Frente de caixa ágil e organizada."><MockPDV /></DemoCard>
-          <DemoCard title="Controle de Mesas" desc="Mapa do salão com status atualizado."><MockMesas /></DemoCard>
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <DemoCard title="Dashboard" desc="Visão geral do negócio com indicadores em tempo real." src={dashboardShot.url} />
+          <DemoCard title="PDV" desc="Frente de caixa ágil, com categorias e comanda em tempo real." src={pdvShot.url} />
+          <DemoCard title="Controle de Mesas" desc="Mapa do salão integrado ao PDV." src={mesasShot.url} />
+          <DemoCard title="Caixa" desc="Abertura, movimentações e fechamento com conferência." src={caixaShot.url} />
+          <DemoCard title="Pedidos" desc="Acompanhe pedidos por status, mesa e entrega." src={pedidosShot.url} />
+          <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
         </div>
       </section>
+
 
       {/* Como funciona */}
       <section id="como-funciona" className="border-y border-border/60 bg-muted/20">
@@ -446,17 +456,21 @@ function FooterCol({ title, items }: { title: string; items: { label: string; hr
   );
 }
 
-function DemoCard({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
+function DemoCard({ title, desc, src }: { title: string; desc: string; src: string }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="border-b border-border bg-muted/30 px-4 py-3">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
           <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
           <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
         </div>
+        <span className="text-[10px] text-muted-foreground">app.saborsys · {title}</span>
+        <span className="w-8" />
       </div>
-      <div className="p-4">{children}</div>
+      <div className="bg-muted/10">
+        <img src={src} alt={`Tela real do sistema — ${title}`} loading="lazy" className="block w-full" />
+      </div>
       <div className="border-t border-border px-4 py-3">
         <div className="font-display text-sm font-semibold">{title}</div>
         <div className="text-xs text-muted-foreground">{desc}</div>
@@ -464,8 +478,6 @@ function DemoCard({ title, desc, children }: { title: string; desc: string; chil
     </div>
   );
 }
-
-/* ---------- Visual mockups built with the app's own design tokens ---------- */
 
 function SystemPreview() {
   return (
@@ -481,112 +493,9 @@ function SystemPreview() {
           <span className="text-[10px] text-muted-foreground">app.saborsys · Dashboard</span>
           <span className="w-8" />
         </div>
-        <MockDashboard />
+        <img src={dashboardShot.url} alt="Dashboard do SaborSys" className="block w-full" />
       </div>
     </div>
   );
 }
 
-function MockDashboard() {
-  const kpis = [
-    { label: "Vendas hoje", value: "R$ 4.820", icon: TrendingUp },
-    { label: "Pedidos", value: "128", icon: ClipboardList },
-    { label: "Ticket médio", value: "R$ 37,65", icon: Wallet },
-    { label: "Mesas ativas", value: "9/14", icon: Utensils },
-  ];
-  return (
-    <div className="grid grid-cols-[110px_1fr] gap-3 p-3 text-xs">
-      <aside className="rounded-lg border border-border bg-muted/20 p-2">
-        {[LayoutDashboard, ShoppingCart, Wallet, ClipboardList, Utensils, Package, FileBarChart, Settings2].map((I, i) => (
-          <div key={i} className={`mb-1 flex items-center gap-2 rounded px-2 py-1.5 ${i === 0 ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}>
-            <I className="h-3.5 w-3.5" />
-            <span className="h-1.5 w-14 rounded bg-current opacity-40" />
-          </div>
-        ))}
-      </aside>
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-lg border border-border p-2">
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <span className="truncate">{k.label}</span>
-                <k.icon className="h-3 w-3" />
-              </div>
-              <div className="mt-1 font-display text-sm font-bold">{k.value}</div>
-            </div>
-          ))}
-        </div>
-        <div className="rounded-lg border border-border p-3">
-          <div className="mb-2 flex items-center justify-between text-[10px] text-muted-foreground">
-            <span>Vendas nos últimos 7 dias</span>
-            <span>+12%</span>
-          </div>
-          <div className="flex h-16 items-end gap-1.5">
-            {[35, 55, 40, 70, 50, 85, 65].map((h, i) => (
-              <div key={i} className="flex-1 rounded-t bg-primary/70" style={{ height: `${h}%` }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MockPDV() {
-  const items = [
-    { n: "Pão Francês", p: "R$ 0,90" },
-    { n: "Café Expresso", p: "R$ 5,50" },
-    { n: "Coxinha", p: "R$ 7,00" },
-    { n: "Pão de Queijo", p: "R$ 4,00" },
-    { n: "Suco Natural", p: "R$ 8,00" },
-    { n: "Bolo Fatia", p: "R$ 6,50" },
-  ];
-  return (
-    <div className="grid grid-cols-[1fr_100px] gap-2 text-xs">
-      <div className="grid grid-cols-3 gap-2">
-        {items.map((it) => (
-          <div key={it.n} className="rounded-lg border border-border p-2">
-            <div className="mb-1 aspect-square rounded bg-muted/50" />
-            <div className="truncate text-[10px] font-medium">{it.n}</div>
-            <div className="text-[10px] text-primary">{it.p}</div>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-lg border border-border p-2">
-        <div className="mb-1 text-[10px] font-semibold">Comanda</div>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="mb-1 flex items-center justify-between text-[10px]">
-            <span className="truncate">Item {i}</span>
-            <span className="text-muted-foreground">R$ 6,00</span>
-          </div>
-        ))}
-        <div className="mt-2 border-t border-border pt-2 text-[10px]">
-          <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R$ 18,00</span></div>
-          <div className="mt-1 flex justify-between font-semibold"><span>Total</span><span>R$ 18,00</span></div>
-        </div>
-        <div className="mt-2 rounded bg-primary py-1 text-center text-[10px] font-semibold text-primary-foreground">Finalizar</div>
-      </div>
-    </div>
-  );
-}
-
-function MockMesas() {
-  const mesas = Array.from({ length: 12 }, (_, i) => ({
-    n: i + 1,
-    s: i % 3 === 0 ? "ocupada" : i % 4 === 0 ? "reservada" : "livre",
-  }));
-  const color = (s: string) =>
-    s === "ocupada" ? "border-primary/40 bg-primary/10 text-primary"
-    : s === "reservada" ? "border-border bg-muted/40 text-muted-foreground"
-    : "border-border bg-card text-foreground";
-  return (
-    <div className="grid grid-cols-4 gap-2 text-xs">
-      {mesas.map((m) => (
-        <div key={m.n} className={`rounded-lg border p-2 text-center ${color(m.s)}`}>
-          <div className="font-display text-sm font-bold">M{m.n}</div>
-          <div className="mt-0.5 text-[9px] capitalize">{m.s}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
