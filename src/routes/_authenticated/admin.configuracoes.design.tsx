@@ -305,6 +305,43 @@ function DesignPage() {
 
 /* --------------------- Reusable subcomponents --------------------- */
 
+function ModeChoice({
+  active, icon, title, desc, onSelect,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={active}
+      className={cn(
+        "flex items-start gap-3 rounded-lg border p-4 text-left transition-colors",
+        active
+          ? "border-primary bg-primary/5 ring-1 ring-primary"
+          : "border-border hover:bg-accent/40",
+      )}
+    >
+      <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-md",
+        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{title}</span>
+          {active && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">Ativo</span>}
+        </div>
+        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+      </div>
+    </button>
+  );
+}
+
+
 function SingleImageCard({
   title, desc, value, folder, aspect, onChange,
 }: {
