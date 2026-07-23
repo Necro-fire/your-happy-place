@@ -36,6 +36,12 @@ import {
   Bell,
   TrendingUp,
 } from "lucide-react";
+import dashboardShot from "@/assets/landing/dashboard.png.asset.json";
+import pdvShot from "@/assets/landing/pdv.png.asset.json";
+import mesasShot from "@/assets/landing/mesas.png.asset.json";
+import caixaShot from "@/assets/landing/caixa.png.asset.json";
+import pedidosShot from "@/assets/landing/pedidos.png.asset.json";
+import catalogoShot from "@/assets/landing/catalogo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
