@@ -9,8 +9,8 @@ import {
   LogIn,
   ShoppingCart,
   Utensils,
-  Boxes,
   QrCode,
+
   Users,
   Check,
   LayoutDashboard,
