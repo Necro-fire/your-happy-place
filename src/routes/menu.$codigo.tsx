@@ -102,8 +102,9 @@ function MenuPage() {
     return map;
   }, [filtered]);
 
-  const carrossel = (settings?.design.carrossel ?? []).filter((b) => b.ativo && b.image_url);
-  const bannerUrl = settings?.design.banner_url ?? null;
+  const heroMode = settings?.design.hero_mode ?? "banner";
+  const carrossel = heroMode === "carousel" ? (settings?.design.carrossel ?? []).filter((b) => b.ativo && b.image_url) : [];
+  const bannerUrl = heroMode === "banner" ? (settings?.design.banner_url ?? null) : null;
   const galeria = settings?.design.galeria ?? [];
   const [lightbox, setLightbox] = useState<string | null>(null);
 
