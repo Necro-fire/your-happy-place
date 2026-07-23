@@ -88,22 +88,74 @@ function DesignPage() {
         onChange={(url) => update({ logo_url: url })}
       />
 
+      {/* MODO DE DESTAQUE */}
+      <Card className="space-y-4 p-5">
+        <div>
+          <h2 className="font-display text-lg font-semibold">Destaque Visual</h2>
+          <p className="text-xs text-muted-foreground">
+            Escolha entre Banner Principal <strong>ou</strong> Carrossel. Apenas um pode ficar ativo — o modo desativado permanece salvo, mas não aparece na loja pública.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ModeChoice
+            active={design.hero_mode === "banner"}
+            icon={<ImageIcon className="h-5 w-5" />}
+            title="Banner Principal"
+            desc="Uma imagem única em destaque no topo."
+            onSelect={async () => {
+              if (design.hero_mode === "banner") return;
+              const ok = await dialog.confirm({
+                title: "Ativar Banner Principal?",
+                description: "O Carrossel será desativado, mas seus banners permanecerão salvos e poderão ser reativados depois.",
+                confirmText: "Ativar Banner",
+              });
+              if (ok) update({ hero_mode: "banner" });
+            }}
+          />
+          <ModeChoice
+            active={design.hero_mode === "carousel"}
+            icon={<GalleryHorizontal className="h-5 w-5" />}
+            title="Carrossel de Banners"
+            desc="Múltiplos banners rotativos."
+            onSelect={async () => {
+              if (design.hero_mode === "carousel") return;
+              const ok = await dialog.confirm({
+                title: "Ativar Carrossel?",
+                description: "O Banner Principal será desativado, mas a imagem permanecerá salva e poderá ser reativada depois.",
+                confirmText: "Ativar Carrossel",
+              });
+              if (ok) update({ hero_mode: "carousel" });
+            }}
+          />
+        </div>
+      </Card>
+
       {/* BANNER */}
-      <SingleImageCard
-        title="Banner Principal"
-        desc="Destaque no topo da loja e cardápio digital. Recomendado 1600x600px."
-        value={design.banner_url}
-        folder="banner"
-        aspect="wide"
-        onChange={(url) => update({ banner_url: url })}
-      />
+      <div className={cn(design.hero_mode !== "banner" && "pointer-events-none opacity-50")} aria-disabled={design.hero_mode !== "banner"}>
+        <SingleImageCard
+          title={`Banner Principal${design.hero_mode === "banner" ? " · Ativo" : " · Inativo"}`}
+          desc={design.hero_mode === "banner"
+            ? "Destaque no topo da loja e cardápio digital. Recomendado 1600x600px."
+            : "Modo inativo. Ative acima para exibir na loja pública."}
+          value={design.banner_url}
+          folder="banner"
+          aspect="wide"
+          onChange={(url) => update({ banner_url: url })}
+        />
+      </div>
 
       {/* CARROSSEL */}
-      <Card className="space-y-4 p-5">
+      <Card className={cn("space-y-4 p-5", design.hero_mode !== "carousel" && "pointer-events-none opacity-50")} aria-disabled={design.hero_mode !== "carousel"}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-lg font-semibold">Carrossel de Banners</h2>
-            <p className="text-xs text-muted-foreground">Até {MAX_CARROSSEL} banners rotativos na página inicial. {design.carrossel.length}/{MAX_CARROSSEL}</p>
+            <h2 className="font-display text-lg font-semibold">
+              Carrossel de Banners{design.hero_mode === "carousel" ? " · Ativo" : " · Inativo"}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {design.hero_mode === "carousel"
+                ? `Até ${MAX_CARROSSEL} banners rotativos na página inicial. ${design.carrossel.length}/${MAX_CARROSSEL}`
+                : "Modo inativo. Ative acima para exibir na loja pública."}
+            </p>
           </div>
           <Button
             type="button"
@@ -143,6 +195,7 @@ function DesignPage() {
           ))}
         </div>
       </Card>
+
 
       {/* CAPA */}
       <SingleImageCard
