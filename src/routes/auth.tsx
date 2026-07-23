@@ -33,7 +33,7 @@ export const Route = createFileRoute("/auth")({
       throw redirect({ to: landingRouteFor(roles) });
     }
   },
-  head: () => ({ meta: [{ title: "Acesso — Sistema" }] }),
+  head: () => ({ meta: [{ title: "Acesso — SaborSys" }] }),
   component: AuthPage,
 });
 
