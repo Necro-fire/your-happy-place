@@ -31,7 +31,7 @@ import {
   Bell,
   TrendingUp,
   CreditCard,
-  Sparkles,
+  
   ChevronLeft,
   ChevronRight,
   Play,
