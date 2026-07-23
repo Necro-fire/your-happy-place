@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Clock, Sparkles } from "lucide-react";
+import { Clock, CreditCard } from "lucide-react";
 import { useMyLicense, remainingMs } from "@/hooks/use-license";
 import { useMyRoles, isMaster } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
@@ -89,7 +89,7 @@ export function TrialCountdown() {
           tone.ring,
         )}
       >
-        <Sparkles className="h-3.5 w-3.5" /> Assinar agora
+        <CreditCard className="h-3.5 w-3.5" /> Assinar agora
       </Link>
     </div>
   );

@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Building2, Users, Palette, Calculator, Boxes, CreditCard, Wallet,
-  Bell, Lock, Database, Plug, LifeBuoy, Crown, Sparkles, Tag, Image as ImageIcon,
+  Bell, Lock, Database, Plug, LifeBuoy, Crown, Clock, Tag, Image as ImageIcon,
 } from "lucide-react";
 
 export type SettingsSection = {
@@ -80,7 +80,7 @@ export function SettingsSideNav() {
 export function ComingSoon({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="rounded-xl border border-dashed border-border bg-muted/30 p-10 text-center">
-      <Sparkles className="mx-auto mb-3 h-10 w-10 text-primary" />
+      <Clock className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
       <h3 className="font-display text-xl font-semibold">{title}</h3>
       <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">{desc}</p>
       <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">

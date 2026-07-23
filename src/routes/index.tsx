@@ -297,7 +297,7 @@ function Landing() {
         <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 md:grid-cols-[1.05fr_1fr] md:items-center md:py-28">
           <Reveal>
             <span className="lp-chip">
-              <Sparkles className="h-3.5 w-3.5" /> 7 dias grátis · sem cartão de crédito
+              <Check className="h-3.5 w-3.5" /> 7 dias grátis · sem cartão de crédito
             </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl" style={{ color: C.ink }}>
               Gestão profissional para o seu <span style={{ background: `linear-gradient(135deg, ${C.brand}, #F97316)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>estabelecimento alimentício</span>

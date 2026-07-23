@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import {
   Search, HelpCircle, MessageCircle, ArrowLeft, Star, CheckCircle2, XCircle,
-  Plus, Edit, Trash2, Copy, ExternalLink, Sparkles,
+  Plus, Edit, Trash2, Copy, ExternalLink, Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
@@ -280,7 +280,7 @@ Hora: ${new Date().toLocaleTimeString("pt-BR")}`;
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Solução sugerida
+              <Lightbulb className="h-4 w-4 text-primary" /> Solução sugerida
             </h2>
             <Button variant="ghost" size="sm" onClick={() => setStep(cat ? "problema" : "categoria")}>
               <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
