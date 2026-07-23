@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Splash } from "@/components/admin/Splash";
 import {
   Store,
@@ -10,11 +9,8 @@ import {
   LogIn,
   ShoppingCart,
   Utensils,
-  Truck,
-  Boxes,
-  BarChart3,
-  CreditCard,
   QrCode,
+
   Users,
   Check,
   LayoutDashboard,
@@ -35,6 +31,8 @@ import {
   PackagePlus,
   Bell,
   TrendingUp,
+  CreditCard,
+  Sparkles,
 } from "lucide-react";
 import dashboardShot from "@/assets/landing/dashboard.png.asset.json";
 import pdvShot from "@/assets/landing/pdv.png.asset.json";
@@ -57,6 +55,24 @@ export const Route = createFileRoute("/")({
   ssr: false,
   component: Landing,
 });
+
+/* ==============================
+   Palette (light-only, snow-white)
+   ============================== */
+const C = {
+  snow: "#F8FAFC",         // Snow white background
+  snowSoft: "#F1F5F9",     // Section variation
+  snowWarm: "#FBF9F5",     // Warm variation
+  ink: "#0F172A",          // Primary text
+  inkSoft: "#334155",      // Secondary text
+  muted: "#64748B",         // Muted
+  line: "#E2E8F0",         // Borders
+  brand: "#EA580C",        // Accent (aligned with SaborSys brand)
+  brandSoft: "#FFF1E6",
+  brand2: "#F59E0B",
+  cardShadow: "0 10px 30px -12px rgba(15,23,42,0.10), 0 4px 10px -6px rgba(15,23,42,0.06)",
+  cardShadowLg: "0 24px 60px -20px rgba(15,23,42,0.18), 0 8px 20px -10px rgba(15,23,42,0.08)",
+};
 
 const MODULES = [
   { icon: LayoutDashboard, title: "Dashboard", desc: "Visão geral do negócio com indicadores em tempo real." },
@@ -134,293 +150,497 @@ function Landing() {
   if (checking) return <Splash label="Carregando..." />;
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div
+      className="landing-root min-h-dvh font-sans"
+      style={{
+        background: C.snow,
+        color: C.ink,
+        colorScheme: "light",
+      }}
+    >
+      {/* Scoped styles: light theme, animations, floaters */}
+      <style>{`
+        .landing-root { --ring: ${C.brand}; }
+        .landing-root ::selection { background: ${C.brand}; color: #fff; }
+
+        @keyframes lp-fade-up {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes lp-float {
+          0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+          50%      { transform: translateY(-14px) rotate(var(--r, 0deg)); }
+        }
+        @keyframes lp-drift {
+          0%, 100% { transform: translate(0,0) rotate(0deg); }
+          50%      { transform: translate(10px,-8px) rotate(3deg); }
+        }
+        .lp-reveal { opacity: 0; }
+        .lp-reveal.is-in { animation: lp-fade-up .7s ease-out forwards; }
+        .lp-float { animation: lp-float 7s ease-in-out infinite; }
+        .lp-drift { animation: lp-drift 9s ease-in-out infinite; }
+        .lp-card {
+          background: #fff;
+          border: 1px solid ${C.line};
+          border-radius: 18px;
+          box-shadow: ${C.cardShadow};
+          transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+        }
+        .lp-card:hover {
+          transform: translateY(-3px);
+          box-shadow: ${C.cardShadowLg};
+          border-color: rgba(234,88,12,0.35);
+        }
+        .lp-chip {
+          display: inline-flex; align-items: center; gap: .5rem;
+          padding: .35rem .8rem; border-radius: 999px;
+          background: ${C.brandSoft}; color: ${C.brand};
+          font-size: 12px; font-weight: 600;
+          border: 1px solid rgba(234,88,12,.18);
+        }
+        .lp-btn-primary {
+          background: linear-gradient(135deg, ${C.brand}, #F97316);
+          color: #fff; border: 0;
+          box-shadow: 0 10px 24px -10px rgba(234,88,12,.55);
+        }
+        .lp-btn-primary:hover { filter: brightness(1.03); transform: translateY(-1px); }
+        .lp-btn-ghost {
+          background: #fff; color: ${C.ink};
+          border: 1px solid ${C.line};
+        }
+        .lp-btn-ghost:hover { background: ${C.snowSoft}; }
+        .lp-3d-tile {
+          background: linear-gradient(160deg,#fff, ${C.snowSoft});
+          border: 1px solid ${C.line};
+          box-shadow: inset 0 1px 0 #fff, ${C.cardShadow};
+        }
+        .lp-glow {
+          position: absolute; pointer-events: none; border-radius: 9999px;
+          filter: blur(60px); opacity: .55;
+        }
+        .lp-mockup {
+          border-radius: 16px; overflow: hidden; background:#fff;
+          border: 1px solid ${C.line};
+          box-shadow: ${C.cardShadowLg};
+        }
+        .lp-mockup-bar {
+          display:flex; align-items:center; justify-content:space-between;
+          padding: 10px 14px; border-bottom: 1px solid ${C.line};
+          background: linear-gradient(180deg,#fff, ${C.snowSoft});
+          font-size: 11px; color: ${C.muted};
+        }
+        .lp-dot { width: 10px; height: 10px; border-radius: 999px; display:inline-block; }
+      `}</style>
+
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
+      <header
+        className="sticky top-0 z-40"
+        style={{
+          background: "rgba(248,250,252,0.85)",
+          backdropFilter: "saturate(140%) blur(10px)",
+          borderBottom: `1px solid ${C.line}`,
+        }}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Link to="/" className="flex items-center gap-2">
+            <div
+              className="grid h-9 w-9 place-items-center rounded-xl text-white"
+              style={{ background: `linear-gradient(135deg, ${C.brand}, #F97316)`, boxShadow: "0 8px 20px -8px rgba(234,88,12,.5)" }}
+            >
               <Store className="h-5 w-5" />
             </div>
-            <span className="font-display text-xl font-bold tracking-tight">SaborSys</span>
-          </div>
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <a href="#recursos" className="hover:text-foreground">Recursos</a>
-            <a href="#demonstracao" className="hover:text-foreground">Demonstração</a>
-            <a href="#como-funciona" className="hover:text-foreground">Como funciona</a>
-            <a href="#segmentos" className="hover:text-foreground">Segmentos</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <span className="font-display text-xl font-bold tracking-tight" style={{ color: C.ink }}>SaborSys</span>
+          </Link>
+          <nav className="hidden items-center gap-7 text-sm md:flex" style={{ color: C.inkSoft }}>
+            <a href="#recursos" className="hover:text-[color:var(--ring)]">Recursos</a>
+            <a href="#demonstracao" className="hover:text-[color:var(--ring)]">Demonstração</a>
+            <a href="#como-funciona" className="hover:text-[color:var(--ring)]">Como funciona</a>
+            <a href="#segmentos" className="hover:text-[color:var(--ring)]">Segmentos</a>
+            <a href="#faq" className="hover:text-[color:var(--ring)]">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild size="sm" className="lp-btn-ghost">
               <Link to="/auth"><LogIn className="mr-1 h-4 w-4" /> Entrar</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link to="/auth">Começar teste grátis</Link>
+            <Button asChild size="sm" className="lp-btn-primary">
+              <Link to="/auth">Teste grátis</Link>
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="border-b border-border/60">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1.05fr_1fr] md:items-center md:py-24">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
-              <Check className="h-3 w-3 text-primary" /> 7 dias grátis · sem cartão de crédito
+      {/* ========== HERO ========== */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: `radial-gradient(1200px 500px at 85% -10%, ${C.brandSoft} 0%, transparent 60%), ${C.snow}`,
+        }}
+      >
+        {/* floating 3D shapes */}
+        <div className="lp-glow" style={{ background: C.brand, width: 380, height: 380, top: -120, right: -80 }} />
+        <div className="lp-glow" style={{ background: "#FBBF24", width: 260, height: 260, top: 240, left: -80, opacity: .35 }} />
+        <div className="pointer-events-none absolute right-[6%] top-24 hidden md:block">
+          <Cube3D size={72} color={C.brand} r="-14deg" />
+        </div>
+        <div className="pointer-events-none absolute left-[8%] bottom-16 hidden md:block">
+          <Sphere3D size={56} />
+        </div>
+
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 md:grid-cols-[1.05fr_1fr] md:items-center md:py-28">
+          <Reveal>
+            <span className="lp-chip">
+              <Sparkles className="h-3.5 w-3.5" /> 7 dias grátis · sem cartão de crédito
             </span>
-            <h1 className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
-              Gestão profissional para o seu estabelecimento alimentício
+            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl" style={{ color: C.ink }}>
+              Gestão profissional para o seu <span style={{ background: `linear-gradient(135deg, ${C.brand}, #F97316)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>estabelecimento alimentício</span>
             </h1>
-            <p className="mt-4 max-w-xl text-muted-foreground md:text-lg">
+            <p className="mt-5 max-w-xl text-lg" style={{ color: C.inkSoft }}>
               PDV, caixa, pedidos, cardápio digital, mesas, estoque e financeiro reunidos em uma plataforma clara, estável e feita para operar todos os dias.
             </p>
-            <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-              Organize sua operação, atenda com agilidade e acompanhe o desempenho do seu negócio em tempo real.
-            </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="lp-btn-primary">
                 <Link to="/auth">Começar teste grátis <ArrowRight className="ml-1 h-4 w-4" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
-                <a href="#recursos">Conhecer recursos</a>
+              <Button asChild size="lg" className="lp-btn-ghost">
+                <a href="#demonstracao">Ver o sistema</a>
               </Button>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Acesso completo no teste</span>
-              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Cancele quando quiser</span>
-              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Suporte incluído</span>
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs" style={{ color: C.muted }}>
+              <BadgeCheck>Acesso completo no teste</BadgeCheck>
+              <BadgeCheck>Cancele quando quiser</BadgeCheck>
+              <BadgeCheck>Suporte incluído</BadgeCheck>
             </div>
-          </div>
+          </Reveal>
 
-          {/* Visual do sistema */}
-          <SystemPreview />
+          <Reveal delay={120}>
+            <LaptopMockup src={dashboardShot.url} label="Dashboard" />
+          </Reveal>
         </div>
+
+        <WaveDivider from={C.snow} to={C.snowSoft} />
       </section>
 
-      {/* Institucional */}
-      <section className="border-b border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="grid gap-10 md:grid-cols-2">
-            <div>
-              <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Um sistema pensado para quem vive a operação</h2>
-              <p className="mt-4 text-muted-foreground">
+      {/* ========== INSTITUCIONAL ========== */}
+      <section style={{ background: C.snowSoft }} className="relative">
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <div className="grid gap-12 md:grid-cols-2 md:items-center">
+            <Reveal>
+              <span className="lp-chip">Sobre a plataforma</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Um sistema pensado para quem vive a operação
+              </h2>
+              <p className="mt-4" style={{ color: C.inkSoft }}>
                 O SaborSys é a plataforma de gestão completa para restaurantes, lanchonetes, padarias, cafeterias e demais estabelecimentos do setor alimentício. Reúne em um só lugar tudo o que sua equipe precisa para atender, controlar o caixa, organizar produtos e acompanhar resultados.
               </p>
-              <p className="mt-3 text-muted-foreground">
-                Uma interface direta e organizada, com fluxos rápidos, feita para reduzir erros e liberar tempo para o que importa: o cliente.
+              <p className="mt-3" style={{ color: C.inkSoft }}>
+                Interface direta, fluxos rápidos e visual moderno — feita para reduzir erros e liberar tempo para o que importa: o cliente.
               </p>
-            </div>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {[
-                "Interface clara e organizada",
-                "Fluxos otimizados de atendimento",
-                "Sincronização em tempo real",
-                "Isolamento de dados por empresa",
-                "Atualizações contínuas incluídas",
-                "Suporte oficial da plataforma",
-              ].map((b) => (
-                <li key={b} className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
-                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  <span className="text-sm">{b}</span>
-                </li>
-              ))}
-            </ul>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {[
+                  "Interface clara e organizada",
+                  "Fluxos otimizados de atendimento",
+                  "Sincronização em tempo real",
+                  "Isolamento de dados por empresa",
+                  "Atualizações contínuas incluídas",
+                  "Suporte oficial da plataforma",
+                ].map((b) => (
+                  <li key={b} className="lp-card flex items-start gap-3 p-4">
+                    <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full" style={{ background: C.brandSoft, color: C.brand }}>
+                      <Check className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-sm" style={{ color: C.ink }}>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
           </div>
         </div>
+        <WaveDivider from={C.snowSoft} to={C.snow} flip />
       </section>
 
-      {/* Destaque teste gratuito */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <Card className="border-primary/30 bg-card p-6 md:p-8">
-          <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                Teste grátis
-              </span>
-              <h3 className="mt-3 font-display text-2xl font-bold md:text-3xl">7 dias com acesso completo, sem cartão de crédito</h3>
-              <p className="mt-2 text-muted-foreground">Cadastro rápido, ativação imediata e liberdade para cancelar quando quiser.</p>
+      {/* ========== RECURSOS / MÓDULOS ========== */}
+      <section id="recursos" className="relative" style={{ background: C.snow }}>
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="lp-chip">Módulos</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Todos os módulos que sua operação precisa
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>
+                Um único sistema para atender, controlar, organizar e acompanhar o seu negócio.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link to="/auth">Começar agora <ArrowRight className="ml-1 h-4 w-4" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/auth">Entrar</Link>
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </section>
+          </Reveal>
 
-      {/* Recursos / Módulos */}
-      <section id="recursos" className="border-y border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Todos os módulos que sua operação precisa</h2>
-            <p className="mt-3 text-muted-foreground">Um único sistema para atender, controlar, organizar e acompanhar o seu negócio.</p>
-          </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {MODULES.map((m) => (
-              <Card key={m.title} className="p-5 transition-colors hover:border-primary/40">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {MODULES.map((m, i) => (
+              <Reveal key={m.title} delay={i * 50}>
+                <div className="lp-card p-6 h-full">
+                  <div className="lp-3d-tile grid h-12 w-12 place-items-center rounded-xl" style={{ color: C.brand }}>
                     <m.icon className="h-5 w-5" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-display text-base font-semibold">{m.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{m.desc}</p>
-                  </div>
+                  <h3 className="mt-4 font-display text-base font-semibold" style={{ color: C.ink }}>{m.title}</h3>
+                  <p className="mt-1 text-sm" style={{ color: C.inkSoft }}>{m.desc}</p>
                 </div>
-              </Card>
+              </Reveal>
             ))}
           </div>
         </div>
+        <WaveDivider from={C.snow} to={C.snowWarm} />
       </section>
 
-      {/* Demonstração */}
-      <section id="demonstracao" className="mx-auto max-w-6xl px-4 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Conheça algumas telas do sistema</h2>
-          <p className="mt-3 text-muted-foreground">Capturas reais da plataforma — a mesma experiência que você encontra após o login.</p>
+      {/* ========== DEMONSTRAÇÃO — mockups reais ========== */}
+      <section id="demonstracao" className="relative" style={{ background: C.snowWarm }}>
+        <div className="pointer-events-none absolute right-[6%] top-24 hidden lg:block">
+          <Cube3D size={54} color={C.brand2} r="18deg" />
         </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <DemoCard title="Dashboard" desc="Visão geral do negócio com indicadores em tempo real." src={dashboardShot.url} />
-          <DemoCard title="PDV" desc="Frente de caixa ágil, com categorias e comanda em tempo real." src={pdvShot.url} />
-          <DemoCard title="Controle de Mesas" desc="Mapa do salão integrado ao PDV." src={mesasShot.url} />
-          <DemoCard title="Caixa" desc="Abertura, movimentações e fechamento com conferência." src={caixaShot.url} />
-          <DemoCard title="Pedidos" desc="Acompanhe pedidos por status, mesa e entrega." src={pedidosShot.url} />
-          <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
-        </div>
-      </section>
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="lp-chip">Demonstração real</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Conheça algumas telas do sistema
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>
+                Capturas reais da plataforma — a mesma experiência que você encontra após o login.
+              </p>
+            </div>
+          </Reveal>
 
-
-      {/* Como funciona */}
-      <section id="como-funciona" className="border-y border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Como funciona</h2>
-            <p className="mt-3 text-muted-foreground">Comece a usar em poucos passos.</p>
+          {/* Row 1: Notebook + Tablet */}
+          <div className="mt-14 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+            <Reveal><LaptopMockup src={pdvShot.url} label="PDV · Frente de caixa" /></Reveal>
+            <Reveal delay={120}><TabletMockup src={mesasShot.url} label="Controle de Mesas" /></Reveal>
           </div>
-          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="relative rounded-lg border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">{i + 1}</span>
-                  <s.icon className="h-4 w-4 text-muted-foreground" />
+
+          {/* Row 2: Phone + Notebook */}
+          <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_1.35fr] lg:items-center">
+            <Reveal><PhoneMockup src={pedidosShot.url} label="Pedidos" /></Reveal>
+            <Reveal delay={120}><LaptopMockup src={caixaShot.url} label="Caixa" /></Reveal>
+          </div>
+
+          {/* Row 3: Two cards */}
+          <div className="mt-16 grid gap-6 md:grid-cols-2">
+            <Reveal>
+              <DemoCard title="Dashboard" desc="Indicadores em tempo real do seu negócio." src={dashboardShot.url} />
+            </Reveal>
+            <Reveal delay={100}>
+              <DemoCard title="Produtos e Categorias" desc="Cadastro completo do seu catálogo." src={catalogoShot.url} />
+            </Reveal>
+          </div>
+        </div>
+        <WaveDivider from={C.snowWarm} to={C.snow} flip />
+      </section>
+
+      {/* ========== DESTAQUE TESTE GRÁTIS ========== */}
+      <section className="relative" style={{ background: C.snow }}>
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <Reveal>
+            <div
+              className="relative overflow-hidden rounded-3xl p-8 md:p-12"
+              style={{
+                background: `linear-gradient(135deg, #FFF7ED 0%, #FFFBEB 100%)`,
+                border: `1px solid ${C.line}`,
+                boxShadow: C.cardShadowLg,
+              }}
+            >
+              <div className="lp-glow" style={{ background: C.brand, width: 260, height: 260, top: -80, right: -60 }} />
+              <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+                <div>
+                  <span className="lp-chip">Teste grátis</span>
+                  <h3 className="mt-3 font-display text-2xl font-bold md:text-3xl" style={{ color: C.ink }}>
+                    7 dias com acesso completo, sem cartão de crédito
+                  </h3>
+                  <p className="mt-2" style={{ color: C.inkSoft }}>
+                    Cadastro rápido, ativação imediata e liberdade para cancelar quando quiser.
+                  </p>
                 </div>
-                <h3 className="mt-3 font-display text-base font-semibold">{s.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
-              </li>
+                <div className="flex flex-wrap gap-3">
+                  <Button asChild size="lg" className="lp-btn-primary">
+                    <Link to="/auth">Começar agora <ArrowRight className="ml-1 h-4 w-4" /></Link>
+                  </Button>
+                  <Button asChild size="lg" className="lp-btn-ghost">
+                    <Link to="/auth">Entrar</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ========== COMO FUNCIONA ========== */}
+      <section id="como-funciona" className="relative" style={{ background: C.snowSoft }}>
+        <WaveDivider from={C.snow} to={C.snowSoft} />
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="lp-chip">Como funciona</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Comece a usar em poucos passos
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>Ativação imediata após o cadastro.</p>
+            </div>
+          </Reveal>
+          <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.title} delay={i * 60}>
+                <li className="lp-card p-6 h-full list-none">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="grid h-9 w-9 place-items-center rounded-xl text-white text-sm font-bold"
+                      style={{ background: `linear-gradient(135deg, ${C.brand}, #F97316)`, boxShadow: "0 6px 14px -6px rgba(234,88,12,.5)" }}
+                    >
+                      {i + 1}
+                    </span>
+                    <s.icon className="h-4 w-4" style={{ color: C.muted }} />
+                  </div>
+                  <h3 className="mt-4 font-display text-base font-semibold" style={{ color: C.ink }}>{s.title}</h3>
+                  <p className="mt-1 text-sm" style={{ color: C.inkSoft }}>{s.desc}</p>
+                </li>
+              </Reveal>
             ))}
           </ol>
         </div>
+        <WaveDivider from={C.snowSoft} to={C.snow} flip />
       </section>
 
-      {/* Benefícios */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Benefícios reais para o seu dia a dia</h2>
-          <p className="mt-3 text-muted-foreground">Ganhos práticos que a equipe percebe desde o primeiro dia de uso.</p>
-        </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {BENEFITS.map((b) => (
-            <Card key={b.title} className="p-5">
-              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
-                <b.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-display text-base font-semibold">{b.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{b.desc}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Segmentos */}
-      <section id="segmentos" className="border-y border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Segmentos atendidos</h2>
-            <p className="mt-3 text-muted-foreground">Ideal para estabelecimentos do setor alimentício de qualquer porte.</p>
+      {/* ========== BENEFÍCIOS ========== */}
+      <section className="relative" style={{ background: C.snow }}>
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="lp-chip">Benefícios</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Benefícios reais para o seu dia a dia
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>Ganhos práticos que a equipe percebe desde o primeiro dia.</p>
+            </div>
+          </Reveal>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {BENEFITS.map((b, i) => (
+              <Reveal key={b.title} delay={i * 50}>
+                <div className="lp-card p-6 h-full">
+                  <div className="lp-3d-tile grid h-12 w-12 place-items-center rounded-xl" style={{ color: C.brand }}>
+                    <b.icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 font-display text-base font-semibold" style={{ color: C.ink }}>{b.title}</h3>
+                  <p className="mt-1 text-sm" style={{ color: C.inkSoft }}>{b.desc}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {SEGMENTS.map((s) => (
-              <span key={s} className="rounded-full border border-border bg-card px-4 py-2 text-sm">{s}</span>
+        </div>
+        <WaveDivider from={C.snow} to={C.snowSoft} />
+      </section>
+
+      {/* ========== SEGMENTOS ========== */}
+      <section id="segmentos" className="relative" style={{ background: C.snowSoft }}>
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="lp-chip">Segmentos</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Segmentos atendidos
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>Ideal para estabelecimentos do setor alimentício de qualquer porte.</p>
+            </div>
+          </Reveal>
+          <div className="mt-10 flex flex-wrap justify-center gap-2.5">
+            {SEGMENTS.map((s, i) => (
+              <Reveal key={s} delay={i * 30}>
+                <span
+                  className="rounded-full px-4 py-2 text-sm"
+                  style={{ background: "#fff", border: `1px solid ${C.line}`, color: C.ink, boxShadow: C.cardShadow }}
+                >
+                  {s}
+                </span>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+        <WaveDivider from={C.snowSoft} to={C.snow} flip />
+      </section>
+
+      {/* ========== FAQ ========== */}
+      <section id="faq" className="relative" style={{ background: C.snow }}>
+        <div className="mx-auto max-w-3xl px-4 py-20">
+          <Reveal>
+            <div className="text-center">
+              <span className="lp-chip">FAQ</span>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl" style={{ color: C.ink }}>
+                Perguntas frequentes
+              </h2>
+              <p className="mt-3" style={{ color: C.inkSoft }}>Tire dúvidas comuns sobre o teste gratuito e o uso da plataforma.</p>
+            </div>
+          </Reveal>
+          <div className="mt-10 space-y-3">
+            {FAQ.map((item, i) => (
+              <Reveal key={item.q} delay={i * 40}>
+                <details className="lp-card group p-5">
+                  <summary className="cursor-pointer list-none font-medium" style={{ color: C.ink }}>
+                    <span className="flex items-center justify-between gap-4">
+                      {item.q}
+                      <span className="grid h-6 w-6 place-items-center rounded-full text-lg transition group-open:rotate-45" style={{ background: C.brandSoft, color: C.brand }}>+</span>
+                    </span>
+                  </summary>
+                  <p className="mt-3 text-sm" style={{ color: C.inkSoft }}>{item.a}</p>
+                </details>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Destaque teste gratuito 2 */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <Card className="p-6 md:p-8">
-          <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <h3 className="font-display text-2xl font-bold md:text-3xl">Experimente a plataforma sem compromisso</h3>
-              <p className="mt-2 text-muted-foreground">7 dias grátis com acesso completo. Sem cartão. Sem burocracia.</p>
+      {/* ========== CTA FINAL ========== */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${C.ink} 0%, #1E293B 100%)`,
+        }}
+      >
+        <div className="lp-glow" style={{ background: C.brand, width: 380, height: 380, top: -100, right: -60, opacity: .45 }} />
+        <div className="lp-glow" style={{ background: "#F59E0B", width: 260, height: 260, bottom: -80, left: -60, opacity: .3 }} />
+        <div className="relative mx-auto max-w-4xl px-4 py-24 text-center">
+          <Reveal>
+            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl text-white">
+              Pronto para organizar a sua operação?
+            </h2>
+            <p className="mt-3 text-white/80">
+              Comece hoje o seu teste gratuito de 7 dias — ativação imediata, sem cartão de crédito.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg" className="lp-btn-primary">
+                <Link to="/auth">Começar agora <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              </Button>
+              <Button asChild size="lg" className="lp-btn-ghost" style={{ background: "transparent", color: "#fff", borderColor: "rgba(255,255,255,.35)" }}>
+                <Link to="/auth">Entrar</Link>
+              </Button>
             </div>
-            <Button asChild size="lg">
-              <Link to="/auth">Criar conta grátis <ArrowRight className="ml-1 h-4 w-4" /></Link>
-            </Button>
-          </div>
-        </Card>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="mx-auto max-w-3xl px-4 py-16">
-        <div className="text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Perguntas frequentes</h2>
-          <p className="mt-3 text-muted-foreground">Tire dúvidas comuns sobre o teste gratuito e o uso da plataforma.</p>
-        </div>
-        <div className="mt-8 space-y-3">
-          {FAQ.map((item) => (
-            <details key={item.q} className="group rounded-lg border border-border bg-card p-4 open:bg-muted/30">
-              <summary className="cursor-pointer list-none font-medium">
-                <span className="flex items-center justify-between gap-4">
-                  {item.q}
-                  <span className="text-muted-foreground transition group-open:rotate-45">+</span>
-                </span>
-              </summary>
-              <p className="mt-3 text-sm text-muted-foreground">{item.a}</p>
-            </details>
-          ))}
+          </Reveal>
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="border-t border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Pronto para organizar a sua operação?</h2>
-          <p className="mt-3 text-muted-foreground">Comece hoje o seu teste gratuito de 7 dias — ativação imediata, sem cartão de crédito.</p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/auth">Começar agora <ArrowRight className="ml-1 h-4 w-4" /></Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/auth">Entrar</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/60">
+      {/* ========== FOOTER ========== */}
+      <footer style={{ background: C.snow, borderTop: `1px solid ${C.line}` }}>
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2">
-              <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <div className="grid h-8 w-8 place-items-center rounded-lg text-white" style={{ background: `linear-gradient(135deg, ${C.brand}, #F97316)` }}>
                 <Store className="h-4 w-4" />
               </div>
-              <span className="font-display text-lg font-bold">SaborSys</span>
+              <span className="font-display text-lg font-bold" style={{ color: C.ink }}>SaborSys</span>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Sistema de gestão para o setor alimentício.</p>
+            <p className="mt-3 text-xs" style={{ color: C.muted }}>Sistema de gestão para o setor alimentício.</p>
           </div>
           <FooterCol title="Plataforma" items={[
-            { label: "Sobre", href: "#" },
             { label: "Recursos", href: "#recursos" },
-            { label: "Atualizações", href: "#" },
+            { label: "Demonstração", href: "#demonstracao" },
+            { label: "Como funciona", href: "#como-funciona" },
           ]} />
           <FooterCol title="Suporte" items={[
             { label: "Central de Ajuda", href: "#" },
@@ -432,8 +652,8 @@ function Landing() {
             { label: "Termos de Uso", href: "#" },
           ]} />
         </div>
-        <div className="border-t border-border/60">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-muted-foreground md:flex-row">
+        <div style={{ borderTop: `1px solid ${C.line}` }}>
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs md:flex-row" style={{ color: C.muted }}>
             <span>© {new Date().getFullYear()} SaborSys — Todos os direitos reservados</span>
             <span>Versão 1.0</span>
           </div>
@@ -443,59 +663,185 @@ function Landing() {
   );
 }
 
-function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
+/* =================================================
+   Helpers / Sub-components
+   ================================================= */
+
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const [ref, setRef] = useState<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    obs.observe(ref);
+    return () => obs.disconnect();
+  }, [ref]);
   return (
-    <div>
-      <h4 className="text-sm font-semibold">{title}</h4>
-      <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-        {items.map((i) => (
-          <li key={i.label}><a href={i.href} className="hover:text-foreground">{i.label}</a></li>
-        ))}
-      </ul>
+    <div ref={setRef} className={`lp-reveal ${inView ? "is-in" : ""}`} style={{ animationDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
+function BadgeCheck({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="grid h-4 w-4 place-items-center rounded-full" style={{ background: C.brandSoft, color: C.brand }}>
+        <Check className="h-3 w-3" />
+      </span>
+      {children}
+    </span>
+  );
+}
+
+function WaveDivider({ from, to, flip = false }: { from: string; to: string; flip?: boolean }) {
+  return (
+    <div aria-hidden style={{ background: from, lineHeight: 0 }}>
+      <svg
+        viewBox="0 0 1440 90"
+        preserveAspectRatio="none"
+        className="block h-[70px] w-full md:h-[90px]"
+        style={{ transform: flip ? "scaleY(-1)" : undefined }}
+      >
+        <path
+          d="M0,50 C240,90 480,10 720,40 C960,70 1200,20 1440,55 L1440,90 L0,90 Z"
+          fill={to}
+        />
+      </svg>
+    </div>
+  );
+}
+
+function Cube3D({ size = 64, color = C.brand, r = "0deg" }: { size?: number; color?: string; r?: string }) {
+  return (
+    <div className="lp-float" style={{ ["--r" as any]: r, width: size, height: size }}>
+      <div
+        style={{
+          width: size, height: size,
+          borderRadius: 14,
+          background: `linear-gradient(135deg, ${color}, #F97316)`,
+          boxShadow: `0 24px 40px -14px ${color}66, inset 0 -8px 20px rgba(0,0,0,.15), inset 0 8px 14px rgba(255,255,255,.35)`,
+          transform: "rotate(12deg)",
+        }}
+      />
+    </div>
+  );
+}
+
+function Sphere3D({ size = 60 }: { size?: number }) {
+  return (
+    <div className="lp-drift" style={{ width: size, height: size }}>
+      <div
+        style={{
+          width: size, height: size,
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 30% 25%, #ffffff 0%, #FEE2CC 35%, ${C.brand} 100%)`,
+          boxShadow: `0 22px 40px -14px rgba(234,88,12,.45), inset 0 -8px 14px rgba(0,0,0,.18)`,
+        }}
+      />
+    </div>
+  );
+}
+
+/* ----- Device mockups showing real screenshots ----- */
+
+function DeviceBar({ label }: { label: string }) {
+  return (
+    <div className="lp-mockup-bar">
+      <div className="flex items-center gap-1.5">
+        <span className="lp-dot" style={{ background: "#F87171" }} />
+        <span className="lp-dot" style={{ background: "#FBBF24" }} />
+        <span className="lp-dot" style={{ background: "#34D399" }} />
+      </div>
+      <span>app.saborsys · {label}</span>
+      <span style={{ width: 34 }} />
+    </div>
+  );
+}
+
+function LaptopMockup({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="relative">
+      <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl" style={{ background: `radial-gradient(60% 60% at 60% 40%, ${C.brandSoft} 0%, transparent 70%)` }} />
+      <div className="lp-mockup" style={{ transform: "perspective(1400px) rotateX(2deg)" }}>
+        <DeviceBar label={label} />
+        <img src={src} alt={`Tela real do sistema — ${label}`} loading="lazy" className="block w-full" />
+      </div>
+      {/* Laptop base */}
+      <div
+        className="mx-auto mt-1 h-3 rounded-b-2xl"
+        style={{
+          width: "92%",
+          background: `linear-gradient(180deg, ${C.snowSoft}, ${C.line})`,
+          boxShadow: "0 20px 30px -18px rgba(15,23,42,.25)",
+        }}
+      />
+    </div>
+  );
+}
+
+function TabletMockup({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="mx-auto max-w-[380px]" style={{ transform: "rotate(-2deg)" }}>
+      <div
+        className="rounded-[28px] p-3"
+        style={{ background: "#0F172A", boxShadow: C.cardShadowLg }}
+      >
+        <div className="overflow-hidden rounded-[18px] bg-white">
+          <DeviceBar label={label} />
+          <img src={src} alt={`Tablet — ${label}`} loading="lazy" className="block w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneMockup({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="mx-auto max-w-[260px]" style={{ transform: "rotate(3deg)" }}>
+      <div
+        className="rounded-[36px] p-2"
+        style={{ background: "#0F172A", boxShadow: C.cardShadowLg }}
+      >
+        <div className="overflow-hidden rounded-[28px] bg-white">
+          <div className="flex items-center justify-center py-1.5" style={{ background: "#0F172A" }}>
+            <span className="h-1 w-14 rounded-full" style={{ background: "#334155" }} />
+          </div>
+          <img src={src} alt={`Smartphone — ${label}`} loading="lazy" className="block w-full" />
+          <div className="py-2 text-center text-[10px]" style={{ color: C.muted }}>{label}</div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function DemoCard({ title, desc, src }: { title: string; desc: string; src: string }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-        </div>
-        <span className="text-[10px] text-muted-foreground">app.saborsys · {title}</span>
-        <span className="w-8" />
-      </div>
-      <div className="bg-muted/10">
+    <div className="lp-card overflow-hidden">
+      <DeviceBar label={title} />
+      <div style={{ background: C.snowSoft }}>
         <img src={src} alt={`Tela real do sistema — ${title}`} loading="lazy" className="block w-full" />
       </div>
-      <div className="border-t border-border px-4 py-3">
-        <div className="font-display text-sm font-semibold">{title}</div>
-        <div className="text-xs text-muted-foreground">{desc}</div>
+      <div className="px-5 py-4" style={{ borderTop: `1px solid ${C.line}` }}>
+        <div className="font-display text-sm font-semibold" style={{ color: C.ink }}>{title}</div>
+        <div className="text-xs" style={{ color: C.inkSoft }}>{desc}</div>
       </div>
     </div>
   );
 }
 
-function SystemPreview() {
+function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
-    <div className="relative">
-      <div className="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent blur-2xl" />
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-            <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-            <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-          </div>
-          <span className="text-[10px] text-muted-foreground">app.saborsys · Dashboard</span>
-          <span className="w-8" />
-        </div>
-        <img src={dashboardShot.url} alt="Dashboard do SaborSys" className="block w-full" />
-      </div>
+    <div>
+      <div className="font-display text-sm font-semibold" style={{ color: C.ink }}>{title}</div>
+      <ul className="mt-3 space-y-2 text-sm" style={{ color: C.inkSoft }}>
+        {items.map((it) => (
+          <li key={it.label}><a href={it.href} className="hover:underline">{it.label}</a></li>
+        ))}
+      </ul>
     </div>
   );
 }
-
