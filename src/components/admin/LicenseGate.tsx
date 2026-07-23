@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KeyRound, ShieldAlert, Clock, Ban, LogOut, Copy, Sparkles, CheckCircle2, MessageCircle } from "lucide-react";
+import { KeyRound, ShieldAlert, Clock, Ban, LogOut, Copy, CreditCard, CheckCircle2, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -152,7 +152,7 @@ export function LicenseGate({ children }: { children: ReactNode }) {
             <a href="mailto:suporte@lovable.app"><MessageCircle className="mr-2 h-4 w-4" /> Falar com o suporte</a>
           </Button>
           <Button asChild className="bg-primary text-primary-foreground">
-            <Link to="/admin/configuracoes/assinatura"><Sparkles className="mr-2 h-4 w-4" /> Assinar agora</Link>
+            <Link to="/admin/configuracoes/assinatura"><CreditCard className="mr-2 h-4 w-4" /> Assinar agora</Link>
           </Button>
         </div>
       </Card>

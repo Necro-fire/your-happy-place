@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
-  Check, X, Crown, Sparkles, Zap, MessageCircle, ArrowUpRight, ShieldCheck,
-  Star, TrendingUp, Package, CreditCard, Calendar, History,
+  Check, X, Crown, Zap, MessageCircle, ArrowUpRight, ShieldCheck,
+  Star, TrendingUp, Package, CreditCard, Calendar, History, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
@@ -30,38 +30,31 @@ const PRICES: Record<PlanId, Record<Cycle, number>> = {
 const CYCLE_LABEL: Record<Cycle, string> = { mes: "mês", tri: "trimestre", ano: "ano" };
 const CYCLE_MONTHS: Record<Cycle, number> = { mes: 1, tri: 3, ano: 12 };
 
-// Durante a fase de desenvolvimento, ambos os planos oferecem os mesmos recursos.
-// A diferenciação por plano será ativada apenas quando o desenvolvimento estiver concluído.
-const ALL_FEATURES = [
-  "Cardápio público",
-  "Catálogos de produtos e categorias",
-  "Pedidos (delivery, mesa, balcão)",
-  "PDV completo",
-  "Autoatendimento",
-  "Gestão de mesas",
-  "Dashboard e indicadores",
-  "Controle financeiro e fluxo de caixa",
-  "Relatórios completos",
+const BASICO_FEATURES = [
+  "Gestão completa de produtos",
+  "Cardápio digital público",
+  "Página pública personalizada da empresa",
+  "Gerenciamento de pedidos em tempo real",
+  "PDV completo (delivery, mesa, balcão, retirada)",
+  "Controle de mesas",
+  "Delivery e retirada no balcão",
   "Cadastro de clientes",
-  "Cupons e descontos",
-  "Impressão de comprovantes",
-  "QR Code do cardápio",
-  "Configurações completas do sistema",
+  "Usuários e permissões",
   "Personalização visual da empresa",
-  "Gestão de funcionários e permissões",
-  "Notificações em tempo real",
-  "Controle de estoque",
-  "Cadastro de fornecedores",
-  "Backup e histórico",
-  "Suporte via WhatsApp",
-  "Atualizações e novas funcionalidades",
+  "Logo, banners e carrossel de imagens",
+  "Configurações completas do sistema",
+  "Atualizações em tempo real",
+  "Acesso administrativo completo",
+  "Suporte oficial da plataforma",
+  "Responsividade em celular, tablet e computador",
 ];
 
-const BASICO_FEATURES = ALL_FEATURES;
-const PLUS_EXTRAS: string[] = [];
+const PLUS_EXTRAS: string[] = [
+  "Recursos avançados em desenvolvimento",
+];
 
 const COMPARE: { label: string; basico: boolean; plus: boolean }[] =
-  ALL_FEATURES.map((f) => ({ label: f, basico: true, plus: true }));
+  BASICO_FEATURES.map((f) => ({ label: f, basico: true, plus: true }));
 
 
 const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -75,7 +68,7 @@ function savingsPct(planId: PlanId, cycle: Cycle) {
 
 function AssinaturaPage() {
   const [cycle, setCycle] = useState<Cycle>("mes");
-  const [currentPlan, setCurrentPlan] = useState<PlanId>("plus");
+  const [currentPlan, setCurrentPlan] = useState<PlanId>("basico");
   const [currentCycle, setCurrentCycle] = useState<Cycle>("mes");
 
   useEffect(() => {
@@ -88,8 +81,10 @@ function AssinaturaPage() {
         .eq("owner_user_id", user.id)
         .maybeSingle();
       const p = (data?.plano || "").toLowerCase();
-      if (p === "plus" || p === "enterprise" || p === "pro") setCurrentPlan("plus");
-      else if (p === "basico" || p === "basic") setCurrentPlan("basico");
+      // Plus ainda não está disponível: qualquer plano existente é tratado como Básico.
+      if (p === "basico" || p === "basic" || p === "plus" || p === "enterprise" || p === "pro") {
+        setCurrentPlan("basico");
+      }
     })();
   }, []);
 
@@ -106,11 +101,15 @@ function AssinaturaPage() {
   }, [contratacao, currentCycle]);
 
   async function requestChange(target: PlanId) {
+    if (target === "plus") {
+      toast.info("O Plano Plus estará disponível em breve.");
+      return;
+    }
     const isSame = target === currentPlan;
-    const action = isSame ? "renovação" : target === "plus" ? "upgrade" : "downgrade";
+    const action = isSame ? "renovação" : "contratação";
     const ok = await dialog.confirm({
       title: `Solicitar ${action}`,
-      description: `Deseja solicitar ${action} para o plano ${target === "plus" ? "Plus" : "Básico"} (${CYCLE_LABEL[cycle]}) por ${BRL(PRICES[target][cycle])}?\n\nEsta é uma versão demonstrativa. Nossa equipe entrará em contato para finalizar.`,
+      description: `Deseja solicitar ${action} do Plano Básico (${CYCLE_LABEL[cycle]}) por ${BRL(PRICES[target][cycle])}?\n\nEsta é uma versão demonstrativa. Nossa equipe entrará em contato para finalizar.`,
       confirmText: "Solicitar",
     });
     if (!ok) return;
@@ -135,14 +134,14 @@ function AssinaturaPage() {
             <div>
               <h2 className="font-display text-xl font-bold">Sua Assinatura</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Gerencie seu plano, veja o comparativo e solicite upgrade quando quiser.
+                Gerencie seu plano e acompanhe seus dados de assinatura.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="gap-1 py-1">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Plano atual: {currentPlan === "plus" ? "Plus" : "Básico"}
+              Plano atual: Básico
             </Badge>
             <Badge className="gap-1 bg-emerald-500/15 py-1 text-emerald-600 hover:bg-emerald-500/20">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -160,13 +159,13 @@ function AssinaturaPage() {
             <TabsTrigger value="tri" className="gap-2 px-5">
               Trimestral
               <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
-                −{savingsPct("plus", "tri")}%
+                −{savingsPct("basico", "tri")}%
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="ano" className="gap-2 px-5">
               Anual
               <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
-                −{savingsPct("plus", "ano")}%
+                −{savingsPct("basico", "ano")}%
               </Badge>
             </TabsTrigger>
           </TabsList>
@@ -179,7 +178,7 @@ function AssinaturaPage() {
         <PlanCard
           id="basico"
           name="Básico"
-          tagline="Tudo o que você precisa para começar."
+          tagline="Tudo o que você precisa para operar seu negócio."
           icon={<Package className="h-5 w-5" />}
           price={PRICES.basico[cycle]}
           cycle={cycle}
@@ -191,12 +190,11 @@ function AssinaturaPage() {
           id="plus"
           name="Plus"
           tagline="Recursos avançados para escalar o negócio."
-          icon={<Sparkles className="h-5 w-5" />}
+          icon={<Crown className="h-5 w-5" />}
           price={PRICES.plus[cycle]}
           cycle={cycle}
-          features={[...BASICO_FEATURES.slice(0, 4), ...PLUS_EXTRAS]}
-          highlighted
-          current={currentPlan === "plus"}
+          features={[...BASICO_FEATURES.slice(0, 6), ...PLUS_EXTRAS]}
+          comingSoon
           onSelect={() => requestChange("plus")}
         />
       </div>
@@ -208,8 +206,8 @@ function AssinaturaPage() {
           <h3 className="font-display text-lg font-semibold">Informações da Assinatura Atual</h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <InfoItem icon={<Crown className="h-4 w-4" />} label="Plano" value={currentPlan === "plus" ? "Plus" : "Básico"} />
-          <InfoItem icon={<TrendingUp className="h-4 w-4" />} label="Valor" value={`${BRL(PRICES[currentPlan][currentCycle])} / ${CYCLE_LABEL[currentCycle]}`} />
+          <InfoItem icon={<Crown className="h-4 w-4" />} label="Plano" value="Básico" />
+          <InfoItem icon={<TrendingUp className="h-4 w-4" />} label="Valor" value={`${BRL(PRICES.basico[currentCycle])} / ${CYCLE_LABEL[currentCycle]}`} />
           <InfoItem
             icon={<span className="grid h-4 w-4 place-items-center"><span className="h-2 w-2 rounded-full bg-emerald-500" /></span>}
             label="Situação"
@@ -222,18 +220,15 @@ function AssinaturaPage() {
         </div>
         <Separator className="my-5" />
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => requestChange(currentPlan)} variant="outline">
+          <Button onClick={() => requestChange("basico")} variant="outline">
             <Zap className="mr-2 h-4 w-4" /> Renovar assinatura
           </Button>
-          {currentPlan === "basico" ? (
-            <Button onClick={() => requestChange("plus")}>
-              <ArrowUpRight className="mr-2 h-4 w-4" /> Solicitar upgrade
-            </Button>
-          ) : (
-            <Button onClick={() => requestChange("basico")} variant="outline">
-              Solicitar downgrade
-            </Button>
-          )}
+          <Button variant="outline" disabled className="gap-2">
+            <ArrowUpRight className="h-4 w-4" /> Upgrade para Plus
+            <Badge variant="secondary" className="ml-1 gap-1">
+              <Clock className="h-3 w-3" /> Em breve
+            </Badge>
+          </Button>
           <Button variant="ghost" onClick={contactSupport}>
             <MessageCircle className="mr-2 h-4 w-4" /> Falar com suporte
           </Button>
@@ -253,8 +248,11 @@ function AssinaturaPage() {
                 <th className="px-5 py-3 text-left font-semibold">Recurso</th>
                 <th className="px-5 py-3 text-center font-semibold">Básico</th>
                 <th className="px-5 py-3 text-center font-semibold">
-                  <span className="inline-flex items-center gap-1 text-primary">
-                    <Star className="h-3 w-3 fill-primary" /> Plus
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                    Plus
+                    <Badge variant="secondary" className="ml-1 gap-1 py-0 text-[10px]">
+                      <Clock className="h-2.5 w-2.5" /> Em breve
+                    </Badge>
                   </span>
                 </th>
               </tr>
@@ -266,8 +264,8 @@ function AssinaturaPage() {
                   <td className="px-5 py-3 text-center">
                     {row.basico ? <Check className="mx-auto h-4 w-4 text-emerald-500" /> : <X className="mx-auto h-4 w-4 text-muted-foreground/40" />}
                   </td>
-                  <td className="px-5 py-3 text-center">
-                    {row.plus ? <Check className="mx-auto h-4 w-4 text-emerald-500" /> : <X className="mx-auto h-4 w-4 text-muted-foreground/40" />}
+                  <td className="px-5 py-3 text-center text-muted-foreground/60">
+                    <Check className="mx-auto h-4 w-4" />
                   </td>
                 </tr>
               ))}
@@ -286,7 +284,7 @@ function AssinaturaPage() {
           <li className="flex items-start gap-3">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
             <div>
-              <div className="font-medium">Assinatura iniciada — Plano {currentPlan === "plus" ? "Plus" : "Básico"}</div>
+              <div className="font-medium">Assinatura iniciada — Plano Básico</div>
               <div className="text-xs text-muted-foreground">{contratacao.toLocaleDateString("pt-BR")}</div>
             </div>
           </li>
@@ -315,7 +313,7 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function PlanCard({
-  id, name, tagline, icon, price, cycle, features, highlighted, current, onSelect,
+  id, name, tagline, icon, price, cycle, features, highlighted, current, comingSoon, onSelect,
 }: {
   id: PlanId;
   name: string;
@@ -326,6 +324,7 @@ function PlanCard({
   features: string[];
   highlighted?: boolean;
   current?: boolean;
+  comingSoon?: boolean;
   onSelect: () => void;
 }) {
   const saving = savingsPct(id, cycle);
@@ -333,27 +332,36 @@ function PlanCard({
   return (
     <Card
       className={cn(
-        "relative flex flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl",
-        highlighted
+        "relative flex flex-col overflow-hidden p-6 transition-all duration-300",
+        comingSoon
+          ? "border-dashed border-border/70 bg-muted/20 opacity-90"
+          : "hover:-translate-y-0.5 hover:shadow-xl",
+        highlighted && !comingSoon
           ? "border-primary/60 bg-gradient-to-br from-primary/10 via-background to-background shadow-lg ring-1 ring-primary/20"
           : "border-border",
       )}
     >
-      {highlighted && (
+      {comingSoon && (
+        <Badge variant="secondary" className="absolute right-4 top-4 gap-1">
+          <Clock className="h-3 w-3" /> Em breve
+        </Badge>
+      )}
+      {highlighted && !comingSoon && (
         <Badge className="absolute right-4 top-4 gap-1 bg-primary text-primary-foreground">
           <Star className="h-3 w-3 fill-current" /> Mais Popular
         </Badge>
       )}
-      {current && (
+      {current && !comingSoon && (
         <Badge className="absolute left-4 top-4 gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
           <ShieldCheck className="h-3 w-3" /> Plano Atual
         </Badge>
       )}
 
-      <div className={cn("mt-8 flex items-center gap-2", (highlighted || current) && "mt-10")}>
+      <div className={cn("mt-8 flex items-center gap-2", (highlighted || current || comingSoon) && "mt-10")}>
         <div className={cn(
           "grid h-10 w-10 place-items-center rounded-lg",
-          highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
+          comingSoon ? "bg-muted text-muted-foreground" :
+            highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
         )}>
           {icon}
         </div>
@@ -365,10 +373,13 @@ function PlanCard({
 
       <div className="mt-5">
         <div className="flex items-baseline gap-1">
-          <span className="font-display text-4xl font-bold tracking-tight">{BRL(price)}</span>
+          <span className={cn(
+            "font-display text-4xl font-bold tracking-tight",
+            comingSoon && "text-muted-foreground",
+          )}>{BRL(price)}</span>
           <span className="text-sm text-muted-foreground">/ {CYCLE_LABEL[cycle]}</span>
         </div>
-        {cycle !== "mes" && (
+        {cycle !== "mes" && !comingSoon && (
           <div className="mt-1 flex items-center gap-2 text-xs">
             <span className="text-muted-foreground">Equivale a {BRL(monthlyEq)}/mês</span>
             {saving > 0 && (
@@ -377,6 +388,11 @@ function PlanCard({
               </Badge>
             )}
           </div>
+        )}
+        {comingSoon && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Este plano será disponibilizado em breve. Aguarde novidades.
+          </p>
         )}
       </div>
 
@@ -387,24 +403,36 @@ function PlanCard({
           <li key={f} className="flex items-start gap-2 text-sm">
             <span className={cn(
               "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full",
-              highlighted ? "bg-primary/15 text-primary" : "bg-emerald-500/15 text-emerald-600",
+              comingSoon ? "bg-muted text-muted-foreground" :
+                highlighted ? "bg-primary/15 text-primary" : "bg-emerald-500/15 text-emerald-600",
             )}>
               <Check className="h-3 w-3" />
             </span>
-            <span>{f}</span>
+            <span className={cn(comingSoon && "text-muted-foreground")}>{f}</span>
           </li>
         ))}
       </ul>
 
-      <Button
-        onClick={onSelect}
-        disabled={current}
-        className={cn("mt-6 w-full", highlighted && !current && "bg-primary hover:bg-primary/90")}
-        variant={current ? "outline" : highlighted ? "default" : "outline"}
-        size="lg"
-      >
-        {current ? "Plano atual" : id === "plus" ? "Solicitar upgrade" : "Contratar plano"}
-      </Button>
+      {comingSoon ? (
+        <Button
+          disabled
+          variant="outline"
+          size="lg"
+          className="mt-6 w-full gap-2"
+        >
+          <Clock className="h-4 w-4" /> Em breve
+        </Button>
+      ) : (
+        <Button
+          onClick={onSelect}
+          disabled={current}
+          className={cn("mt-6 w-full", highlighted && !current && "bg-primary hover:bg-primary/90")}
+          variant={current ? "outline" : highlighted ? "default" : "default"}
+          size="lg"
+        >
+          {current ? "Plano atual" : "Contratar plano"}
+        </Button>
+      )}
     </Card>
   );
 }

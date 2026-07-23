@@ -13,7 +13,7 @@ import {
   User,
   Eye,
   EyeOff,
-  Sparkles,
+  ShieldCheck,
   TrendingUp,
   Utensils,
   ClipboardList,
@@ -120,7 +120,7 @@ function AuthPage() {
         {/* ── Institutional side ─────────────────────────── */}
         <section className="order-2 hidden animate-fade-in lg:order-1 lg:block">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             Sua gestão, mais simples
           </div>
 
@@ -500,7 +500,7 @@ function IllustrationPOS() {
         className="absolute -right-2 bottom-8 flex items-center gap-1.5 rounded-full border border-border/70 bg-card/90 px-3 py-1.5 text-[11px] font-semibold shadow-soft backdrop-blur"
         style={{ animation: "fade-in .8s ease-out .6s both" }}
       >
-        <Sparkles className="h-3 w-3 text-primary" />
+        <TrendingUp className="h-3 w-3 text-primary" />
         +32% em vendas
       </div>
     </div>
