@@ -63,7 +63,7 @@ function MasterConfiguracoesPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-[22px] font-semibold tracking-tight text-[#0f172a]">
-            <SettingsIcon className="h-5 w-5 text-[#2563eb]" />
+            <SettingsIcon className="h-5 w-5 text-[var(--ms-primary)]" />
             Configurações
           </h1>
           <p className="mt-1 text-[13px] text-[#6b7280]">
@@ -75,7 +75,7 @@ function MasterConfiguracoesPage() {
       {/* Mode selector */}
       <section className="ms-card p-5">
         <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-[#0f172a]">
-          <PaletteIcon className="h-4 w-4 text-[#2563eb]" /> Modo de exibição
+          <PaletteIcon className="h-4 w-4 text-[var(--ms-primary)]" /> Modo de exibição
         </div>
         <p className="mb-4 text-[12px] text-[#6b7280]">
           A alteração é aplicada instantaneamente e mantida entre sessões.
@@ -100,7 +100,7 @@ function MasterConfiguracoesPage() {
                 className={
                   "inline-flex h-9 items-center gap-2 rounded-md px-4 text-[13px] font-medium transition " +
                   (active
-                    ? "bg-[#2563eb] text-white shadow-sm"
+                    ? "bg-[var(--ms-primary)] text-white shadow-sm"
                     : "text-[#4b5563] hover:bg-[var(--ms-hover)]")
                 }
               >
@@ -134,14 +134,14 @@ function MasterConfiguracoesPage() {
                 className={
                   "group relative overflow-hidden rounded-xl border bg-white p-4 text-left transition " +
                   (isActive
-                    ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    ? "border-[var(--ms-primary)] shadow-[0_0_0_3px_var(--ms-ring)]"
                     : "border-[var(--ms-border)] hover:border-[var(--ms-border-strong)]")
                 }
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-[14px] font-medium text-[#0f172a]">{p.label}</div>
                   {isActive && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#eff6ff] px-2 py-0.5 text-[10px] font-medium text-[#2563eb]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ms-primary-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--ms-primary)]">
                       <Check className="h-3 w-3" /> Ativo
                     </span>
                   )}
