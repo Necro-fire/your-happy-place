@@ -437,14 +437,66 @@ function Landing() {
             />
           </div>
 
-          {/* Device mockups */}
-          <div className="mt-16 grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
-            <Reveal><LaptopMockup src={pdvShot.url} label="PDV · Frente de caixa" /></Reveal>
-            <Reveal delay={120}><TabletMockup src={mesasShot.url} label="Controle de Mesas" /></Reveal>
-          </div>
-          <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_1.35fr] lg:items-center">
-            <Reveal><PhoneMockup src={pedidosShot.url} label="Pedidos" /></Reveal>
-            <Reveal delay={120}><LaptopMockup src={caixaShot.url} label="Caixa" /></Reveal>
+          {/* Feature showcase — screenshot + descrição */}
+          <div className="mt-20 space-y-24">
+            {[
+              {
+                shot: pdvShot.url,
+                chip: "PDV",
+                title: "Frente de caixa profissional",
+                desc: "Uma experiência de venda pensada para o ritmo do balcão: busca instantânea, categorias favoritas, atalhos e comanda sempre à vista.",
+                bullets: ["Busca por nome, código ou código de barras", "Mesa, balcão, entrega e retirada em um só lugar", "Impressão de cupom e envio para produção"],
+              },
+              {
+                shot: mesasShot.url,
+                chip: "Mesas",
+                title: "Controle de salão em tempo real",
+                desc: "Mapa visual do seu salão com status, tempo de ocupação e integração direta com o PDV — do abrir ao fechar a conta.",
+                bullets: ["Status por cor: livre, ocupada, aguardando", "Abertura e transferência de comandas", "Integração 1:1 com o PDV"],
+              },
+              {
+                shot: caixaShot.url,
+                chip: "Caixa",
+                title: "Caixa com conferência real",
+                desc: "Abertura, sangria, suprimento e fechamento com histórico completo, divergências apontadas e exportação em CSV.",
+                bullets: ["Movimentações classificadas por forma de pagamento", "Fechamento com justificativa em caso de diferença", "Histórico auditável de sessões"],
+              },
+              {
+                shot: pedidosShot.url,
+                chip: "Pedidos",
+                title: "Central de pedidos unificada",
+                desc: "Acompanhe todos os pedidos por status — do balcão, delivery, mesa ou cardápio digital — em uma única fila organizada.",
+                bullets: ["Fila por status: novo, em produção, pronto, entregue", "Filtros por tipo, período e cliente", "Notificações em tempo real"],
+              },
+            ].map((f, i) => (
+              <Reveal key={f.chip} delay={i * 60}>
+                <div className={`grid items-center gap-10 lg:grid-cols-2 ${i % 2 ? "lg:[&>div:first-child]:order-2" : ""}`}>
+                  <ScreenFrame src={f.shot} label={`${f.chip} · SaborSys`} />
+                  <div>
+                    <span className="lp-chip">{f.chip}</span>
+                    <h3 className="mt-4 font-display text-2xl font-bold md:text-3xl" style={{ color: C.ink }}>
+                      {f.title}
+                    </h3>
+                    <p className="mt-3 text-base leading-relaxed" style={{ color: C.inkSoft }}>
+                      {f.desc}
+                    </p>
+                    <ul className="mt-6 space-y-3">
+                      {f.bullets.map((b) => (
+                        <li key={b} className="flex items-start gap-3" style={{ color: C.inkSoft }}>
+                          <span
+                            className="mt-1 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full"
+                            style={{ background: C.brandSoft, color: C.brand }}
+                          >
+                            <Check className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                          <span className="text-sm md:text-base">{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
 
         </div>
@@ -828,6 +880,24 @@ function PhoneMockup({ src, label }: { src: string; label: string }) {
           <img src={src} alt={`Smartphone — ${label}`} loading="lazy" className="block w-full" />
           <div className="py-2 text-center text-[10px]" style={{ color: C.muted }}>{label}</div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenFrame({ src, label }: { src: string; label: string }) {
+  return (
+    <div className="relative">
+      <div
+        className="pointer-events-none absolute -inset-8 -z-10 rounded-[32px]"
+        style={{ background: `radial-gradient(60% 60% at 50% 40%, ${C.brandSoft} 0%, transparent 70%)` }}
+      />
+      <div
+        className="overflow-hidden rounded-2xl"
+        style={{ background: "#fff", border: `1px solid ${C.line}`, boxShadow: C.cardShadowLg }}
+      >
+        <DeviceBar label={label} />
+        <img src={src} alt={`Tela real — ${label}`} loading="lazy" className="block w-full" />
       </div>
     </div>
   );
