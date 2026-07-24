@@ -1680,6 +1680,145 @@ export type Database = {
           },
         ]
       }
+      subscription_benefits: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          ordem: number
+          plan_id: string
+          texto: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          ordem?: number
+          plan_id: string
+          texto: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          ordem?: number
+          plan_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_benefits_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_coupons: {
+        Row: {
+          aplicacao: string
+          ativo: boolean
+          codigo: string
+          created_at: string
+          id: string
+          limite_uso: number | null
+          nome: string
+          plan_id: string | null
+          tipo: string
+          updated_at: string
+          usos: number
+          validade: string | null
+          valor: number
+        }
+        Insert: {
+          aplicacao?: string
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          limite_uso?: number | null
+          nome: string
+          plan_id?: string | null
+          tipo: string
+          updated_at?: string
+          usos?: number
+          validade?: string | null
+          valor?: number
+        }
+        Update: {
+          aplicacao?: string
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          limite_uso?: number | null
+          nome?: string
+          plan_id?: string | null
+          tipo?: string
+          updated_at?: string
+          usos?: number
+          validade?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_coupons_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          em_breve: boolean
+          id: string
+          nome: string
+          ordem: number
+          preco_anual: number
+          preco_mensal: number
+          preco_trimestral: number
+          renovacao_automatica: boolean
+          slug: string
+          trial_dias: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          em_breve?: boolean
+          id?: string
+          nome: string
+          ordem?: number
+          preco_anual?: number
+          preco_mensal?: number
+          preco_trimestral?: number
+          renovacao_automatica?: boolean
+          slug: string
+          trial_dias?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          em_breve?: boolean
+          id?: string
+          nome?: string
+          ordem?: number
+          preco_anual?: number
+          preco_mensal?: number
+          preco_trimestral?: number
+          renovacao_automatica?: boolean
+          slug?: string
+          trial_dias?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           ativo: boolean
