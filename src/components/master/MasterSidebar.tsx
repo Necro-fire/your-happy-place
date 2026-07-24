@@ -3,7 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Building2, KeyRound, ScrollText, LogOut,
-  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu,
+  Receipt, CreditCard, BarChart3, Users, Settings, ShieldCheck, Box, Menu, MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
