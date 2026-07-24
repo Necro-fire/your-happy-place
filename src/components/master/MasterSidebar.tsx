@@ -17,7 +17,7 @@ const items: Item[] = [
   { title: "Dashboard", url: "/master", icon: LayoutDashboard, exact: true },
   { title: "Empresas", url: "/master/clientes", icon: Building2 },
   { title: "Licenças", url: "/master/licencas", icon: KeyRound },
-  { title: "Assinaturas", icon: Receipt, soon: true },
+  { title: "Assinaturas", url: "/master/assinaturas", icon: Receipt },
   { title: "Pagamentos", icon: CreditCard, soon: true },
   { title: "Usuários", icon: Users, soon: true },
   { title: "Relatórios", icon: BarChart3, soon: true },

@@ -324,6 +324,28 @@ body { overscroll-behavior-y: none; overflow-x: hidden; }
 .master-saas table.ms-table tbody tr:hover { background: var(--ms-hover); }
 .master-saas table.ms-table tbody tr:last-child td { border-bottom: none; }
 
+/* Hover micro-interactions */
+.master-saas .ms-hover-lift {
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  cursor: pointer;
+}
+.master-saas .ms-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--ms-primary) 35%, transparent);
+  border-color: var(--ms-primary);
+}
+.master-saas .ms-hover-row { transition: background .15s ease, box-shadow .15s ease; }
+.master-saas table.ms-table tbody tr.ms-hover-row:hover {
+  background: color-mix(in oklab, var(--ms-primary) 6%, var(--ms-surface));
+  box-shadow: inset 3px 0 0 var(--ms-primary);
+}
+.master-saas .ms-hover-icon {
+  transition: transform .15s ease, background .15s ease, color .15s ease;
+}
+.master-saas .ms-hover-icon:hover { transform: scale(1.08); }
+.master-saas .ms-btn, .master-saas .ms-btn--primary { transition: transform .12s ease, background .15s ease, box-shadow .15s ease; }
+.master-saas .ms-btn:hover, .master-saas .ms-btn--primary:hover { transform: translateY(-1px); }
+
 /* --- Dark-mode contrast bridge for legacy hardcoded palette --------
    Master pages still use arbitrary hex Tailwind classes (`text-[#0f172a]`,
    `bg-white`, `border-[#e5e7eb]`, etc.). In dark mode those turn illegible
