@@ -23,6 +23,7 @@ const items: Item[] = [
   { title: "Relatórios", icon: BarChart3, soon: true },
   { title: "Logs", url: "/master/logs", icon: ScrollText },
   { title: "Segurança", icon: ShieldCheck, soon: true },
+  { title: "Suporte", url: "/master/suporte", icon: MessageCircle },
   { title: "Configurações", url: "/master/configuracoes", icon: Settings },
 ];
 
