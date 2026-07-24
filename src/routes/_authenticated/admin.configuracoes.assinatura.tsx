@@ -125,20 +125,18 @@ function AssinaturaPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg">
-              <Crown className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="font-display text-xl font-bold">Sua Assinatura</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Gerencie seu plano e acompanhe seus dados de assinatura.
-              </p>
-            </div>
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-4 sm:p-6">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:gap-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg sm:h-12 sm:w-12">
+            <Crown className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-bold sm:text-xl">Sua Assinatura</h2>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              Gerencie seu plano e acompanhe seus dados de assinatura.
+            </p>
+          </div>
+          <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-1 md:justify-end">
             <Badge variant="secondary" className="gap-1 py-1">
               <ShieldCheck className="h-3.5 w-3.5" />
               Plano atual: Básico
@@ -153,24 +151,24 @@ function AssinaturaPage() {
 
       {/* Cycle switcher */}
       <div className="flex flex-col items-center gap-3">
-        <Tabs value={cycle} onValueChange={(v) => setCycle(v as Cycle)}>
-          <TabsList className="h-11">
-            <TabsTrigger value="mes" className="px-5">Mensal</TabsTrigger>
-            <TabsTrigger value="tri" className="gap-2 px-5">
-              Trimestral
+        <Tabs value={cycle} onValueChange={(v) => setCycle(v as Cycle)} className="w-full sm:w-auto">
+          <TabsList className="grid h-auto w-full grid-cols-3 sm:inline-flex sm:h-11 sm:w-auto">
+            <TabsTrigger value="mes" className="px-3 py-2 sm:px-5">Mensal</TabsTrigger>
+            <TabsTrigger value="tri" className="flex-col gap-1 px-3 py-2 sm:flex-row sm:gap-2 sm:px-5">
+              <span>Trimestral</span>
               <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
                 −{savingsPct("basico", "tri")}%
               </Badge>
             </TabsTrigger>
-            <TabsTrigger value="ano" className="gap-2 px-5">
-              Anual
+            <TabsTrigger value="ano" className="flex-col gap-1 px-3 py-2 sm:flex-row sm:gap-2 sm:px-5">
+              <span>Anual</span>
               <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
                 −{savingsPct("basico", "ano")}%
               </Badge>
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <p className="text-xs text-muted-foreground">Economize contratando trimestralmente ou anualmente.</p>
+        <p className="px-4 text-center text-xs text-muted-foreground">Economize contratando trimestralmente ou anualmente.</p>
       </div>
 
       {/* Plans */}
@@ -200,12 +198,12 @@ function AssinaturaPage() {
       </div>
 
       {/* Current subscription */}
-      <Card className="p-5">
+      <Card className="p-4 sm:p-5">
         <div className="mb-4 flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-lg font-semibold">Informações da Assinatura Atual</h3>
+          <h3 className="font-display text-base font-semibold sm:text-lg">Informações da Assinatura Atual</h3>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <InfoItem icon={<Crown className="h-4 w-4" />} label="Plano" value="Básico" />
           <InfoItem icon={<TrendingUp className="h-4 w-4" />} label="Valor" value={`${BRL(PRICES.basico[currentCycle])} / ${CYCLE_LABEL[currentCycle]}`} />
           <InfoItem
@@ -219,17 +217,17 @@ function AssinaturaPage() {
           <InfoItem icon={<CreditCard className="h-4 w-4" />} label="Forma de pagamento" value={<span className="text-muted-foreground">A configurar</span>} />
         </div>
         <Separator className="my-5" />
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => requestChange("basico")} variant="outline">
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
+          <Button onClick={() => requestChange("basico")} variant="outline" className="w-full sm:w-auto">
             <Zap className="mr-2 h-4 w-4" /> Renovar assinatura
           </Button>
-          <Button variant="outline" disabled className="gap-2">
+          <Button variant="outline" disabled className="w-full gap-2 sm:w-auto">
             <ArrowUpRight className="h-4 w-4" /> Upgrade para Plus
             <Badge variant="secondary" className="ml-1 gap-1">
               <Clock className="h-3 w-3" /> Em breve
             </Badge>
           </Button>
-          <Button variant="ghost" onClick={contactSupport}>
+          <Button variant="ghost" onClick={contactSupport} className="w-full sm:w-auto">
             <MessageCircle className="mr-2 h-4 w-4" /> Falar com suporte
           </Button>
         </div>
@@ -332,7 +330,7 @@ function PlanCard({
   return (
     <Card
       className={cn(
-        "relative flex flex-col overflow-hidden p-6 transition-all duration-300",
+        "relative flex flex-col overflow-hidden p-5 transition-all duration-300 sm:p-6",
         comingSoon
           ? "border-dashed border-border/70 bg-muted/20 opacity-90"
           : "hover:-translate-y-0.5 hover:shadow-xl",
@@ -341,35 +339,41 @@ function PlanCard({
           : "border-border",
       )}
     >
-      {comingSoon && (
-        <Badge variant="secondary" className="absolute right-4 top-4 gap-1">
-          <Clock className="h-3 w-3" /> Em breve
-        </Badge>
-      )}
-      {highlighted && !comingSoon && (
-        <Badge className="absolute right-4 top-4 gap-1 bg-primary text-primary-foreground">
-          <Star className="h-3 w-3 fill-current" /> Mais Popular
-        </Badge>
-      )}
-      {current && !comingSoon && (
-        <Badge className="absolute left-4 top-4 gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
-          <ShieldCheck className="h-3 w-3" /> Plano Atual
-        </Badge>
+      {/* Status badges row (in-flow, no overlap) */}
+      {(comingSoon || highlighted || current) && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {current && !comingSoon && (
+            <Badge className="gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
+              <ShieldCheck className="h-3 w-3" /> Plano Atual
+            </Badge>
+          )}
+          {highlighted && !comingSoon && (
+            <Badge className="gap-1 bg-primary text-primary-foreground">
+              <Star className="h-3 w-3 fill-current" /> Mais Popular
+            </Badge>
+          )}
+          {comingSoon && (
+            <Badge variant="secondary" className="ml-auto gap-1">
+              <Clock className="h-3 w-3" /> Em breve
+            </Badge>
+          )}
+        </div>
       )}
 
-      <div className={cn("mt-8 flex items-center gap-2", (highlighted || current || comingSoon) && "mt-10")}>
+      <div className="flex items-center gap-3">
         <div className={cn(
-          "grid h-10 w-10 place-items-center rounded-lg",
+          "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
           comingSoon ? "bg-muted text-muted-foreground" :
             highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
         )}>
           {icon}
         </div>
-        <div>
-          <h3 className="font-display text-xl font-bold">{name}</h3>
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-bold sm:text-xl">{name}</h3>
           <p className="text-xs text-muted-foreground">{tagline}</p>
         </div>
       </div>
+
 
       <div className="mt-5">
         <div className="flex items-baseline gap-1">
