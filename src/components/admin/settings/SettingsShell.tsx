@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Building2, Users, Palette, Calculator, Boxes, CreditCard, Wallet,
   Bell, Lock, Database, Plug, LifeBuoy, Crown, Clock, Tag, Image as ImageIcon,
+  UserCircle,
 } from "lucide-react";
 
 export type SettingsSection = {
@@ -9,12 +10,14 @@ export type SettingsSection = {
   title: string;
   desc: string;
   icon: typeof Building2;
-  group: "Empresa" | "Operação" | "Financeiro" | "Sistema" | "Ajuda";
+  group: "Conta" | "Empresa" | "Operação" | "Financeiro" | "Sistema" | "Ajuda";
   comingSoon?: boolean;
 };
 
 export const SECTIONS: SettingsSection[] = [
-  { slug: "empresa", title: "Empresa", desc: "Dados comerciais, contato, endereço e horários", icon: Building2, group: "Empresa" },
+  { slug: "perfil", title: "Dados Pessoais", desc: "Sua conta, contato pessoal e senha", icon: UserCircle, group: "Conta" },
+
+  { slug: "empresa", title: "Dados da Empresa", desc: "Estabelecimento, contato comercial, endereço e horários", icon: Building2, group: "Empresa" },
   { slug: "usuarios", title: "Usuários e Permissões", desc: "Cargos, acessos e controle de perfis", icon: Users, group: "Empresa" },
   { slug: "aparencia", title: "Aparência", desc: "Tema claro/escuro e paleta de cores", icon: Palette, group: "Empresa" },
   { slug: "design", title: "Design da Empresa", desc: "Logo, banners, capa e galeria", icon: ImageIcon, group: "Empresa" },
@@ -35,7 +38,7 @@ export const SECTIONS: SettingsSection[] = [
   { slug: "suporte", title: "Suporte", desc: "Central de ajuda e atendimento", icon: LifeBuoy, group: "Ajuda" },
 ];
 
-const groupOrder: SettingsSection["group"][] = ["Empresa", "Operação", "Financeiro", "Sistema", "Ajuda"];
+const groupOrder: SettingsSection["group"][] = ["Conta", "Empresa", "Operação", "Financeiro", "Sistema", "Ajuda"];
 
 export function SettingsSideNav() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });

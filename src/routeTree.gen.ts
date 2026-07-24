@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminConfiguracoesIndexRouteImport } from './rout
 import { Route as AuthenticatedAdminConfiguracoesUsuariosRouteImport } from './routes/_authenticated/admin.configuracoes.usuarios'
 import { Route as AuthenticatedAdminConfiguracoesSuporteRouteImport } from './routes/_authenticated/admin.configuracoes.suporte'
 import { Route as AuthenticatedAdminConfiguracoesSegurancaRouteImport } from './routes/_authenticated/admin.configuracoes.seguranca'
+import { Route as AuthenticatedAdminConfiguracoesPerfilRouteImport } from './routes/_authenticated/admin.configuracoes.perfil'
 import { Route as AuthenticatedAdminConfiguracoesPdvRouteImport } from './routes/_authenticated/admin.configuracoes.pdv'
 import { Route as AuthenticatedAdminConfiguracoesPagamentosRouteImport } from './routes/_authenticated/admin.configuracoes.pagamentos'
 import { Route as AuthenticatedAdminConfiguracoesNotificacoesRouteImport } from './routes/_authenticated/admin.configuracoes.notificacoes'
@@ -267,6 +268,12 @@ const AuthenticatedAdminConfiguracoesSegurancaRoute =
     path: '/seguranca',
     getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
   } as any)
+const AuthenticatedAdminConfiguracoesPerfilRoute =
+  AuthenticatedAdminConfiguracoesPerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
+    getParentRoute: () => AuthenticatedAdminConfiguracoesRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesPdvRoute =
   AuthenticatedAdminConfiguracoesPdvRouteImport.update({
     id: '/pdv',
@@ -386,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/admin/configuracoes/perfil': typeof AuthenticatedAdminConfiguracoesPerfilRoute
   '/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
   '/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
@@ -434,6 +442,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/admin/configuracoes/perfil': typeof AuthenticatedAdminConfiguracoesPerfilRoute
   '/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
   '/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
@@ -487,6 +496,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes/notificacoes': typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   '/_authenticated/admin/configuracoes/pagamentos': typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   '/_authenticated/admin/configuracoes/pdv': typeof AuthenticatedAdminConfiguracoesPdvRoute
+  '/_authenticated/admin/configuracoes/perfil': typeof AuthenticatedAdminConfiguracoesPerfilRoute
   '/_authenticated/admin/configuracoes/seguranca': typeof AuthenticatedAdminConfiguracoesSegurancaRoute
   '/_authenticated/admin/configuracoes/suporte': typeof AuthenticatedAdminConfiguracoesSuporteRoute
   '/_authenticated/admin/configuracoes/usuarios': typeof AuthenticatedAdminConfiguracoesUsuariosRoute
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/notificacoes'
     | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/pdv'
+    | '/admin/configuracoes/perfil'
     | '/admin/configuracoes/seguranca'
     | '/admin/configuracoes/suporte'
     | '/admin/configuracoes/usuarios'
@@ -588,6 +599,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/notificacoes'
     | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/pdv'
+    | '/admin/configuracoes/perfil'
     | '/admin/configuracoes/seguranca'
     | '/admin/configuracoes/suporte'
     | '/admin/configuracoes/usuarios'
@@ -640,6 +652,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes/notificacoes'
     | '/_authenticated/admin/configuracoes/pagamentos'
     | '/_authenticated/admin/configuracoes/pdv'
+    | '/_authenticated/admin/configuracoes/perfil'
     | '/_authenticated/admin/configuracoes/seguranca'
     | '/_authenticated/admin/configuracoes/suporte'
     | '/_authenticated/admin/configuracoes/usuarios'
@@ -929,6 +942,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesSegurancaRouteImport
       parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
     }
+    '/_authenticated/admin/configuracoes/perfil': {
+      id: '/_authenticated/admin/configuracoes/perfil'
+      path: '/perfil'
+      fullPath: '/admin/configuracoes/perfil'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesPerfilRouteImport
+      parentRoute: typeof AuthenticatedAdminConfiguracoesRoute
+    }
     '/_authenticated/admin/configuracoes/pdv': {
       id: '/_authenticated/admin/configuracoes/pdv'
       path: '/pdv'
@@ -1029,6 +1049,7 @@ interface AuthenticatedAdminConfiguracoesRouteChildren {
   AuthenticatedAdminConfiguracoesNotificacoesRoute: typeof AuthenticatedAdminConfiguracoesNotificacoesRoute
   AuthenticatedAdminConfiguracoesPagamentosRoute: typeof AuthenticatedAdminConfiguracoesPagamentosRoute
   AuthenticatedAdminConfiguracoesPdvRoute: typeof AuthenticatedAdminConfiguracoesPdvRoute
+  AuthenticatedAdminConfiguracoesPerfilRoute: typeof AuthenticatedAdminConfiguracoesPerfilRoute
   AuthenticatedAdminConfiguracoesSegurancaRoute: typeof AuthenticatedAdminConfiguracoesSegurancaRoute
   AuthenticatedAdminConfiguracoesSuporteRoute: typeof AuthenticatedAdminConfiguracoesSuporteRoute
   AuthenticatedAdminConfiguracoesUsuariosRoute: typeof AuthenticatedAdminConfiguracoesUsuariosRoute
@@ -1061,6 +1082,8 @@ const AuthenticatedAdminConfiguracoesRouteChildren: AuthenticatedAdminConfigurac
       AuthenticatedAdminConfiguracoesPagamentosRoute,
     AuthenticatedAdminConfiguracoesPdvRoute:
       AuthenticatedAdminConfiguracoesPdvRoute,
+    AuthenticatedAdminConfiguracoesPerfilRoute:
+      AuthenticatedAdminConfiguracoesPerfilRoute,
     AuthenticatedAdminConfiguracoesSegurancaRoute:
       AuthenticatedAdminConfiguracoesSegurancaRoute,
     AuthenticatedAdminConfiguracoesSuporteRoute:
