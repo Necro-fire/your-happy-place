@@ -1,18 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import { dialog } from "@/components/ui/app-dialog";
-import { logMaster } from "@/lib/master-log";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fmtDate } from "@/lib/format";
-import { maskPhone, maskCPFOrCNPJ } from "@/lib/masks";
-import { Plus, Pencil, Ban, CheckCircle2, Trash2, RotateCw, Search, Download } from "lucide-react";
+import { Search, Eye, ExternalLink, Copy, Info } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/master/clientes")({
   component: ClientesMaster,
@@ -22,8 +15,9 @@ type Tenant = {
   id: string; codigo: string; nome: string; empresa: string | null; documento: string | null;
   email: string | null; telefone: string | null; whatsapp: string | null; cidade: string | null;
   estado: string | null; segmento: string | null; plano: string; status: string;
-  versao_instalada: string | null; ultimo_acesso: string | null; ultima_sync: string | null;
-  ativado_em: string | null; vence_em: string | null; observacoes: string | null;
+  ultimo_acesso: string | null; ativado_em: string | null; vence_em: string | null;
+  observacoes: string | null; slug: string; menu_codigo: string | null;
+  public_codigo: string | null; owner_user_id: string | null; created_at: string;
 };
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; label: string }> = {
@@ -33,18 +27,10 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; lab
   cancelado:  { bg: "bg-[#f5f3ff]", text: "text-[#7c3aed]", dot: "bg-[#8b5cf6]", label: "Cancelado" },
 };
 
-const PLAN_STYLES: Record<string, string> = {
-  basico:       "bg-[#f1f5f9] text-[#475569]",
-  profissional: "bg-[#eff6ff] text-[#2563eb]",
-  enterprise:   "bg-[#f5f3ff] text-[#7c3aed]",
-  demo:         "bg-[#fffbeb] text-[#d97706]",
-};
-
 function ClientesMaster() {
-  const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [editing, setEditing] = useState<Partial<Tenant> | null>(null);
+  const [viewing, setViewing] = useState<Tenant | null>(null);
 
   const { data: tenants = [] } = useQuery({
     queryKey: ["master-tenants"],
@@ -57,44 +43,6 @@ function ClientesMaster() {
     const s = q.toLowerCase();
     return (t.nome + " " + (t.empresa ?? "") + " " + t.codigo + " " + (t.email ?? "") + " " + (t.documento ?? "")).toLowerCase().includes(s);
   }), [tenants, statusFilter, q]);
-
-  const save = useMutation({
-    mutationFn: async (t: Partial<Tenant>) => {
-      if (t.id) {
-        const { id, codigo: _c, ...rest } = t; void _c;
-        const { error } = await supabase.from("tenants").update(rest).eq("id", id);
-        if (error) throw error;
-        await logMaster("tenant.update", "tenant", id, { nome: t.nome });
-      } else {
-        const { id: _i, codigo: _c, ...rest } = t; void _i; void _c;
-        const { data, error } = await supabase.from("tenants").insert(rest as never).select().single();
-        if (error) throw error;
-        await logMaster("tenant.create", "tenant", data.id, { nome: data.nome, codigo: data.codigo });
-      }
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["master-tenants"] }); qc.invalidateQueries({ queryKey: ["master-dashboard"] }); setEditing(null); toast.success("Empresa salva"); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const changeStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("tenants").update({ status }).eq("id", id);
-      if (error) throw error;
-      await logMaster("tenant.status", "tenant", id, { status });
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["master-tenants"] }); qc.invalidateQueries({ queryKey: ["master-dashboard"] }); toast.success("Status atualizado"); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tenants").delete().eq("id", id);
-      if (error) throw error;
-      await logMaster("tenant.delete", "tenant", id, {});
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["master-tenants"] }); qc.invalidateQueries({ queryKey: ["master-dashboard"] }); toast.success("Empresa excluída"); },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const chips = [
     { k: "todos", label: "Todas", count: tenants.length },
@@ -109,13 +57,7 @@ function ClientesMaster() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight text-[#0f172a]">Empresas</h1>
-          <p className="mt-1 text-[14px] text-[#6b7280]">Cadastro, planos, status e ciclo de vida das empresas contratantes.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="ms-btn ms-btn--sm"><Download className="h-4 w-4" /> Exportar</button>
-          <button onClick={() => setEditing({ status: "ativo", plano: "basico" })} className="ms-btn ms-btn--primary ms-btn--sm">
-            <Plus className="h-4 w-4" /> Nova empresa
-          </button>
+          <p className="mt-1 text-[14px] text-[#6b7280]">Painel de consulta somente-leitura. Para editar dados de uma empresa, use o módulo <b>Licenças</b>.</p>
         </div>
       </div>
 
@@ -149,7 +91,7 @@ function ClientesMaster() {
                 <th>Contato</th>
                 <th>Plano</th>
                 <th>Status</th>
-                <th>Vencimento</th>
+                <th>Cadastro</th>
                 <th>Último acesso</th>
                 <th className="!text-right">Ações</th>
               </tr>
@@ -161,7 +103,7 @@ function ClientesMaster() {
               {filtered.map((t) => {
                 const st = STATUS_STYLES[t.status] ?? STATUS_STYLES.ativo;
                 return (
-                  <tr key={t.id}>
+                  <tr key={t.id} className="ms-hover-row">
                     <td>
                       <div className="flex items-center gap-3">
                         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-[13px] font-semibold text-[#2563eb]">
@@ -177,48 +119,20 @@ function ClientesMaster() {
                       <div className="text-[13px] text-[#0f172a]">{t.nome}</div>
                       <div className="text-[12px] text-[#6b7280]">{t.email ?? "—"}</div>
                     </td>
-                    <td><span className={`ms-badge capitalize ${PLAN_STYLES[t.plano] ?? "bg-[#f1f5f9] text-[#475569]"}`}>{t.plano}</span></td>
+                    <td><span className="ms-badge capitalize bg-[#eff6ff] text-[#2563eb]">{t.plano}</span></td>
                     <td>
                       <span className={`ms-badge ${st.bg} ${st.text}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${st.dot}`} />
                         {st.label}
                       </span>
                     </td>
-                    <td className="text-[13px] text-[#4b5563]">{t.vence_em ? fmtDate(t.vence_em) : "—"}</td>
+                    <td className="text-[13px] text-[#4b5563]">{fmtDate(t.created_at)}</td>
                     <td className="text-[13px] text-[#6b7280]">{t.ultimo_acesso ? fmtDate(t.ultimo_acesso) : "—"}</td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
-                        <button title="Editar" onClick={() => setEditing(t)}
-                          className="grid h-8 w-8 place-items-center rounded-lg text-[#6b7280] hover:bg-[#f1f5f9] hover:text-[#0f172a]">
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        {t.status !== "bloqueado" ? (
-                          <button title="Bloquear" onClick={async () => {
-                            const ok = await dialog.confirm({ title: "Bloquear empresa?", description: `${t.empresa || t.nome} não poderá mais acessar.`, confirmText: "Bloquear", destructive: true });
-                            if (ok) changeStatus.mutate({ id: t.id, status: "bloqueado" });
-                          }} className="grid h-8 w-8 place-items-center rounded-lg text-[#dc2626] hover:bg-[#fef2f2]">
-                            <Ban className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <button title="Reativar" onClick={() => changeStatus.mutate({ id: t.id, status: "ativo" })}
-                            className="grid h-8 w-8 place-items-center rounded-lg text-[#059669] hover:bg-[#ecfdf5]">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button title="Renovar (+30d)" onClick={async () => {
-                          const vence = new Date(); vence.setDate(vence.getDate() + 30);
-                          await supabase.from("tenants").update({ vence_em: vence.toISOString(), status: "ativo" }).eq("id", t.id);
-                          await logMaster("tenant.renew", "tenant", t.id, { dias: 30 });
-                          qc.invalidateQueries({ queryKey: ["master-tenants"] });
-                          toast.success("Renovado por 30 dias");
-                        }} className="grid h-8 w-8 place-items-center rounded-lg text-[#2563eb] hover:bg-[#eff6ff]">
-                          <RotateCw className="h-4 w-4" />
-                        </button>
-                        <button title="Excluir" onClick={async () => {
-                          const ok = await dialog.confirm({ title: "Excluir empresa?", description: "Ação irreversível. Todas as licenças da empresa também serão removidas.", confirmText: "Excluir", destructive: true });
-                          if (ok) remove.mutate(t.id);
-                        }} className="grid h-8 w-8 place-items-center rounded-lg text-[#9ca3af] hover:bg-[#fef2f2] hover:text-[#dc2626]">
-                          <Trash2 className="h-4 w-4" />
+                        <button title="Ver detalhes" onClick={() => setViewing(t)}
+                          className="ms-hover-icon grid h-8 w-8 place-items-center rounded-lg text-[#2563eb] hover:bg-[#eff6ff]">
+                          <Eye className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -230,55 +144,132 @@ function ClientesMaster() {
         </div>
       </div>
 
-      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{editing?.id ? "Editar empresa" : "Nova empresa"}</DialogTitle></DialogHeader>
-          {editing && (
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="md:col-span-2"><Label>Nome do responsável *</Label><Input value={editing.nome ?? ""} onChange={(e) => setEditing({ ...editing, nome: e.target.value })} /></div>
-              <div><Label>Empresa</Label><Input value={editing.empresa ?? ""} onChange={(e) => setEditing({ ...editing, empresa: e.target.value })} /></div>
-              <div><Label>Documento (CPF/CNPJ)</Label><Input value={editing.documento ?? ""} onChange={(e) => setEditing({ ...editing, documento: maskCPFOrCNPJ(e.target.value) })} /></div>
-              <div><Label>Email</Label><Input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} /></div>
-              <div><Label>Telefone</Label><Input value={editing.telefone ?? ""} onChange={(e) => setEditing({ ...editing, telefone: maskPhone(e.target.value) })} /></div>
-              <div><Label>WhatsApp</Label><Input value={editing.whatsapp ?? ""} onChange={(e) => setEditing({ ...editing, whatsapp: maskPhone(e.target.value) })} /></div>
-              <div><Label>Segmento</Label><Input value={editing.segmento ?? ""} onChange={(e) => setEditing({ ...editing, segmento: e.target.value })} /></div>
-              <div><Label>Cidade</Label><Input value={editing.cidade ?? ""} onChange={(e) => setEditing({ ...editing, cidade: e.target.value })} /></div>
-              <div><Label>Estado (UF)</Label><Input maxLength={2} value={editing.estado ?? ""} onChange={(e) => setEditing({ ...editing, estado: e.target.value.toUpperCase() })} /></div>
-              <div>
-                <Label>Plano</Label>
-                <Select value={editing.plano ?? "basico"} onValueChange={(v) => setEditing({ ...editing, plano: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="basico">Básico</SelectItem>
-                    <SelectItem value="profissional">Profissional</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                    <SelectItem value="demo">Demonstração</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Status</Label>
-                <Select value={editing.status ?? "ativo"} onValueChange={(v) => setEditing({ ...editing, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="teste">Em teste</SelectItem>
-                    <SelectItem value="bloqueado">Bloqueado</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label>Versão instalada</Label><Input value={editing.versao_instalada ?? ""} onChange={(e) => setEditing({ ...editing, versao_instalada: e.target.value })} /></div>
-              <div><Label>Vencimento</Label><Input type="date" value={editing.vence_em?.slice(0, 10) ?? ""} onChange={(e) => setEditing({ ...editing, vence_em: e.target.value ? new Date(e.target.value).toISOString() : null })} /></div>
-              <div className="md:col-span-2"><Label>Observações</Label><Input value={editing.observacoes ?? ""} onChange={(e) => setEditing({ ...editing, observacoes: e.target.value })} /></div>
+      <TenantDetailsDialog tenant={viewing} onClose={() => setViewing(null)} />
+    </div>
+  );
+}
+
+function TenantDetailsDialog({ tenant, onClose }: { tenant: Tenant | null; onClose: () => void }) {
+  const { data: extra } = useQuery({
+    enabled: !!tenant,
+    queryKey: ["master-tenant-details", tenant?.id],
+    queryFn: async () => {
+      if (!tenant) return null;
+      const [emp, prod, ord, lic, profile] = await Promise.all([
+        supabase.from("employees").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+        supabase.from("orders").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+        supabase.from("licenses").select("plano, situacao, vence_em, tipo").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        tenant.owner_user_id
+          ? supabase.from("profiles").select("nome, email, telefone").eq("user_id", tenant.owner_user_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+      return {
+        employees: emp.count ?? 0,
+        products: prod.count ?? 0,
+        orders: ord.count ?? 0,
+        license: lic.data,
+        owner: profile.data,
+      };
+    },
+  });
+
+  if (!tenant) return null;
+
+  const menuUrl = tenant.slug
+    ? `${window.location.origin}/cardapio/${tenant.slug}`
+    : tenant.public_codigo ? `${window.location.origin}/menu/${tenant.public_codigo}` : null;
+
+  const diasRest = tenant.vence_em
+    ? Math.ceil((new Date(tenant.vence_em).getTime() - Date.now()) / 86400000)
+    : null;
+
+  return (
+    <Dialog open={!!tenant} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Info className="h-4 w-4 text-[#2563eb]" />
+            Detalhes da Empresa
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 pt-2">
+          <Section title="Dados da empresa">
+            <Field label="Nome da empresa" value={tenant.empresa || tenant.nome} />
+            <Field label="Proprietário" value={extra?.owner?.nome ?? tenant.nome} />
+            <Field label="E-mail" value={extra?.owner?.email ?? tenant.email ?? "—"} />
+            <Field label="Telefone" value={extra?.owner?.telefone ?? tenant.telefone ?? "—"} />
+            <Field label="WhatsApp" value={tenant.whatsapp ?? "—"} />
+            <Field label="Documento (CNPJ/CPF)" value={tenant.documento ?? "—"} />
+            <Field label="Cidade" value={tenant.cidade ?? "—"} />
+            <Field label="Estado" value={tenant.estado ?? "—"} />
+            <Field label="Segmento" value={tenant.segmento ?? "—"} />
+          </Section>
+
+          <Section title="Assinatura">
+            <Field label="Plano atual" value={<span className="capitalize">{extra?.license?.plano ?? tenant.plano}</span>} />
+            <Field label="Situação" value={<span className="capitalize">{extra?.license?.situacao ?? tenant.status}</span>} />
+            <Field label="Tipo" value={extra?.license?.tipo ?? "—"} />
+            <Field label="Data de cadastro" value={fmtDate(tenant.created_at)} />
+            <Field label="Ativado em" value={tenant.ativado_em ? fmtDate(tenant.ativado_em) : "—"} />
+            <Field label="Vence em" value={tenant.vence_em ? fmtDate(tenant.vence_em) : "Sem expiração"} />
+            <Field label="Dias restantes" value={diasRest !== null ? `${diasRest} dia(s)` : "—"} />
+            <Field label="Último acesso" value={tenant.ultimo_acesso ? fmtDate(tenant.ultimo_acesso) : "—"} />
+          </Section>
+
+          <Section title="Uso do sistema">
+            <Field label="Funcionários" value={String(extra?.employees ?? 0)} />
+            <Field label="Produtos" value={String(extra?.products ?? 0)} />
+            <Field label="Pedidos" value={String(extra?.orders ?? 0)} />
+          </Section>
+
+          <Section title="Cardápio público">
+            <Field label="Slug" value={tenant.slug || "—"} />
+            <Field label="Código do cardápio" value={tenant.menu_codigo ?? "—"} />
+            <Field label="Código público" value={tenant.public_codigo ?? "—"} />
+            <div className="md:col-span-3">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">Link público</div>
+              {menuUrl ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <a href={menuUrl} target="_blank" rel="noreferrer" className="ms-hover-icon inline-flex items-center gap-1 text-[13px] text-[#2563eb] hover:underline">
+                    {menuUrl} <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(menuUrl); toast.success("Link copiado"); }}
+                    className="ms-hover-icon rounded p-1 text-[#9ca3af] hover:bg-[#f1f5f9] hover:text-[#0f172a]">
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : <div className="text-[13px] text-[#9ca3af]">—</div>}
             </div>
+          </Section>
+
+          {tenant.observacoes && (
+            <Section title="Observações internas">
+              <div className="md:col-span-3 whitespace-pre-line text-[13px] text-[#4b5563]">{tenant.observacoes}</div>
+            </Section>
           )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
-            <Button disabled={!editing?.nome} onClick={() => editing && save.mutate(editing)}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-[#e5e7eb] p-4">
+      <div className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#6b7280]">{title}</div>
+      <div className="grid gap-3 md:grid-cols-3">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">{label}</div>
+      <div className="mt-1 text-[13px] text-[#0f172a] break-words">{value}</div>
     </div>
   );
 }
