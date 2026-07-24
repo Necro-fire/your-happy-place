@@ -1302,6 +1302,7 @@ export type Database = {
           email: string
           id: string
           nome: string
+          telefone: string
           updated_at: string
           user_id: string
         }
@@ -1312,6 +1313,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          telefone?: string
           updated_at?: string
           user_id: string
         }
@@ -1322,6 +1324,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          telefone?: string
           updated_at?: string
           user_id?: string
         }
