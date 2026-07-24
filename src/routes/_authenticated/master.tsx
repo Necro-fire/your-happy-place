@@ -6,10 +6,10 @@ import { fetchMyRoles, isMaster } from "@/hooks/use-role";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 export const Route = createFileRoute("/_authenticated/master")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    const roles = await fetchMyRoles();
+  beforeLoad: async ({ context }) => {
+    const user = (context as { user?: { id: string } }).user;
+    if (!user) throw redirect({ to: "/auth" });
+    const roles = await fetchMyRoles(user.id);
     if (!isMaster(roles)) throw redirect({ to: "/admin" });
   },
   component: MasterLayout,
