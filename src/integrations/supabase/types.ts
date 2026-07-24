@@ -1074,6 +1074,33 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          created_at: string
+          id: boolean
+          suporte_mensagem: string | null
+          suporte_nome: string | null
+          suporte_whatsapp: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          suporte_mensagem?: string | null
+          suporte_nome?: string | null
+          suporte_whatsapp?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          suporte_mensagem?: string | null
+          suporte_nome?: string | null
+          suporte_whatsapp?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       producao_orders: {
         Row: {
           created_at: string

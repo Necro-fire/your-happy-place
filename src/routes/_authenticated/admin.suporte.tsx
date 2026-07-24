@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { fmtDate } from "@/lib/format";
+import { usePlatformSupport, openSupportWhatsApp } from "@/hooks/use-support-contact";
 
 export const Route = createFileRoute("/_authenticated/admin/suporte")({
   component: SupportPage,
@@ -92,6 +93,7 @@ function Atendimento() {
     queryKey: ["settings"],
     queryFn: async () => (await supabase.from("settings").select("*").limit(1).maybeSingle()).data,
   });
+  const platform = usePlatformSupport();
 
   const buscaAll = useQuery({
     queryKey: ["support_problems_all"],
@@ -148,27 +150,18 @@ function Atendimento() {
   }
 
   function abrirWhatsApp() {
-    const numero = (settings.data?.whatsapp_suporte || "").replace(/\D/g, "");
-    if (!numero) {
-      toast.error("Número do WhatsApp de suporte não configurado. Vá em Configurações.");
-      return;
-    }
-    const msg =
-`Olá! Preciso de suporte.
-
-Sistema: ${settings.data?.nome_estabelecimento ?? "Sistema"}
+    const extra =
+`Sistema: ${settings.data?.nome_estabelecimento ?? "Sistema"}
 Usuário: ${user?.email ?? "—"}
 Categoria: ${cat?.nome ?? "—"}
 Problema: ${prob?.titulo ?? "—"}
-Solução automática apresentada: ${prob?.titulo ?? "—"}
 Resultado: Não resolveu.
 Descrição adicional: ${descAdicional || "—"}
 
 Data: ${new Date().toLocaleDateString("pt-BR")}
 Hora: ${new Date().toLocaleTimeString("pt-BR")}`;
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank", "noopener");
-    marcarResolvido(false, true);
+    const opened = openSupportWhatsApp(platform.data, extra);
+    if (opened) marcarResolvido(false, true);
   }
 
   function copiarSolucao() {

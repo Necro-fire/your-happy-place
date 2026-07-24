@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMasterIndexRouteImport } from './routes/_authenticated/master.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as MesaNumeroPedidosRouteImport } from './routes/mesa.$numero.pedidos'
+import { Route as AuthenticatedMasterSuporteRouteImport } from './routes/_authenticated/master.suporte'
 import { Route as AuthenticatedMasterLogsRouteImport } from './routes/_authenticated/master.logs'
 import { Route as AuthenticatedMasterLicencasRouteImport } from './routes/_authenticated/master.licencas'
 import { Route as AuthenticatedMasterConfiguracoesRouteImport } from './routes/_authenticated/master.configuracoes'
@@ -144,6 +145,12 @@ const MesaNumeroPedidosRoute = MesaNumeroPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => MesaNumeroRoute,
 } as any)
+const AuthenticatedMasterSuporteRoute =
+  AuthenticatedMasterSuporteRouteImport.update({
+    id: '/suporte',
+    path: '/suporte',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
 const AuthenticatedMasterLogsRoute = AuthenticatedMasterLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
@@ -363,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/master/suporte': typeof AuthenticatedMasterSuporteRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/master/': typeof AuthenticatedMasterIndexRoute
@@ -410,6 +418,7 @@ export interface FileRoutesByTo {
   '/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/master/suporte': typeof AuthenticatedMasterSuporteRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/master': typeof AuthenticatedMasterIndexRoute
@@ -462,6 +471,7 @@ export interface FileRoutesById {
   '/_authenticated/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/_authenticated/master/licencas': typeof AuthenticatedMasterLicencasRoute
   '/_authenticated/master/logs': typeof AuthenticatedMasterLogsRoute
+  '/_authenticated/master/suporte': typeof AuthenticatedMasterSuporteRoute
   '/mesa/$numero/pedidos': typeof MesaNumeroPedidosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/master/': typeof AuthenticatedMasterIndexRoute
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
     | '/master/configuracoes'
     | '/master/licencas'
     | '/master/logs'
+    | '/master/suporte'
     | '/mesa/$numero/pedidos'
     | '/admin/'
     | '/master/'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/master/configuracoes'
     | '/master/licencas'
     | '/master/logs'
+    | '/master/suporte'
     | '/mesa/$numero/pedidos'
     | '/admin'
     | '/master'
@@ -612,6 +624,7 @@ export interface FileRouteTypes {
     | '/_authenticated/master/configuracoes'
     | '/_authenticated/master/licencas'
     | '/_authenticated/master/logs'
+    | '/_authenticated/master/suporte'
     | '/mesa/$numero/pedidos'
     | '/_authenticated/admin/'
     | '/_authenticated/master/'
@@ -768,6 +781,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/mesa/$numero/pedidos'
       preLoaderRoute: typeof MesaNumeroPedidosRouteImport
       parentRoute: typeof MesaNumeroRoute
+    }
+    '/_authenticated/master/suporte': {
+      id: '/_authenticated/master/suporte'
+      path: '/suporte'
+      fullPath: '/master/suporte'
+      preLoaderRoute: typeof AuthenticatedMasterSuporteRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
     }
     '/_authenticated/master/logs': {
       id: '/_authenticated/master/logs'
@@ -1098,6 +1118,7 @@ interface AuthenticatedMasterRouteChildren {
   AuthenticatedMasterConfiguracoesRoute: typeof AuthenticatedMasterConfiguracoesRoute
   AuthenticatedMasterLicencasRoute: typeof AuthenticatedMasterLicencasRoute
   AuthenticatedMasterLogsRoute: typeof AuthenticatedMasterLogsRoute
+  AuthenticatedMasterSuporteRoute: typeof AuthenticatedMasterSuporteRoute
   AuthenticatedMasterIndexRoute: typeof AuthenticatedMasterIndexRoute
 }
 
@@ -1106,6 +1127,7 @@ const AuthenticatedMasterRouteChildren: AuthenticatedMasterRouteChildren = {
   AuthenticatedMasterConfiguracoesRoute: AuthenticatedMasterConfiguracoesRoute,
   AuthenticatedMasterLicencasRoute: AuthenticatedMasterLicencasRoute,
   AuthenticatedMasterLogsRoute: AuthenticatedMasterLogsRoute,
+  AuthenticatedMasterSuporteRoute: AuthenticatedMasterSuporteRoute,
   AuthenticatedMasterIndexRoute: AuthenticatedMasterIndexRoute,
 }
 
