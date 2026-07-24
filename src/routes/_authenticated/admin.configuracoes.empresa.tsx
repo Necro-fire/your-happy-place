@@ -53,6 +53,7 @@ function EmpresaPage() {
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
   const [bairro, setBairro] = useState("");
+  const [pais, setPais] = useState("Brasil");
   const [cepLoading, setCepLoading] = useState(false);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ function EmpresaPage() {
       setNumero(empresa.numero ?? "");
       setComplemento(empresa.complemento ?? "");
       setBairro(empresa.bairro ?? "");
+      setPais(empresa.pais ?? "Brasil");
     }
   }, [q.isSuccess, q.data]);
 
@@ -103,7 +105,7 @@ function EmpresaPage() {
       const currentCfg = ((q.data as any)?.config ?? {}) as Record<string, any>;
       const nextCfg = {
         ...currentCfg,
-        empresa: { ...(currentCfg.empresa ?? {}), horarios, numero, complemento, bairro },
+        empresa: { ...(currentCfg.empresa ?? {}), horarios, numero, complemento, bairro, pais },
       };
       const diasAtivos = DIAS.filter((d) => horarios[d.key]?.open).map((d) => d.label.slice(0, 3));
       await updateMySettings({
@@ -210,19 +212,22 @@ function EmpresaPage() {
           <p className="text-xs text-muted-foreground">Informações que aparecem em comandas, notas e no cardápio digital.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div><Label>Razão social / Nome do estabelecimento</Label><Input value={f.nome_estabelecimento ?? ""} onChange={(e) => setF({ ...f, nome_estabelecimento: e.target.value })} /></div>
-          <div><Label>Nome fantasia</Label><Input value={f.nome_fantasia ?? ""} onChange={(e) => setF({ ...f, nome_fantasia: e.target.value })} /></div>
-          <div><Label>CNPJ</Label><Input value={f.cnpj ?? ""} onChange={(e) => setF({ ...f, cnpj: maskCPFOrCNPJ(e.target.value) })} placeholder="00.000.000/0000-00" /></div>
-          <div className="sm:col-span-2"><Label>Descrição</Label><Textarea rows={2} value={f.descricao ?? ""} onChange={(e) => setF({ ...f, descricao: e.target.value })} /></div>
+          <div><Label>Nome da empresa *</Label><Input value={f.nome_estabelecimento ?? ""} onChange={(e) => setF({ ...f, nome_estabelecimento: e.target.value })} /></div>
+          <div><Label>Nome fantasia <span className="text-muted-foreground">(opcional)</span></Label><Input value={f.nome_fantasia ?? ""} onChange={(e) => setF({ ...f, nome_fantasia: e.target.value })} /></div>
+          <div><Label>CNPJ <span className="text-muted-foreground">(opcional)</span></Label><Input value={f.cnpj ?? ""} onChange={(e) => setF({ ...f, cnpj: maskCPFOrCNPJ(e.target.value) })} placeholder="00.000.000/0000-00" /></div>
+          <div className="sm:col-span-2"><Label>Descrição <span className="text-muted-foreground">(opcional)</span></Label><Textarea rows={2} value={f.descricao ?? ""} onChange={(e) => setF({ ...f, descricao: e.target.value })} /></div>
         </div>
       </Card>
 
       <Card className="space-y-4 p-5">
-        <div><h2 className="font-display text-lg font-semibold">Contato</h2></div>
+        <div>
+          <h2 className="font-display text-lg font-semibold">Contato comercial</h2>
+          <p className="text-xs text-muted-foreground">Aparece no cardápio público, em pedidos e nos contatos da empresa.</p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div><Label>Telefone</Label><Input value={f.telefone ?? ""} onChange={(e) => setF({ ...f, telefone: maskPhone(e.target.value) })} inputMode="tel" maxLength={15} /></div>
-          <div><Label>WhatsApp comercial</Label><Input value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: maskPhone(e.target.value) })} inputMode="tel" maxLength={15} /></div>
-          <div className="sm:col-span-2"><Label>E-mail</Label><Input type="email" value={f.email ?? ""} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
+          <div><Label>Telefone comercial *</Label><Input value={f.telefone ?? ""} onChange={(e) => setF({ ...f, telefone: maskPhone(e.target.value) })} inputMode="tel" maxLength={15} /></div>
+          <div><Label>WhatsApp comercial *</Label><Input value={f.whatsapp ?? ""} onChange={(e) => setF({ ...f, whatsapp: maskPhone(e.target.value) })} inputMode="tel" maxLength={15} /></div>
+          <div className="sm:col-span-2"><Label>E-mail comercial *</Label><Input type="email" value={f.email ?? ""} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
         </div>
       </Card>
 
@@ -233,7 +238,7 @@ function EmpresaPage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-6">
           <div className="sm:col-span-2">
-            <Label>CEP</Label>
+            <Label>CEP *</Label>
             <div className="flex gap-2">
               <Input
                 value={f.cep ?? ""}
@@ -248,12 +253,13 @@ function EmpresaPage() {
               </Button>
             </div>
           </div>
-          <div className="sm:col-span-4"><Label>Rua / Logradouro</Label><Input value={f.endereco ?? ""} onChange={(e) => setF({ ...f, endereco: e.target.value })} /></div>
-          <div className="sm:col-span-2"><Label>Número <span className="text-muted-foreground">(opcional)</span></Label><Input value={numero} onChange={(e) => setNumero(e.target.value)} inputMode="numeric" placeholder="s/n" /></div>
+          <div className="sm:col-span-4"><Label>Rua / Logradouro *</Label><Input value={f.endereco ?? ""} onChange={(e) => setF({ ...f, endereco: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>Número *</Label><Input value={numero} onChange={(e) => setNumero(e.target.value)} inputMode="numeric" placeholder="s/n" /></div>
           <div className="sm:col-span-4"><Label>Complemento <span className="text-muted-foreground">(opcional)</span></Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala, andar, referência..." /></div>
-          <div className="sm:col-span-3"><Label>Bairro</Label><Input value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
-          <div className="sm:col-span-2"><Label>Cidade</Label><Input value={f.cidade ?? ""} onChange={(e) => setF({ ...f, cidade: e.target.value })} /></div>
-          <div className="sm:col-span-1"><Label>UF</Label><Input value={f.estado ?? ""} onChange={(e) => setF({ ...f, estado: e.target.value.toUpperCase().slice(0, 2) })} maxLength={2} /></div>
+          <div className="sm:col-span-3"><Label>Bairro *</Label><Input value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
+          <div className="sm:col-span-2"><Label>Cidade *</Label><Input value={f.cidade ?? ""} onChange={(e) => setF({ ...f, cidade: e.target.value })} /></div>
+          <div className="sm:col-span-1"><Label>UF *</Label><Input value={f.estado ?? ""} onChange={(e) => setF({ ...f, estado: e.target.value.toUpperCase().slice(0, 2) })} maxLength={2} /></div>
+          <div className="sm:col-span-6"><Label>País *</Label><Input value={pais} onChange={(e) => setPais(e.target.value)} placeholder="Brasil" /></div>
         </div>
       </Card>
 
