@@ -53,6 +53,7 @@ function EmpresaPage() {
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
   const [bairro, setBairro] = useState("");
+  const [pais, setPais] = useState("Brasil");
   const [cepLoading, setCepLoading] = useState(false);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ function EmpresaPage() {
       setNumero(empresa.numero ?? "");
       setComplemento(empresa.complemento ?? "");
       setBairro(empresa.bairro ?? "");
+      setPais(empresa.pais ?? "Brasil");
     }
   }, [q.isSuccess, q.data]);
 
@@ -103,7 +105,7 @@ function EmpresaPage() {
       const currentCfg = ((q.data as any)?.config ?? {}) as Record<string, any>;
       const nextCfg = {
         ...currentCfg,
-        empresa: { ...(currentCfg.empresa ?? {}), horarios, numero, complemento, bairro },
+        empresa: { ...(currentCfg.empresa ?? {}), horarios, numero, complemento, bairro, pais },
       };
       const diasAtivos = DIAS.filter((d) => horarios[d.key]?.open).map((d) => d.label.slice(0, 3));
       await updateMySettings({
