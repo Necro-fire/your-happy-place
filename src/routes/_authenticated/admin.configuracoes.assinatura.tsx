@@ -330,7 +330,7 @@ function PlanCard({
   return (
     <Card
       className={cn(
-        "relative flex flex-col overflow-hidden p-6 transition-all duration-300",
+        "relative flex flex-col overflow-hidden p-5 transition-all duration-300 sm:p-6",
         comingSoon
           ? "border-dashed border-border/70 bg-muted/20 opacity-90"
           : "hover:-translate-y-0.5 hover:shadow-xl",
@@ -339,35 +339,41 @@ function PlanCard({
           : "border-border",
       )}
     >
-      {comingSoon && (
-        <Badge variant="secondary" className="absolute right-4 top-4 gap-1">
-          <Clock className="h-3 w-3" /> Em breve
-        </Badge>
-      )}
-      {highlighted && !comingSoon && (
-        <Badge className="absolute right-4 top-4 gap-1 bg-primary text-primary-foreground">
-          <Star className="h-3 w-3 fill-current" /> Mais Popular
-        </Badge>
-      )}
-      {current && !comingSoon && (
-        <Badge className="absolute left-4 top-4 gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
-          <ShieldCheck className="h-3 w-3" /> Plano Atual
-        </Badge>
+      {/* Status badges row (in-flow, no overlap) */}
+      {(comingSoon || highlighted || current) && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {current && !comingSoon && (
+            <Badge className="gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
+              <ShieldCheck className="h-3 w-3" /> Plano Atual
+            </Badge>
+          )}
+          {highlighted && !comingSoon && (
+            <Badge className="gap-1 bg-primary text-primary-foreground">
+              <Star className="h-3 w-3 fill-current" /> Mais Popular
+            </Badge>
+          )}
+          {comingSoon && (
+            <Badge variant="secondary" className="ml-auto gap-1">
+              <Clock className="h-3 w-3" /> Em breve
+            </Badge>
+          )}
+        </div>
       )}
 
-      <div className={cn("mt-8 flex items-center gap-2", (highlighted || current || comingSoon) && "mt-10")}>
+      <div className="flex items-center gap-3">
         <div className={cn(
-          "grid h-10 w-10 place-items-center rounded-lg",
+          "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
           comingSoon ? "bg-muted text-muted-foreground" :
             highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
         )}>
           {icon}
         </div>
-        <div>
-          <h3 className="font-display text-xl font-bold">{name}</h3>
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-bold sm:text-xl">{name}</h3>
           <p className="text-xs text-muted-foreground">{tagline}</p>
         </div>
       </div>
+
 
       <div className="mt-5">
         <div className="flex items-baseline gap-1">
