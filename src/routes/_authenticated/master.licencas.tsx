@@ -339,7 +339,7 @@ function LicenseEditorDialog({
           segmento: (tForm.segmento as string | null) ?? null,
           observacoes: (tForm.observacoes as string | null) ?? null,
         };
-        const { error: e1 } = await supabase.from("tenants").update(tenantPatch).eq("id", tenantId);
+        const { error: e1 } = await supabase.from("tenants").update(tenantPatch as never).eq("id", tenantId);
         if (e1) throw e1;
 
         if (settingsRow) {
