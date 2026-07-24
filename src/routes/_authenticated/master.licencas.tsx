@@ -345,7 +345,7 @@ function LicenseEditorDialog({
         if (settingsRow) {
           const { tenant_id: _tid, ...settingsPatch } = sForm as SettingsRow;
           void _tid;
-          const { error: e2 } = await supabase.from("settings").update(settingsPatch).eq("tenant_id", tenantId);
+          const { error: e2 } = await supabase.from("settings").update(settingsPatch as never).eq("tenant_id", tenantId);
           if (e2) throw e2;
         }
       }
