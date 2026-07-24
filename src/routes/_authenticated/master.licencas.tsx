@@ -353,7 +353,7 @@ function LicenseEditorDialog({
         plano: lForm.plano, tipo: lForm.tipo, situacao: lForm.situacao,
         valor: lForm.valor, vence_em: lForm.vence_em, observacoes: lForm.observacoes,
       };
-      const { error: e3 } = await supabase.from("licenses").update(licensePatch).eq("id", license.id);
+      const { error: e3 } = await supabase.from("licenses").update(licensePatch as never).eq("id", license.id);
       if (e3) throw e3;
 
       await logMaster("license.edit-full", "license", license.id, { tenantId });
