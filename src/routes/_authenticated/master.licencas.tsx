@@ -327,11 +327,17 @@ function LicenseEditorDialog({
   const saveAll = useMutation({
     mutationFn: async () => {
       if (tenantId) {
-        const tenantPatch = {
-          nome: tForm.nome, empresa: tForm.empresa, documento: tForm.documento,
-          email: tForm.email, telefone: tForm.telefone, whatsapp: tForm.whatsapp,
-          cidade: tForm.cidade, estado: tForm.estado, segmento: tForm.segmento,
-          observacoes: tForm.observacoes,
+        const tenantPatch: Record<string, string | null> = {
+          nome: (tForm.nome as string) ?? "",
+          empresa: (tForm.empresa as string | null) ?? null,
+          documento: (tForm.documento as string | null) ?? null,
+          email: (tForm.email as string | null) ?? null,
+          telefone: (tForm.telefone as string | null) ?? null,
+          whatsapp: (tForm.whatsapp as string | null) ?? null,
+          cidade: (tForm.cidade as string | null) ?? null,
+          estado: (tForm.estado as string | null) ?? null,
+          segmento: (tForm.segmento as string | null) ?? null,
+          observacoes: (tForm.observacoes as string | null) ?? null,
         };
         const { error: e1 } = await supabase.from("tenants").update(tenantPatch).eq("id", tenantId);
         if (e1) throw e1;
