@@ -31,6 +31,7 @@ import { Route as AuthenticatedMasterLogsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMasterLicencasRouteImport } from './routes/_authenticated/master.licencas'
 import { Route as AuthenticatedMasterConfiguracoesRouteImport } from './routes/_authenticated/master.configuracoes'
 import { Route as AuthenticatedMasterClientesRouteImport } from './routes/_authenticated/master.clientes'
+import { Route as AuthenticatedMasterAssinaturasRouteImport } from './routes/_authenticated/master.assinaturas'
 import { Route as AuthenticatedAdminVendasRouteImport } from './routes/_authenticated/admin.vendas'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
 import { Route as AuthenticatedAdminSuporteRouteImport } from './routes/_authenticated/admin.suporte'
@@ -173,6 +174,12 @@ const AuthenticatedMasterClientesRoute =
   AuthenticatedMasterClientesRouteImport.update({
     id: '/clientes',
     path: '/clientes',
+    getParentRoute: () => AuthenticatedMasterRoute,
+  } as any)
+const AuthenticatedMasterAssinaturasRoute =
+  AuthenticatedMasterAssinaturasRouteImport.update({
+    id: '/assinaturas',
+    path: '/assinaturas',
     getParentRoute: () => AuthenticatedMasterRoute,
   } as any)
 const AuthenticatedAdminVendasRoute =
@@ -373,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/master/assinaturas': typeof AuthenticatedMasterAssinaturasRoute
   '/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
@@ -422,6 +430,7 @@ export interface FileRoutesByTo {
   '/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/master/assinaturas': typeof AuthenticatedMasterAssinaturasRoute
   '/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/master/licencas': typeof AuthenticatedMasterLicencasRoute
@@ -476,6 +485,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/suporte': typeof AuthenticatedAdminSuporteRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/admin/vendas': typeof AuthenticatedAdminVendasRoute
+  '/_authenticated/master/assinaturas': typeof AuthenticatedMasterAssinaturasRoute
   '/_authenticated/master/clientes': typeof AuthenticatedMasterClientesRoute
   '/_authenticated/master/configuracoes': typeof AuthenticatedMasterConfiguracoesRoute
   '/_authenticated/master/licencas': typeof AuthenticatedMasterLicencasRoute
@@ -530,6 +540,7 @@ export interface FileRouteTypes {
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/master/assinaturas'
     | '/master/clientes'
     | '/master/configuracoes'
     | '/master/licencas'
@@ -579,6 +590,7 @@ export interface FileRouteTypes {
     | '/admin/suporte'
     | '/admin/usuarios'
     | '/admin/vendas'
+    | '/master/assinaturas'
     | '/master/clientes'
     | '/master/configuracoes'
     | '/master/licencas'
@@ -632,6 +644,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/suporte'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/admin/vendas'
+    | '/_authenticated/master/assinaturas'
     | '/_authenticated/master/clientes'
     | '/_authenticated/master/configuracoes'
     | '/_authenticated/master/licencas'
@@ -828,6 +841,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/master/clientes'
       preLoaderRoute: typeof AuthenticatedMasterClientesRouteImport
+      parentRoute: typeof AuthenticatedMasterRoute
+    }
+    '/_authenticated/master/assinaturas': {
+      id: '/_authenticated/master/assinaturas'
+      path: '/assinaturas'
+      fullPath: '/master/assinaturas'
+      preLoaderRoute: typeof AuthenticatedMasterAssinaturasRouteImport
       parentRoute: typeof AuthenticatedMasterRoute
     }
     '/_authenticated/admin/vendas': {
@@ -1137,6 +1157,7 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedMasterRouteChildren {
+  AuthenticatedMasterAssinaturasRoute: typeof AuthenticatedMasterAssinaturasRoute
   AuthenticatedMasterClientesRoute: typeof AuthenticatedMasterClientesRoute
   AuthenticatedMasterConfiguracoesRoute: typeof AuthenticatedMasterConfiguracoesRoute
   AuthenticatedMasterLicencasRoute: typeof AuthenticatedMasterLicencasRoute
@@ -1146,6 +1167,7 @@ interface AuthenticatedMasterRouteChildren {
 }
 
 const AuthenticatedMasterRouteChildren: AuthenticatedMasterRouteChildren = {
+  AuthenticatedMasterAssinaturasRoute: AuthenticatedMasterAssinaturasRoute,
   AuthenticatedMasterClientesRoute: AuthenticatedMasterClientesRoute,
   AuthenticatedMasterConfiguracoesRoute: AuthenticatedMasterConfiguracoesRoute,
   AuthenticatedMasterLicencasRoute: AuthenticatedMasterLicencasRoute,
