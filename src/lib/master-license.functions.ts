@@ -41,31 +41,50 @@ export const getLicenseDetails = createServerFn({ method: "GET" })
 
     const ownerId = tenant?.owner_user_id ?? null;
 
-    let profile: Record<string, unknown> | null = null;
-    let authUser: Record<string, unknown> | null = null;
+    let profile: {
+      nome: string | null;
+      email: string | null;
+      telefone: string | null;
+      avatar_url: string | null;
+      created_at: string | null;
+    } | null = null;
+    let authUser: {
+      id: string;
+      email: string | null;
+      phone: string | null;
+      created_at: string | null;
+      last_sign_in_at: string | null;
+      email_confirmed_at: string | null;
+      providers: string[];
+      banned_until: string | null;
+    } | null = null;
     if (ownerId) {
       const [profRes, authRes] = await Promise.all([
-        supabaseAdmin.from("profiles").select("*").eq("user_id", ownerId).maybeSingle(),
+        supabaseAdmin.from("profiles").select("nome, email, telefone, avatar_url, created_at").eq("user_id", ownerId).maybeSingle(),
         supabaseAdmin.auth.admin.getUserById(ownerId),
       ]);
-      profile = profRes.data as Record<string, unknown> | null;
+      profile = profRes.data ?? null;
       if (authRes.data?.user) {
         const u = authRes.data.user;
+        const meta = (u.app_metadata ?? {}) as { providers?: string[]; provider?: string };
         authUser = {
           id: u.id,
-          email: u.email,
-          phone: u.phone,
-          created_at: u.created_at,
-          last_sign_in_at: u.last_sign_in_at,
-          email_confirmed_at: u.email_confirmed_at,
-          providers: u.app_metadata?.providers ?? [u.app_metadata?.provider].filter(Boolean),
+          email: u.email ?? null,
+          phone: u.phone ?? null,
+          created_at: u.created_at ?? null,
+          last_sign_in_at: u.last_sign_in_at ?? null,
+          email_confirmed_at: u.email_confirmed_at ?? null,
+          providers: meta.providers ?? (meta.provider ? [meta.provider] : []),
           banned_until: (u as { banned_until?: string }).banned_until ?? null,
         };
       }
     }
 
     // Counts
-    const countOf = async (table: string) => {
+    type CountableTable =
+      | "employees" | "products" | "categories" | "complements"
+      | "orders" | "customers" | "restaurant_tables";
+    const countOf = async (table: CountableTable) => {
       if (!tenantId) return 0;
       const { count } = await supabaseAdmin
         .from(table)
