@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { fetchMyRoles, landingRouteFor } from "@/hooks/use-role";
 import { lovable } from "@/integrations/lovable";
+import { ForgotPasswordFlow } from "@/components/auth/ForgotPasswordFlow";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -79,17 +80,6 @@ function AuthPage() {
   }
 
 
-  async function forgot(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/reset-password",
-    });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Enviamos um email com instruções.");
-    setForgotMode(false);
-  }
 
   async function signInWithGoogle() {
     setLoading(true);
@@ -186,35 +176,13 @@ function AuthPage() {
                 </h2>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   {forgotMode
-                    ? "Enviaremos um link para redefinir sua senha."
+                    ? "Enviaremos um código de 6 dígitos para o seu e-mail."
                     : "Faça login para continuar gerenciando seu negócio."}
                 </p>
               </div>
 
               {forgotMode ? (
-                <form onSubmit={forgot} className="space-y-4">
-                  <Field
-                    id="em"
-                    label="E-mail"
-                    icon={Mail}
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(v) => setEmail(v)}
-                    required
-                  />
-                  <Button disabled={loading} className="h-12 w-full rounded-xl text-base font-semibold shadow-elevated transition-transform duration-200 hover:-translate-y-0.5">
-                    {loading ? "Enviando..." : (<>Enviar link <ArrowRight className="ml-1 h-4 w-4" /></>)}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full rounded-xl"
-                    onClick={() => setForgotMode(false)}
-                  >
-                    Voltar
-                  </Button>
-                </form>
+                <ForgotPasswordFlow onBackToLogin={() => setForgotMode(false)} />
               ) : (
                 <>
                   <button
