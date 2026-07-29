@@ -1836,9 +1836,13 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          arquivado: boolean
           ativo: boolean
+          cor: string | null
           created_at: string
+          descricao: string | null
           em_breve: boolean
+          icone: string | null
           id: string
           nome: string
           ordem: number
@@ -1847,13 +1851,18 @@ export type Database = {
           preco_trimestral: number
           renovacao_automatica: boolean
           slug: string
+          tag: string | null
           trial_dias: number
           updated_at: string
         }
         Insert: {
+          arquivado?: boolean
           ativo?: boolean
+          cor?: string | null
           created_at?: string
+          descricao?: string | null
           em_breve?: boolean
+          icone?: string | null
           id?: string
           nome: string
           ordem?: number
@@ -1862,13 +1871,18 @@ export type Database = {
           preco_trimestral?: number
           renovacao_automatica?: boolean
           slug: string
+          tag?: string | null
           trial_dias?: number
           updated_at?: string
         }
         Update: {
+          arquivado?: boolean
           ativo?: boolean
+          cor?: string | null
           created_at?: string
+          descricao?: string | null
           em_breve?: boolean
+          icone?: string | null
           id?: string
           nome?: string
           ordem?: number
@@ -1877,6 +1891,7 @@ export type Database = {
           preco_trimestral?: number
           renovacao_automatica?: boolean
           slug?: string
+          tag?: string | null
           trial_dias?: number
           updated_at?: string
         }

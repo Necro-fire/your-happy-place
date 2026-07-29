@@ -25,6 +25,7 @@ type Plan = {
   id: string; slug: string; nome: string; ativo: boolean; ordem: number;
   preco_mensal: number; preco_trimestral: number; preco_anual: number;
   trial_dias: number; renovacao_automatica: boolean; em_breve: boolean;
+  descricao?: string | null; cor?: string | null; tag?: string | null; arquivado?: boolean;
 };
 type Benefit = { id: string; plan_id: string; texto: string; ordem: number; ativo: boolean };
 type Coupon = {
@@ -64,7 +65,7 @@ function AssinaturaPage() {
     queryKey: ["subscription-plans"],
     queryFn: async () => {
       const { data } = await supabase.from("subscription_plans").select("*").order("ordem");
-      return (data ?? []) as Plan[];
+      return ((data ?? []) as Plan[]).filter((p) => !p.arquivado);
     },
     staleTime: 30_000,
   });
@@ -416,7 +417,9 @@ function PlanCard({
   const saving = savingsPct(plan, cycle);
   const monthlyEq = price / CYCLE_MONTHS[cycle];
   const comingSoon = plan.em_breve || !plan.ativo;
-  const highlighted = plan.slug === "plus" && !comingSoon;
+  const highlighted =
+    (plan.tag === "Mais Popular" || plan.tag === "Recomendado" || plan.slug === "plus") && !comingSoon;
+  const accent = plan.cor || undefined;
 
   return (
     <Card
@@ -429,17 +432,21 @@ function PlanCard({
           ? "border-primary/60 bg-gradient-to-br from-primary/10 via-background to-background shadow-lg ring-1 ring-primary/20"
           : "border-border",
       )}
+      style={accent && !comingSoon ? { borderColor: `${accent}55`, boxShadow: highlighted ? `0 8px 32px -12px ${accent}55` : undefined } : undefined}
     >
-      {(comingSoon || highlighted || current) && (
+      {(comingSoon || plan.tag || current) && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {current && !comingSoon && (
             <Badge className="gap-1 bg-emerald-500 text-white hover:bg-emerald-500">
               <ShieldCheck className="h-3 w-3" /> Plano Atual
             </Badge>
           )}
-          {highlighted && !comingSoon && (
-            <Badge className="gap-1 bg-primary text-primary-foreground">
-              <Star className="h-3 w-3 fill-current" /> Mais Popular
+          {plan.tag && !comingSoon && (
+            <Badge
+              className="gap-1"
+              style={accent ? { background: `${accent}22`, color: accent } : undefined}
+            >
+              <Star className="h-3 w-3 fill-current" /> {plan.tag}
             </Badge>
           )}
           {comingSoon && (
@@ -451,18 +458,21 @@ function PlanCard({
       )}
 
       <div className="flex items-center gap-3">
-        <div className={cn(
-          "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
-          comingSoon ? "bg-muted text-muted-foreground" :
-            highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
-        )}>
+        <div
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
+            comingSoon ? "bg-muted text-muted-foreground" :
+              highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
+          )}
+          style={accent && !comingSoon ? { background: highlighted ? accent : `${accent}20`, color: highlighted ? "#fff" : accent } : undefined}
+        >
           {planIcon(plan.slug)}
         </div>
         <div className="min-w-0">
           <h3 className="font-display text-lg font-bold sm:text-xl">{plan.nome}</h3>
-          <p className="text-xs text-muted-foreground">
-            {highlighted ? "Recursos avançados para escalar o negócio."
-              : "Tudo o que você precisa para operar seu negócio."}
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {plan.descricao || (highlighted ? "Recursos avançados para escalar o negócio."
+              : "Tudo o que você precisa para operar seu negócio.")}
           </p>
         </div>
       </div>
