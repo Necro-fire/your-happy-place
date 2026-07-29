@@ -1,20 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
 import { logMaster } from "@/lib/master-log";
 import { fmtDate, fmtMoney } from "@/lib/format";
-import { maskPhone } from "@/lib/masks";
 import {
   Eye, Ban, RotateCw, Trash2, CheckCircle2, PauseCircle, Search,
   Copy, KeyRound, ExternalLink,
