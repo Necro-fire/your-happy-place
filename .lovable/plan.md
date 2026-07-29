@@ -1,132 +1,63 @@
-## Escopo
+## Fluxo de Alteração de Senha Segura
 
-Reformular três módulos do Admin Master: **Empresas** (consulta), **Licenças** (edição completa + animações) e **Assinaturas** (novo painel de gestão). Dashboard permanece intacto.
+Implementar substituição da seção "Alterar senha" em **Configurações → Dados Pessoais** por um fluxo em 3 etapas com verificação por e-mail, política forte e invalidação de sessões.
 
----
+### Etapa 1 — Solicitar código
+- Usuário clica em "Alterar senha" → gera código de 6 dígitos aleatório.
+- Código armazenado com hash em nova tabela `password_change_codes` (user_id, code_hash, expires_at, attempts, used_at, created_at).
+- Expira em 10 minutos, máximo 5 tentativas, invalida códigos anteriores do mesmo user_id ao gerar um novo.
+- Rate limit: reenvio bloqueado por 60s.
+- Envio do código por e-mail via template scaffold de auth (React Email), com aviso "se você não pediu, ignore".
 
-## 1. Empresas → painel de consulta
+### Etapa 2 — Validar código
+- Server function verifica hash, expiração, tentativas.
+- Erros genéricos ("Código inválido ou expirado") para não vazar estado.
+- Após validação, retorna um `change_token` (JWT curto de 5 min) assinado no servidor.
 
-- Remover ações de mutação (criar, editar, excluir, mudar status, exportar) da lista atual.
-- Substituir por um único botão **"Ver detalhes"** que abre um `Dialog` amplo (somente leitura).
-- O detalhe carrega dados agregados em uma única server function `getTenantDetails(tenantId)`:
-  - Dados do tenant: nome, empresa, CNPJ, contato, endereço, cidade/estado/CEP.
-  - Proprietário: `profiles` do `owner_user_id` (nome, e-mail, telefone) + `auth.users.last_sign_in_at`.
-  - Licença ativa: plano, situação, dias restantes, vencimento, cadastro.
-  - Contadores: `employees`, `products`, `orders` (COUNT por `tenant_id`).
-  - Cardápio: `slug`, `menu_codigo`, `public_codigo` + link público.
-  - Recursos ativos derivados de `settings.config`.
-- Todos os campos exibidos em blocos etiquetados, sem inputs — apenas texto e badges.
+### Etapa 3 — Nova senha
+- UI com indicador de força + checklist de requisitos ao vivo:
+  - mín. 10 caracteres, maiúscula, minúscula, número, especial
+  - sem espaços nas bordas
+  - não pode conter e-mail/nome
+  - não pode ser igual à senha atual (verificado no servidor via `signInWithPassword` interno)
+  - bloqueio de senhas comuns (lista curta local)
+- Server function valida `change_token`, política, unicidade vs. atual → `supabaseAdmin.auth.admin.updateUserById` + `signOut(scope: 'global')` para revogar todas as sessões.
+- Envia e-mail de notificação "sua senha foi alterada" com CTA para suporte.
+- Registra em `audit_logs` (solicitação, envio, validação, sucesso, falhas, excesso).
 
----
+### Backend
+- Migration:
+  - Tabela `password_change_codes` com RLS (somente service_role).
+  - Trigger para limpar códigos expirados/usados (opcional cleanup).
+- 3 server functions autenticadas em `src/lib/password-change.functions.ts`:
+  - `requestPasswordChangeCode` — gera código, envia e-mail, log auditoria.
+  - `verifyPasswordChangeCode` — valida, retorna change_token assinado.
+  - `changePassword` — valida token+política, atualiza via admin, revoga sessões, envia notificação, log.
+- Secret novo: `PASSWORD_CHANGE_TOKEN_SECRET` (gerado automaticamente).
 
-## 2. Licenças → animações + edição completa
+### Frontend
+- Novo componente `PasswordChangeDialog.tsx` (Sheet/Dialog em 3 passos com stepper).
+- Substitui a seção atual em `admin.configuracoes.perfil.tsx`.
+- Após sucesso: toast → `supabase.auth.signOut()` → redirect `/auth` (nova senha exigida em novo login).
 
-### Micro-interações
-Adicionar utilitário CSS `.ms-hover-lift` em `styles.css` (transform + shadow + cursor) e aplicar em:
-- Cards de resumo do topo.
-- Linhas da tabela (hover row lift sutil + fundo).
-- Ícones de ação (scale-105 + tint).
-- Botões primários e outline.
+### E-mails
+- Se templates de auth ainda não existirem, chamar `email_domain--scaffold_auth_email_templates`. Criar dois templates customizados:
+  - `password-change-code` (código de 6 dígitos)
+  - `password-changed-notification` (notificação pós-alteração)
 
-### Ajustes de ações
-- Remover ícone **"Visualizar"** (olho).
-- Manter **"Abrir cardápio público"** (ícone externo).
-- **Lápis** passa a abrir um `Dialog` de edição em modo **"impersonação leve"**.
+### Segurança adicional
+- Rate limit por user_id: máx. 5 códigos/hora.
+- Bloqueio de 15 min após 5 tentativas inválidas seguidas.
+- HTTPS já garantido pelo hosting.
+- Nunca revelar se o e-mail existe (fluxo já autenticado, ok).
+- Registrar IP e user-agent nos logs.
 
-### Editor de licença (impersonation dialog)
-Estrutura em abas dentro do dialog, cobrindo tudo que o usuário edita:
+### Critérios de aceitação
+- Só altera senha após validar código enviado por e-mail.
+- Nova senha ≠ atual, atende política, indicador de força visível.
+- Todas as sessões antigas encerradas (usuário deslogado e obrigado a novo login).
+- E-mail de notificação enviado após sucesso.
+- Todas as validações duplicadas no servidor.
+- Eventos registrados em audit_logs.
 
-```
-[Empresa] [Design] [Cardápio] [PDV] [Usuários] [Assinatura]
-```
-
-Implementação:
-- Criar contexto `TenantScopeProvider` que injeta um `tenantId` override.
-- Adaptar `getMySettingsRow`, `settings-io`, e queries de categorias/produtos/usuários para aceitar `tenantId` opcional (default = current tenant do usuário).
-- Reaproveitar os formulários já existentes (`admin.configuracoes.empresa`, `.design`, `.pdv`, etc.) como componentes controlados que recebem o `tenantId` via contexto.
-- Todas as mutações via `supabaseAdmin` **só** depois de `has_role(auth.uid(),'master')` confirmar — envolvidas em uma server function `masterUpdateTenantData({tenantId, patch, table})`.
-- Bloquear campos exclusivos do Master (status da licença global, código público, `owner_user_id`) — apresentados como somente leitura.
-
----
-
-## 3. Assinaturas → novo módulo
-
-### Banco (nova migration)
-
-```
-subscription_plans        # id, slug, nome, ativo, ordem,
-                          # preco_mensal, preco_trimestral, preco_anual,
-                          # trial_dias, renovacao_automatica
-subscription_benefits     # id, plan_id, texto, ordem, ativo
-subscription_coupons      # id, codigo, nome, tipo (percentual|fixo),
-                          # valor, validade, limite_uso, usos,
-                          # ativo, aplicacao (auto|manual),
-                          # plan_restricao (nullable)
-```
-- RLS: SELECT `TO authenticated` para `plans`/`benefits`; ALL apenas para `master` (via `has_role`).
-- Seed inicial: planos "Básico" e "Plus" (Em breve) com os preços atuais e benefícios já listados em `admin.configuracoes.assinatura`.
-
-### Página `/master/assinaturas` (novo arquivo)
-
-Layout em três seções + painel de métricas no topo:
-
-**Métricas (cards)**
-- Assinantes ativos (COUNT `tenants` ativo).
-- Receita mensal estimada (Σ plano×tenants ativos).
-- Receita anual projetada (mensal × 12).
-- Cupons ativos / expirados.
-- Plano mais utilizado.
-
-**Planos**
-- Cards editáveis por plano (nome, 3 preços, trial, toggles ativo/renovação).
-- Ações inline: salvar, desativar, ativar.
-
-**Benefícios**
-- Lista drag-and-drop simples (setas ↑↓) por plano.
-- CRUD inline + toggle ativo.
-
-**Cupons**
-- Tabela com CRUD via dialog.
-- Campos: código, nome, tipo, valor, validade, limite, usos (readonly), status, aplicação, restrição por plano.
-- Filtro por status.
-
-### Histórico
-- Ler de `master_logs` filtrando `entity IN ('subscription_plan','subscription_benefit','subscription_coupon')`.
-
----
-
-## 4. Sidebar do Master
-
-- Trocar item "Configurações" (que hoje mistura tema) — o item **"Assinaturas"** ganha o slot `CreditCard` logo abaixo de Licenças.
-- Manter os demais itens.
-
----
-
-## Detalhes técnicos
-
-- Novas rotas: `master.assinaturas.tsx`.
-- Novos componentes: `TenantDetailsDialog`, `LicenseEditorDialog` (com abas), `TenantScopeProvider`, `PlansEditor`, `BenefitsEditor`, `CouponsManager`, `SubscriptionMetrics`.
-- Novos hooks: `useTenantScope()`, `useSubscriptionPlans()`, `useCoupons()`.
-- Nova server function: `src/lib/master.functions.ts` com `getTenantDetails`, `masterUpdateTenantData`, ambas com `requireSupabaseAuth` + verificação `master`.
-- Utilitário CSS `.ms-hover-lift`, `.ms-hover-row`, `.ms-hover-icon` em `src/styles.css` (dentro de `.master-saas`).
-- Toda navegação em tempo real via `qc.invalidateQueries` + canais Realtime já existentes.
-
----
-
-## Fora de escopo
-
-- Integração real com gateway de pagamento (Stripe/Paddle) — apenas cadastro dos planos.
-- Fluxo de cobrança automática de cupons.
-- Impersonação total (login como usuário) — apenas edição via server functions do Master.
-
----
-
-## Ordem de implementação
-
-1. Migration (`subscription_plans`, `subscription_benefits`, `subscription_coupons` + seed).
-2. Utilitário CSS de hover no Master.
-3. Empresas: substituir dialog de edição por dialog de detalhes; remover ações destrutivas.
-4. Licenças: remover olho, aplicar hover, criar `LicenseEditorDialog` com as 6 abas.
-5. Assinaturas: server functions + página + componentes.
-6. Sidebar: adicionar rota.
-7. Verificação: `tsgo`, smoke test com usuário master.
+Confirma para eu implementar? (Vai envolver 1 migration + secret novo + scaffold de e-mails se ainda não houver.)
