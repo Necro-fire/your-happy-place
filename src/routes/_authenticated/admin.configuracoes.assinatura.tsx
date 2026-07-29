@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -122,7 +122,7 @@ function AssinaturaPage() {
     staleTime: 30_000,
   });
 
-  const [cycle, setCycle] = useSyncedCycle();
+  const [cycle, setCycle] = useState<Cycle>("mes");
 
   const currentPlan = useMemo<Plan | null>(() => {
     if (!tenant || !plans.length) return null;
