@@ -12,6 +12,7 @@ import { maskPhone } from "@/lib/masks";
 import { fetchMyProfile } from "@/hooks/use-profile-status";
 import { uploadTenantAsset, friendlyStorageError } from "@/lib/settings-io";
 import { InlineLoader, InlineError } from "@/components/admin/InlineStates";
+import { PasswordChangeDialog } from "@/components/admin/PasswordChangeDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes/perfil")({
   component: PerfilPage,
