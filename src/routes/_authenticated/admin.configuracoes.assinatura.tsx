@@ -65,7 +65,7 @@ function AssinaturaPage() {
     queryKey: ["subscription-plans"],
     queryFn: async () => {
       const { data } = await supabase.from("subscription_plans").select("*").order("ordem");
-      return (data ?? []) as Plan[];
+      return ((data ?? []) as Plan[]).filter((p) => !p.arquivado);
     },
     staleTime: 30_000,
   });
