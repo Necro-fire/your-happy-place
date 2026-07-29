@@ -25,6 +25,7 @@ type Plan = {
   id: string; slug: string; nome: string; ativo: boolean; ordem: number;
   preco_mensal: number; preco_trimestral: number; preco_anual: number;
   trial_dias: number; renovacao_automatica: boolean; em_breve: boolean;
+  descricao?: string | null; cor?: string | null; tag?: string | null; arquivado?: boolean;
 };
 type Benefit = { id: string; plan_id: string; texto: string; ordem: number; ativo: boolean };
 type Coupon = {
