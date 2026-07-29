@@ -207,7 +207,7 @@ function TabTrigger({ value, icon, children }: { value: string; icon: React.Reac
   return (
     <TabsTrigger
       value={value}
-      className="flex-1 min-w-[110px] gap-1.5 rounded-lg text-[12.5px] font-medium data-[state=active]:bg-[var(--ms-text)] data-[state=active]:text-white sm:flex-none"
+      className="flex-1 min-w-[110px] gap-1.5 rounded-lg text-[12.5px] font-medium data-[state=active]:bg-[var(--ms-primary)] data-[state=active]:text-[var(--ms-primary-fg)] data-[state=active]:shadow-sm sm:flex-none"
     >
       {icon}
       <span className="truncate">{children}</span>
