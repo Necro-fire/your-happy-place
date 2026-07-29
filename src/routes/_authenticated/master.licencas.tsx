@@ -271,7 +271,7 @@ function LicencasMaster() {
       </div>
 
       {editing && (
-        <LicenseEditorDialog license={editing} tenant={editing.tenant_id ? tenantMap.get(editing.tenant_id) ?? null : null} onClose={() => setEditing(null)} />
+        <LicenseDetailsDialog licenseId={editing.id} onClose={() => setEditing(null)} />
       )}
     </div>
   );
