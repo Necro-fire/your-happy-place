@@ -16,9 +16,10 @@ import { logMaster } from "@/lib/master-log";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import { maskPhone } from "@/lib/masks";
 import {
-  Pencil, Ban, RotateCw, Trash2, CheckCircle2, PauseCircle, Search,
+  Eye, Ban, RotateCw, Trash2, CheckCircle2, PauseCircle, Search,
   Copy, KeyRound, ExternalLink,
 } from "lucide-react";
+import { LicenseDetailsDialog } from "@/components/master/LicenseDetailsDialog";
 
 export const Route = createFileRoute("/_authenticated/master/licencas")({
   component: LicencasMaster,
