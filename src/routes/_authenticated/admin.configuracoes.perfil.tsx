@@ -179,23 +179,30 @@ function PerfilPage() {
           <Lock className="h-4 w-4 text-primary" />
           <h2 className="font-display text-lg font-semibold">Alterar senha</h2>
         </div>
-        <p className="-mt-2 text-xs text-muted-foreground">Mínimo 8 caracteres. Use uma senha exclusiva para o sistema.</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Nova senha</Label>
-            <Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="new-password" />
-          </div>
-          <div>
-            <Label>Confirmar nova senha</Label>
-            <Input type="password" value={pwd2} onChange={(e) => setPwd2(e.target.value)} autoComplete="new-password" />
-          </div>
-        </div>
+        <p className="-mt-2 text-xs text-muted-foreground">
+          Por segurança, a alteração exige verificação por código enviado ao seu e-mail e encerra
+          todas as sessões ativas.
+        </p>
+        <ul className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+          <li>• Código de 6 dígitos enviado por e-mail</li>
+          <li>• Política de senha forte com indicador</li>
+          <li>• Não permite reutilizar a senha atual</li>
+          <li>• Desconecta todos os dispositivos</li>
+        </ul>
         <div className="flex justify-end">
-          <Button variant="outline" onClick={changePassword} disabled={changingPwd || !pwd}>
-            {changingPwd ? "Alterando..." : "Alterar senha"}
+          <Button variant="outline" onClick={() => setPwdDialogOpen(true)}>
+            Iniciar alteração de senha
           </Button>
         </div>
       </Card>
+
+      <PasswordChangeDialog
+        open={pwdDialogOpen}
+        onOpenChange={setPwdDialogOpen}
+        email={email}
+        nome={nome}
+      />
+
     </div>
   );
 }
