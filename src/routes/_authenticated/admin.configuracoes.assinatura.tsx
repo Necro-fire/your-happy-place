@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Card } from "@/components/ui/card";
@@ -8,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
-  Check, X, Crown, Zap, MessageCircle, ArrowUpRight, ShieldCheck,
-  Star, TrendingUp, Package, CreditCard, Calendar, History, Clock,
+  Check, Crown, Zap, MessageCircle, ArrowUpRight, ShieldCheck,
+  Star, TrendingUp, Package, CreditCard, Calendar, History, Clock, Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { dialog } from "@/components/ui/app-dialog";
@@ -20,107 +21,160 @@ export const Route = createFileRoute("/_authenticated/admin/configuracoes/assina
 });
 
 type Cycle = "mes" | "tri" | "ano";
-type PlanId = "basico" | "plus";
-
-const PRICES: Record<PlanId, Record<Cycle, number>> = {
-  basico: { mes: 97, tri: 267, ano: 947 },
-  plus: { mes: 157, tri: 437, ano: 1497 },
+type Plan = {
+  id: string; slug: string; nome: string; ativo: boolean; ordem: number;
+  preco_mensal: number; preco_trimestral: number; preco_anual: number;
+  trial_dias: number; renovacao_automatica: boolean; em_breve: boolean;
+};
+type Benefit = { id: string; plan_id: string; texto: string; ordem: number; ativo: boolean };
+type Coupon = {
+  id: string; codigo: string; nome: string; tipo: "percentual" | "fixo";
+  valor: number; validade: string | null; limite_uso: number | null; usos: number;
+  ativo: boolean; aplicacao: "auto" | "manual"; plan_id: string | null;
 };
 
 const CYCLE_LABEL: Record<Cycle, string> = { mes: "mês", tri: "trimestre", ano: "ano" };
 const CYCLE_MONTHS: Record<Cycle, number> = { mes: 1, tri: 3, ano: 12 };
 
-const BASICO_FEATURES = [
-  "Gestão completa de produtos",
-  "Cardápio digital público",
-  "Página pública personalizada da empresa",
-  "Gerenciamento de pedidos em tempo real",
-  "PDV completo (delivery, mesa, balcão, retirada)",
-  "Controle de mesas",
-  "Delivery e retirada no balcão",
-  "Cadastro de clientes",
-  "Usuários e permissões",
-  "Personalização visual da empresa",
-  "Logo, banners e carrossel de imagens",
-  "Configurações completas do sistema",
-  "Atualizações em tempo real",
-  "Acesso administrativo completo",
-  "Suporte oficial da plataforma",
-  "Responsividade em celular, tablet e computador",
-];
-
-const PLUS_EXTRAS: string[] = [
-  "Recursos avançados em desenvolvimento",
-];
-
-const COMPARE: { label: string; basico: boolean; plus: boolean }[] =
-  BASICO_FEATURES.map((f) => ({ label: f, basico: true, plus: true }));
-
-
 const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-function savingsPct(planId: PlanId, cycle: Cycle) {
+function planPrice(p: Plan, cycle: Cycle): number {
+  return cycle === "mes" ? Number(p.preco_mensal)
+    : cycle === "tri" ? Number(p.preco_trimestral)
+    : Number(p.preco_anual);
+}
+
+function savingsPct(p: Plan, cycle: Cycle) {
   if (cycle === "mes") return 0;
-  const monthly = PRICES[planId].mes * CYCLE_MONTHS[cycle];
-  const price = PRICES[planId][cycle];
+  const monthly = Number(p.preco_mensal) * CYCLE_MONTHS[cycle];
+  const price = planPrice(p, cycle);
+  if (!monthly || !price) return 0;
   return Math.round(((monthly - price) / monthly) * 100);
 }
 
-function AssinaturaPage() {
-  const [cycle, setCycle] = useState<Cycle>("mes");
-  const [currentPlan, setCurrentPlan] = useState<PlanId>("basico");
-  const [currentCycle, setCurrentCycle] = useState<Cycle>("mes");
+function planIcon(slug: string) {
+  return slug === "plus" ? <Crown className="h-5 w-5" /> : <Package className="h-5 w-5" />;
+}
 
+function AssinaturaPage() {
+  const qc = useQueryClient();
+
+  // ─── Fonte única: tabelas gerenciadas pelo Admin Master ───
+  const { data: plans = [] } = useQuery({
+    queryKey: ["subscription-plans"],
+    queryFn: async () => {
+      const { data } = await supabase.from("subscription_plans").select("*").order("ordem");
+      return (data ?? []) as Plan[];
+    },
+    staleTime: 30_000,
+  });
+  const { data: benefits = [] } = useQuery({
+    queryKey: ["subscription-benefits"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscription_benefits")
+        .select("*")
+        .eq("ativo", true)
+        .order("ordem");
+      return (data ?? []) as Benefit[];
+    },
+    staleTime: 30_000,
+  });
+  const { data: coupons = [] } = useQuery({
+    queryKey: ["subscription-coupons"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscription_coupons")
+        .select("*")
+        .eq("ativo", true);
+      return (data ?? []) as Coupon[];
+    },
+    staleTime: 30_000,
+  });
+
+  // ─── Realtime: espelha alterações do Admin Master instantaneamente ───
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const channel = supabase
+      .channel("subscription-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_plans" },
+        () => qc.invalidateQueries({ queryKey: ["subscription-plans"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_benefits" },
+        () => qc.invalidateQueries({ queryKey: ["subscription-benefits"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscription_coupons" },
+        () => qc.invalidateQueries({ queryKey: ["subscription-coupons"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
+
+  // ─── Tenant do usuário (plano atual + datas reais) ───
+  const { data: tenant } = useQuery({
+    queryKey: ["my-tenant-subscription"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
       const { data } = await supabase
         .from("tenants")
-        .select("plano")
-        .eq("owner_user_id", user.id)
+        .select("id, plano, status, ativado_em, vence_em, created_at")
+        .eq("owner_user_id", u.user.id)
         .maybeSingle();
-      const p = (data?.plano || "").toLowerCase();
-      // Plus ainda não está disponível: qualquer plano existente é tratado como Básico.
-      if (p === "basico" || p === "basic" || p === "plus" || p === "enterprise" || p === "pro") {
-        setCurrentPlan("basico");
-      }
-    })();
-  }, []);
+      return data;
+    },
+    staleTime: 30_000,
+  });
 
+  const [cycle, setCycle] = useSyncedCycle();
+
+  const currentPlan = useMemo<Plan | null>(() => {
+    if (!tenant || !plans.length) return null;
+    return plans.find((p) => p.slug === tenant.plano) ?? plans[0] ?? null;
+  }, [tenant, plans]);
 
   const contratacao = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 2);
-    return d;
-  }, []);
-  const renovacao = useMemo(() => {
-    const d = new Date(contratacao);
-    d.setMonth(d.getMonth() + CYCLE_MONTHS[currentCycle]);
-    return d;
-  }, [contratacao, currentCycle]);
+    return tenant?.ativado_em
+      ? new Date(tenant.ativado_em)
+      : tenant?.created_at ? new Date(tenant.created_at) : null;
+  }, [tenant]);
 
-  async function requestChange(target: PlanId) {
-    if (target === "plus") {
-      toast.info("O Plano Plus estará disponível em breve.");
+  const renovacao = useMemo(() => {
+    if (tenant?.vence_em) return new Date(tenant.vence_em);
+    if (!contratacao) return null;
+    const d = new Date(contratacao);
+    d.setMonth(d.getMonth() + CYCLE_MONTHS[cycle]);
+    return d;
+  }, [contratacao, cycle, tenant?.vence_em]);
+
+  const cuponsAplicaveis = useMemo(() => {
+    if (!currentPlan) return [];
+    const now = Date.now();
+    return coupons.filter((c) =>
+      (!c.plan_id || c.plan_id === currentPlan.id)
+      && (!c.validade || new Date(c.validade).getTime() >= now)
+      && (!c.limite_uso || c.usos < c.limite_uso),
+    );
+  }, [coupons, currentPlan]);
+
+  async function requestChange(target: Plan) {
+    if (target.em_breve || !target.ativo) {
+      toast.info(`${target.nome} estará disponível em breve.`);
       return;
     }
-    const isSame = target === currentPlan;
+    const isSame = currentPlan?.id === target.id;
     const action = isSame ? "renovação" : "contratação";
     const ok = await dialog.confirm({
       title: `Solicitar ${action}`,
-      description: `Deseja solicitar ${action} do Plano Básico (${CYCLE_LABEL[cycle]}) por ${BRL(PRICES[target][cycle])}?\n\nEsta é uma versão demonstrativa. Nossa equipe entrará em contato para finalizar.`,
+      description: `Deseja solicitar ${action} do ${target.nome} (${CYCLE_LABEL[cycle]}) por ${BRL(planPrice(target, cycle))}?\n\nNossa equipe entrará em contato para finalizar.`,
       confirmText: "Solicitar",
     });
     if (!ok) return;
-    setCurrentPlan(target);
-    setCurrentCycle(cycle);
     toast.success(`Solicitação de ${action} registrada. Entraremos em contato em breve.`);
   }
 
   function contactSupport() {
     toast.info("Abra o menu Suporte para falar com nossa equipe sobre planos.");
   }
+
+  const availablePlans = plans;
+  const plusUpgrade = plans.find((p) => p.slug === "plus");
 
   return (
     <div className="space-y-6">
@@ -133,18 +187,15 @@ function AssinaturaPage() {
           <div className="min-w-0">
             <h2 className="font-display text-lg font-bold sm:text-xl">Sua Assinatura</h2>
             <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-              Gerencie seu plano e acompanhe seus dados de assinatura.
+              Informações sincronizadas em tempo real com o painel oficial.
             </p>
           </div>
           <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-1 md:justify-end">
             <Badge variant="secondary" className="gap-1 py-1">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Plano atual: Básico
+              Plano atual: {currentPlan?.nome ?? "—"}
             </Badge>
-            <Badge className="gap-1 bg-emerald-500/15 py-1 text-emerald-600 hover:bg-emerald-500/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Ativa
-            </Badge>
+            <StatusBadge status={tenant?.status ?? null} />
           </div>
         </div>
       </Card>
@@ -156,46 +207,76 @@ function AssinaturaPage() {
             <TabsTrigger value="mes" className="px-3 py-2 sm:px-5">Mensal</TabsTrigger>
             <TabsTrigger value="tri" className="flex-col gap-1 px-3 py-2 sm:flex-row sm:gap-2 sm:px-5">
               <span>Trimestral</span>
-              <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
-                −{savingsPct("basico", "tri")}%
-              </Badge>
+              {currentPlan && savingsPct(currentPlan, "tri") > 0 && (
+                <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
+                  −{savingsPct(currentPlan, "tri")}%
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="ano" className="flex-col gap-1 px-3 py-2 sm:flex-row sm:gap-2 sm:px-5">
               <span>Anual</span>
-              <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
-                −{savingsPct("basico", "ano")}%
-              </Badge>
+              {currentPlan && savingsPct(currentPlan, "ano") > 0 && (
+                <Badge variant="secondary" className="h-5 bg-emerald-500/15 text-[10px] text-emerald-600">
+                  −{savingsPct(currentPlan, "ano")}%
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <p className="px-4 text-center text-xs text-muted-foreground">Economize contratando trimestralmente ou anualmente.</p>
+        <p className="px-4 text-center text-xs text-muted-foreground">
+          Economize contratando trimestralmente ou anualmente.
+        </p>
       </div>
 
-      {/* Plans */}
-      <div className="grid gap-5 md:grid-cols-2">
-        <PlanCard
-          id="basico"
-          name="Básico"
-          tagline="Tudo o que você precisa para operar seu negócio."
-          icon={<Package className="h-5 w-5" />}
-          price={PRICES.basico[cycle]}
-          cycle={cycle}
-          features={BASICO_FEATURES}
-          current={currentPlan === "basico"}
-          onSelect={() => requestChange("basico")}
-        />
-        <PlanCard
-          id="plus"
-          name="Plus"
-          tagline="Recursos avançados para escalar o negócio."
-          icon={<Crown className="h-5 w-5" />}
-          price={PRICES.plus[cycle]}
-          cycle={cycle}
-          features={[...BASICO_FEATURES.slice(0, 6), ...PLUS_EXTRAS]}
-          comingSoon
-          onSelect={() => requestChange("plus")}
-        />
+      {/* Plans (dinâmicos) */}
+      <div className={cn("grid gap-5", availablePlans.length >= 2 ? "md:grid-cols-2" : "md:grid-cols-1")}>
+        {availablePlans.map((p) => {
+          const list = benefits.filter((b) => b.plan_id === p.id).sort((a, b) => a.ordem - b.ordem);
+          return (
+            <PlanCard
+              key={p.id}
+              plan={p}
+              cycle={cycle}
+              features={list.map((b) => b.texto)}
+              current={currentPlan?.id === p.id}
+              onSelect={() => requestChange(p)}
+            />
+          );
+        })}
+        {availablePlans.length === 0 && (
+          <Card className="p-6 text-center text-sm text-muted-foreground md:col-span-2">
+            Nenhum plano configurado. O administrador precisa cadastrar planos no painel.
+          </Card>
+        )}
       </div>
+
+      {/* Cupons aplicáveis */}
+      {cuponsAplicaveis.length > 0 && (
+        <Card className="p-4 sm:p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Tag className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-base font-semibold sm:text-lg">Cupons disponíveis</h3>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {cuponsAplicaveis.map((c) => (
+              <div key={c.id} className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-mono text-sm font-semibold">{c.codigo}</div>
+                  <Badge className="bg-primary/15 text-primary hover:bg-primary/20">
+                    {c.tipo === "percentual" ? `${c.valor}% OFF` : `${BRL(Number(c.valor))} OFF`}
+                  </Badge>
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{c.nome}</div>
+                {c.validade && (
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    Válido até {new Date(c.validade).toLocaleDateString("pt-BR")}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Current subscription */}
       <Card className="p-4 sm:p-5">
@@ -204,71 +285,53 @@ function AssinaturaPage() {
           <h3 className="font-display text-base font-semibold sm:text-lg">Informações da Assinatura Atual</h3>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <InfoItem icon={<Crown className="h-4 w-4" />} label="Plano" value="Básico" />
-          <InfoItem icon={<TrendingUp className="h-4 w-4" />} label="Valor" value={`${BRL(PRICES.basico[currentCycle])} / ${CYCLE_LABEL[currentCycle]}`} />
+          <InfoItem icon={<Crown className="h-4 w-4" />} label="Plano" value={currentPlan?.nome ?? "—"} />
+          <InfoItem
+            icon={<TrendingUp className="h-4 w-4" />}
+            label="Valor"
+            value={currentPlan ? `${BRL(planPrice(currentPlan, cycle))} / ${CYCLE_LABEL[cycle]}` : "—"}
+          />
           <InfoItem
             icon={<span className="grid h-4 w-4 place-items-center"><span className="h-2 w-2 rounded-full bg-emerald-500" /></span>}
             label="Situação"
-            value={<span className="text-emerald-600">Ativa</span>}
+            value={<StatusText status={tenant?.status ?? null} />}
           />
-          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Contratação" value={contratacao.toLocaleDateString("pt-BR")} />
-          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Renovação" value={renovacao.toLocaleDateString("pt-BR")} />
-          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Próxima cobrança" value={renovacao.toLocaleDateString("pt-BR")} />
-          <InfoItem icon={<CreditCard className="h-4 w-4" />} label="Forma de pagamento" value={<span className="text-muted-foreground">A configurar</span>} />
+          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Contratação"
+            value={contratacao ? contratacao.toLocaleDateString("pt-BR") : "—"} />
+          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Renovação"
+            value={renovacao ? renovacao.toLocaleDateString("pt-BR") : "—"} />
+          <InfoItem icon={<Calendar className="h-4 w-4" />} label="Período de teste"
+            value={currentPlan?.trial_dias ? `${currentPlan.trial_dias} dias` : "Não aplicável"} />
+          <InfoItem icon={<CreditCard className="h-4 w-4" />} label="Renovação automática"
+            value={currentPlan?.renovacao_automatica ? "Ativa" : "Manual"} />
+          <InfoItem icon={<Tag className="h-4 w-4" />} label="Cupons disponíveis"
+            value={String(cuponsAplicaveis.length)} />
         </div>
         <Separator className="my-5" />
         <div className="grid gap-2 sm:flex sm:flex-wrap">
-          <Button onClick={() => requestChange("basico")} variant="outline" className="w-full sm:w-auto">
-            <Zap className="mr-2 h-4 w-4" /> Renovar assinatura
-          </Button>
-          <Button variant="outline" disabled className="w-full gap-2 sm:w-auto">
-            <ArrowUpRight className="h-4 w-4" /> Upgrade para Plus
-            <Badge variant="secondary" className="ml-1 gap-1">
-              <Clock className="h-3 w-3" /> Em breve
-            </Badge>
-          </Button>
+          {currentPlan && !currentPlan.em_breve && (
+            <Button onClick={() => requestChange(currentPlan)} variant="outline" className="w-full sm:w-auto">
+              <Zap className="mr-2 h-4 w-4" /> Renovar assinatura
+            </Button>
+          )}
+          {plusUpgrade && currentPlan?.slug !== "plus" && (
+            <Button
+              variant="outline"
+              disabled={plusUpgrade.em_breve || !plusUpgrade.ativo}
+              onClick={() => requestChange(plusUpgrade)}
+              className="w-full gap-2 sm:w-auto"
+            >
+              <ArrowUpRight className="h-4 w-4" /> Upgrade para {plusUpgrade.nome}
+              {plusUpgrade.em_breve && (
+                <Badge variant="secondary" className="ml-1 gap-1">
+                  <Clock className="h-3 w-3" /> Em breve
+                </Badge>
+              )}
+            </Button>
+          )}
           <Button variant="ghost" onClick={contactSupport} className="w-full sm:w-auto">
             <MessageCircle className="mr-2 h-4 w-4" /> Falar com suporte
           </Button>
-        </div>
-      </Card>
-
-      {/* Comparison table */}
-      <Card className="overflow-hidden p-0">
-        <div className="border-b border-border p-5">
-          <h3 className="font-display text-lg font-semibold">Comparativo dos Planos</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Veja em detalhes o que cada plano oferece.</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-5 py-3 text-left font-semibold">Recurso</th>
-                <th className="px-5 py-3 text-center font-semibold">Básico</th>
-                <th className="px-5 py-3 text-center font-semibold">
-                  <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    Plus
-                    <Badge variant="secondary" className="ml-1 gap-1 py-0 text-[10px]">
-                      <Clock className="h-2.5 w-2.5" /> Em breve
-                    </Badge>
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARE.map((row, i) => (
-                <tr key={row.label} className={cn("border-t border-border", i % 2 && "bg-muted/20")}>
-                  <td className="px-5 py-3">{row.label}</td>
-                  <td className="px-5 py-3 text-center">
-                    {row.basico ? <Check className="mx-auto h-4 w-4 text-emerald-500" /> : <X className="mx-auto h-4 w-4 text-muted-foreground/40" />}
-                  </td>
-                  <td className="px-5 py-3 text-center text-muted-foreground/60">
-                    <Check className="mx-auto h-4 w-4" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </Card>
 
@@ -276,16 +339,18 @@ function AssinaturaPage() {
       <Card className="p-5">
         <div className="mb-4 flex items-center gap-2">
           <History className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-lg font-semibold">Histórico de Alterações</h3>
+          <h3 className="font-display text-lg font-semibold">Histórico</h3>
         </div>
         <ul className="space-y-3 text-sm">
-          <li className="flex items-start gap-3">
-            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
-            <div>
-              <div className="font-medium">Assinatura iniciada — Plano Básico</div>
-              <div className="text-xs text-muted-foreground">{contratacao.toLocaleDateString("pt-BR")}</div>
-            </div>
-          </li>
+          {contratacao && (
+            <li className="flex items-start gap-3">
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <div>
+                <div className="font-medium">Assinatura iniciada — {currentPlan?.nome ?? "Plano"}</div>
+                <div className="text-xs text-muted-foreground">{contratacao.toLocaleDateString("pt-BR")}</div>
+              </div>
+            </li>
+          )}
           <li className="flex items-start gap-3 text-muted-foreground">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40" />
             <div>
@@ -297,6 +362,45 @@ function AssinaturaPage() {
       </Card>
     </div>
   );
+}
+
+function useSyncedCycle(): [Cycle, (c: Cycle) => void] {
+  const [cycle, setCycle] = useMemoState<Cycle>("mes");
+  return [cycle, setCycle];
+}
+
+// pequeno helper para manter o hook local
+function useMemoState<T>(initial: T): [T, (v: T) => void] {
+  const [v, s] = useReactState<T>(initial);
+  return [v, s];
+}
+import { useState as useReactState } from "react";
+
+function StatusBadge({ status }: { status: string | null }) {
+  const s = (status ?? "").toLowerCase();
+  if (s === "ativo") {
+    return (
+      <Badge className="gap-1 bg-emerald-500/15 py-1 text-emerald-600 hover:bg-emerald-500/20">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Ativa
+      </Badge>
+    );
+  }
+  if (s === "suspenso" || s === "cancelado") {
+    return (
+      <Badge className="gap-1 bg-destructive/15 py-1 text-destructive hover:bg-destructive/20">
+        <span className="h-1.5 w-1.5 rounded-full bg-destructive" /> {s === "cancelado" ? "Cancelada" : "Suspensa"}
+      </Badge>
+    );
+  }
+  return <Badge variant="secondary" className="py-1">Indefinida</Badge>;
+}
+
+function StatusText({ status }: { status: string | null }) {
+  const s = (status ?? "").toLowerCase();
+  if (s === "ativo") return <span className="text-emerald-600">Ativa</span>;
+  if (s === "suspenso") return <span className="text-destructive">Suspensa</span>;
+  if (s === "cancelado") return <span className="text-destructive">Cancelada</span>;
+  return <span className="text-muted-foreground">—</span>;
 }
 
 function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
@@ -311,22 +415,20 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function PlanCard({
-  id, name, tagline, icon, price, cycle, features, highlighted, current, comingSoon, onSelect,
+  plan, cycle, features, current, onSelect,
 }: {
-  id: PlanId;
-  name: string;
-  tagline: string;
-  icon: React.ReactNode;
-  price: number;
+  plan: Plan;
   cycle: Cycle;
   features: string[];
-  highlighted?: boolean;
   current?: boolean;
-  comingSoon?: boolean;
   onSelect: () => void;
 }) {
-  const saving = savingsPct(id, cycle);
+  const price = planPrice(plan, cycle);
+  const saving = savingsPct(plan, cycle);
   const monthlyEq = price / CYCLE_MONTHS[cycle];
+  const comingSoon = plan.em_breve || !plan.ativo;
+  const highlighted = plan.slug === "plus" && !comingSoon;
+
   return (
     <Card
       className={cn(
@@ -334,12 +436,11 @@ function PlanCard({
         comingSoon
           ? "border-dashed border-border/70 bg-muted/20 opacity-90"
           : "hover:-translate-y-0.5 hover:shadow-xl",
-        highlighted && !comingSoon
+        highlighted
           ? "border-primary/60 bg-gradient-to-br from-primary/10 via-background to-background shadow-lg ring-1 ring-primary/20"
           : "border-border",
       )}
     >
-      {/* Status badges row (in-flow, no overlap) */}
       {(comingSoon || highlighted || current) && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {current && !comingSoon && (
@@ -366,14 +467,16 @@ function PlanCard({
           comingSoon ? "bg-muted text-muted-foreground" :
             highlighted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
         )}>
-          {icon}
+          {planIcon(plan.slug)}
         </div>
         <div className="min-w-0">
-          <h3 className="font-display text-lg font-bold sm:text-xl">{name}</h3>
-          <p className="text-xs text-muted-foreground">{tagline}</p>
+          <h3 className="font-display text-lg font-bold sm:text-xl">{plan.nome}</h3>
+          <p className="text-xs text-muted-foreground">
+            {highlighted ? "Recursos avançados para escalar o negócio."
+              : "Tudo o que você precisa para operar seu negócio."}
+          </p>
         </div>
       </div>
-
 
       <div className="mt-5">
         <div className="flex items-baseline gap-1">
@@ -393,6 +496,11 @@ function PlanCard({
             )}
           </div>
         )}
+        {plan.trial_dias > 0 && !comingSoon && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            {plan.trial_dias} dias de teste gratuito.
+          </div>
+        )}
         {comingSoon && (
           <p className="mt-2 text-xs text-muted-foreground">
             Este plano será disponibilizado em breve. Aguarde novidades.
@@ -403,6 +511,9 @@ function PlanCard({
       <Separator className="my-5" />
 
       <ul className="flex-1 space-y-2.5">
+        {features.length === 0 && (
+          <li className="text-sm text-muted-foreground">Sem benefícios cadastrados.</li>
+        )}
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">
             <span className={cn(
@@ -418,12 +529,7 @@ function PlanCard({
       </ul>
 
       {comingSoon ? (
-        <Button
-          disabled
-          variant="outline"
-          size="lg"
-          className="mt-6 w-full gap-2"
-        >
+        <Button disabled variant="outline" size="lg" className="mt-6 w-full gap-2">
           <Clock className="h-4 w-4" /> Em breve
         </Button>
       ) : (
@@ -431,7 +537,7 @@ function PlanCard({
           onClick={onSelect}
           disabled={current}
           className={cn("mt-6 w-full", highlighted && !current && "bg-primary hover:bg-primary/90")}
-          variant={current ? "outline" : highlighted ? "default" : "default"}
+          variant={current ? "outline" : "default"}
           size="lg"
         >
           {current ? "Plano atual" : "Contratar plano"}
