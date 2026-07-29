@@ -227,12 +227,15 @@ const toneMap: Record<string, string> = {
 
 function Metric({ icon, label, value, tone = "slate", loading }: { icon: React.ReactNode; label: string; value: string; tone?: keyof typeof toneMap | string; loading?: boolean }) {
   return (
-    <div className="ms-card ms-hover-lift p-3.5 sm:p-4">
-      <div className="flex items-center gap-2">
-        <span className={`grid h-7 w-7 place-items-center rounded-lg ${toneMap[tone] ?? toneMap.slate}`}>{icon}</span>
-        <span className="truncate text-[11.5px] font-medium text-[var(--ms-text-muted)]">{label}</span>
+    <div className="ms-card ms-hover-lift min-w-0 overflow-hidden p-3.5 sm:p-4">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${toneMap[tone] ?? toneMap.slate}`}>{icon}</span>
+        <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-[var(--ms-text-muted)]">{label}</span>
       </div>
-      <div className="mt-2 text-[18px] font-semibold text-[var(--ms-text)] sm:text-[20px]">
+      <div
+        className="mt-2 truncate text-[clamp(14px,3.6vw,20px)] font-semibold leading-tight text-[var(--ms-text)] tabular-nums"
+        title={typeof value === "string" ? value : undefined}
+      >
         {loading ? <span className="inline-block h-6 w-16 animate-pulse rounded bg-[var(--ms-hover)]" /> : value}
       </div>
     </div>
