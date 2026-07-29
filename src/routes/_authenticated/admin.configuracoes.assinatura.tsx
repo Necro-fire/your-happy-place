@@ -364,17 +364,6 @@ function AssinaturaPage() {
   );
 }
 
-function useSyncedCycle(): [Cycle, (c: Cycle) => void] {
-  const [cycle, setCycle] = useMemoState<Cycle>("mes");
-  return [cycle, setCycle];
-}
-
-// pequeno helper para manter o hook local
-function useMemoState<T>(initial: T): [T, (v: T) => void] {
-  const [v, s] = useReactState<T>(initial);
-  return [v, s];
-}
-import { useState as useReactState } from "react";
 
 function StatusBadge({ status }: { status: string | null }) {
   const s = (status ?? "").toLowerCase();
