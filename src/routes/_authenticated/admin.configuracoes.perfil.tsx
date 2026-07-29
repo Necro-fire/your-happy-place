@@ -26,10 +26,8 @@ function PerfilPage() {
   const [telefone, setTelefone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
 
-  const [pwd, setPwd] = useState("");
-  const [pwd2, setPwd2] = useState("");
-  const [changingPwd, setChangingPwd] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pwdDialogOpen, setPwdDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!q.isSuccess) return;
