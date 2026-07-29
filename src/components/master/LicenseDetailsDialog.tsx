@@ -149,13 +149,23 @@ function DetailsBody({ data }: { data: Awaited<ReturnType<typeof getLicenseDetai
       </div>
 
       <Tabs defaultValue="conta" className="w-full">
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="conta">Conta</TabsTrigger>
-          <TabsTrigger value="empresa">Empresa</TabsTrigger>
-          <TabsTrigger value="assinatura">Assinatura</TabsTrigger>
-          <TabsTrigger value="recursos">Recursos</TabsTrigger>
-          <TabsTrigger value="utilizacao">Utilização</TabsTrigger>
-          <TabsTrigger value="tecnico">Técnico</TabsTrigger>
+        <TabsList className="mb-4 flex flex-wrap gap-1 bg-muted/60 p-1">
+          {[
+            ["conta", "Conta"],
+            ["empresa", "Empresa"],
+            ["assinatura", "Assinatura"],
+            ["recursos", "Recursos"],
+            ["utilizacao", "Utilização"],
+            ["tecnico", "Técnico"],
+          ].map(([v, label]) => (
+            <TabsTrigger
+              key={v}
+              value={v}
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              {label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* CONTA */}
