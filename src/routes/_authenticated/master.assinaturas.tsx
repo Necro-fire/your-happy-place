@@ -260,117 +260,322 @@ function StatusBadge({ status }: { status: string }) {
 
 /* ─────────────────────────── PLANS ─────────────────────────── */
 
+const PLAN_TAG_OPTIONS = [
+  { value: "__none", label: "Nenhuma" },
+  { value: "Mais Popular", label: "Mais Popular" },
+  { value: "Novo", label: "Novo" },
+  { value: "Recomendado", label: "Recomendado" },
+  { value: "Em Breve", label: "Em Breve" },
+  { value: "Melhor Custo", label: "Melhor Custo" },
+];
+
+const PLAN_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#ef4444", "#64748b"];
+
+function slugifyPlanName(nome: string): string {
+  return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40) || "plano";
+}
+
 function PlansSection({ plans, benefits, tenants }: { plans: Plan[]; benefits: Benefit[]; tenants: Tenant[] }) {
   const qc = useQueryClient();
-  const [editing, setEditing] = useState<Plan | null>(null);
+  const [editing, setEditing] = useState<Partial<Plan> | null>(null);
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos" | "em_breve" | "arquivados">("todos");
+
+  const visiblePlans = useMemo(() => {
+    let list = [...plans];
+    if (statusFilter === "arquivados") list = list.filter((p) => p.arquivado);
+    else list = list.filter((p) => !p.arquivado);
+    if (statusFilter === "ativos") list = list.filter((p) => p.ativo && !p.em_breve);
+    if (statusFilter === "inativos") list = list.filter((p) => !p.ativo && !p.em_breve);
+    if (statusFilter === "em_breve") list = list.filter((p) => p.em_breve);
+    if (q) list = list.filter((p) => (p.nome + " " + p.slug).toLowerCase().includes(q.toLowerCase()));
+    list.sort((a, b) => a.ordem - b.ordem);
+    return list;
+  }, [plans, q, statusFilter]);
 
   const savePlan = useMutation({
-    mutationFn: async (p: Plan) => {
-      const { error } = await supabase.from("subscription_plans").update({
-        nome: p.nome, ativo: p.ativo, ordem: p.ordem,
-        preco_mensal: p.preco_mensal, preco_trimestral: p.preco_trimestral, preco_anual: p.preco_anual,
-        trial_dias: p.trial_dias, renovacao_automatica: p.renovacao_automatica, em_breve: p.em_breve,
-      }).eq("id", p.id);
-      if (error) throw error;
-      await logMaster("subscription_plan.update", "subscription_plan", p.id, { nome: p.nome });
+    mutationFn: async (p: Partial<Plan>) => {
+      const { id, ...rest } = p;
+      const payload = {
+        nome: rest.nome, ativo: rest.ativo ?? true, ordem: rest.ordem ?? plans.length + 1,
+        preco_mensal: rest.preco_mensal ?? 0, preco_trimestral: rest.preco_trimestral ?? 0, preco_anual: rest.preco_anual ?? 0,
+        trial_dias: rest.trial_dias ?? 0, renovacao_automatica: rest.renovacao_automatica ?? true,
+        em_breve: rest.em_breve ?? false, arquivado: rest.arquivado ?? false,
+        descricao: rest.descricao ?? null, cor: rest.cor ?? null, icone: rest.icone ?? null,
+        tag: rest.tag && rest.tag !== "__none" ? rest.tag : null,
+      };
+      if (id) {
+        const { error } = await supabase.from("subscription_plans").update(payload as never).eq("id", id);
+        if (error) throw error;
+        await logMaster("subscription_plan.update", "subscription_plan", id, { nome: payload.nome });
+      } else {
+        // Gera slug único
+        let base = slugifyPlanName(rest.nome ?? "plano");
+        let slug = base; let i = 1;
+        while (plans.some((pl) => pl.slug === slug)) { i += 1; slug = `${base}-${i}`; }
+        const { data, error } = await supabase.from("subscription_plans")
+          .insert({ ...payload, slug } as never).select().single();
+        if (error) throw error;
+        await logMaster("subscription_plan.create", "subscription_plan", data.id, { nome: payload.nome, slug });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["master-plans"] });
-      toast.success("Plano atualizado");
+      toast.success("Plano salvo");
       setEditing(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const toggleActive = useMutation({
-    mutationFn: async (p: Plan) => {
-      const { error } = await supabase.from("subscription_plans").update({ ativo: !p.ativo }).eq("id", p.id);
+  const toggleField = useMutation({
+    mutationFn: async ({ p, field, value }: { p: Plan; field: "ativo" | "em_breve" | "arquivado"; value: boolean }) => {
+      const { error } = await supabase.from("subscription_plans").update({ [field]: value } as never).eq("id", p.id);
       if (error) throw error;
-      await logMaster("subscription_plan.toggle", "subscription_plan", p.id, { ativo: !p.ativo });
+      await logMaster("subscription_plan.toggle", "subscription_plan", p.id, { [field]: value });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["master-plans"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const duplicatePlan = useMutation({
+    mutationFn: async (p: Plan) => {
+      let base = slugifyPlanName(`${p.nome}-copia`);
+      let slug = base; let i = 1;
+      while (plans.some((pl) => pl.slug === slug)) { i += 1; slug = `${base}-${i}`; }
+      const { data, error } = await supabase.from("subscription_plans").insert({
+        slug, nome: `${p.nome} (cópia)`, ativo: false, ordem: plans.length + 1,
+        preco_mensal: p.preco_mensal, preco_trimestral: p.preco_trimestral, preco_anual: p.preco_anual,
+        trial_dias: p.trial_dias, renovacao_automatica: p.renovacao_automatica, em_breve: p.em_breve,
+        descricao: p.descricao ?? null, cor: p.cor ?? null, icone: p.icone ?? null, tag: p.tag ?? null,
+        arquivado: false,
+      } as never).select().single();
+      if (error) throw error;
+      // duplica benefícios
+      const bList = benefits.filter((b) => b.plan_id === p.id);
+      if (bList.length) {
+        const rows = bList.map((b) => ({ plan_id: data.id, texto: b.texto, ordem: b.ordem, ativo: b.ativo }));
+        await supabase.from("subscription_benefits").insert(rows as never);
+      }
+      await logMaster("subscription_plan.duplicate", "subscription_plan", data.id, { origem: p.id, nome: data.nome });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["master-plans"] });
+      qc.invalidateQueries({ queryKey: ["master-benefits"] });
+      toast.success("Plano duplicado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const removePlan = useMutation({
+    mutationFn: async (p: Plan) => {
+      const { error } = await supabase.from("subscription_plans").delete().eq("id", p.id);
+      if (error) throw error;
+      await logMaster("subscription_plan.delete", "subscription_plan", p.id, { nome: p.nome });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["master-plans"] });
+      toast.success("Plano excluído");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const swapOrder = useMutation({
+    mutationFn: async ({ a, b }: { a: Plan; b: Plan }) => {
+      await supabase.from("subscription_plans").update({ ordem: b.ordem } as never).eq("id", a.id);
+      await supabase.from("subscription_plans").update({ ordem: a.ordem } as never).eq("id", b.id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["master-plans"] }),
   });
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2">
-        {plans.length === 0 && <EmptyState icon={<LayoutGrid className="h-6 w-6" />} title="Nenhum plano" description="Nenhum plano configurado ainda." />}
-        {plans.map((p) => {
-          const bCount = benefits.filter((b) => b.plan_id === p.id).length;
-          const subs = tenants.filter((t) => t.plano === p.slug && t.status === "ativo").length;
-          return (
-            <div key={p.id} className="ms-card ms-hover-lift overflow-hidden">
-              <div className="border-b border-[var(--ms-border)] bg-gradient-to-br from-[var(--ms-hover)] to-transparent p-5">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="truncate text-[17px] font-semibold text-[var(--ms-text)]">{p.nome}</h3>
-                      {p.em_breve && <span className="ms-badge bg-[#fffbeb] text-[#d97706]">Em breve</span>}
-                      <StatusBadge status={p.ativo ? "ativo" : "inativo"} />
-                    </div>
-                    <div className="mt-0.5 font-mono text-[11px] text-[var(--ms-text-muted)]">{p.slug}</div>
-                  </div>
-                  <Switch checked={p.ativo} onCheckedChange={() => toggleActive.mutate(p)} />
-                </div>
-                <div className="mt-4 flex items-baseline gap-1.5">
-                  <span className="text-[28px] font-bold text-[var(--ms-text)]">{fmtMoney(p.preco_mensal)}</span>
-                  <span className="text-[12px] text-[var(--ms-text-muted)]">/mês</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 divide-x divide-[var(--ms-border)] border-b border-[var(--ms-border)]">
-                <PriceCell label="Trimestral" value={fmtMoney(p.preco_trimestral)} />
-                <PriceCell label="Anual" value={fmtMoney(p.preco_anual)} />
-                <PriceCell label="Teste" value={`${p.trial_dias}d`} />
-              </div>
-
-              <div className="grid grid-cols-3 divide-x divide-[var(--ms-border)] border-b border-[var(--ms-border)]">
-                <StatCell icon={<Users className="h-3.5 w-3.5" />} label="Assinantes" value={String(subs)} />
-                <StatCell icon={<Gift className="h-3.5 w-3.5" />} label="Benefícios" value={String(bCount)} />
-                <StatCell icon={<Activity className="h-3.5 w-3.5" />} label="Atualizado" value={p.updated_at ? fmtDateOnly(p.updated_at) : "—"} />
-              </div>
-
-              <div className="flex flex-wrap gap-2 p-4">
-                <Button size="sm" onClick={() => setEditing(p)} className="flex-1 min-w-[100px]">
-                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleActive.mutate(p)} className="flex-1 min-w-[100px]">
-                  {p.ativo ? "Desativar" : "Ativar"}
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+      {/* Toolbar */}
+      <div className="ms-card p-3.5">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="relative min-w-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ms-text-muted)]" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Pesquisar plano por nome..." className="pl-9" />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+              <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="ativos">Ativos</SelectItem>
+                <SelectItem value="inativos">Inativos</SelectItem>
+                <SelectItem value="em_breve">Em breve</SelectItem>
+                <SelectItem value="arquivados">Arquivados</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={() => setEditing({
+              nome: "", ativo: true, ordem: plans.length + 1,
+              preco_mensal: 0, preco_trimestral: 0, preco_anual: 0,
+              trial_dias: 7, renovacao_automatica: true, em_breve: false, arquivado: false,
+              cor: PLAN_COLORS[0], tag: "__none",
+            })}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Novo plano
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Edit dialog */}
-      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Editar plano</DialogTitle></DialogHeader>
-          {editing && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2"><Label>Nome</Label><Input value={editing.nome} onChange={(e) => setEditing({ ...editing, nome: e.target.value })} /></div>
-              <div><Label>Mensal (R$)</Label><Input type="number" step="0.01" value={editing.preco_mensal} onChange={(e) => setEditing({ ...editing, preco_mensal: Number(e.target.value) })} /></div>
-              <div><Label>Trimestral (R$)</Label><Input type="number" step="0.01" value={editing.preco_trimestral} onChange={(e) => setEditing({ ...editing, preco_trimestral: Number(e.target.value) })} /></div>
-              <div><Label>Anual (R$)</Label><Input type="number" step="0.01" value={editing.preco_anual} onChange={(e) => setEditing({ ...editing, preco_anual: Number(e.target.value) })} /></div>
-              <div><Label>Teste (dias)</Label><Input type="number" value={editing.trial_dias} onChange={(e) => setEditing({ ...editing, trial_dias: Number(e.target.value) })} /></div>
-              <div className="flex items-center justify-between rounded-lg border border-[var(--ms-border)] p-2.5 sm:col-span-2">
-                <div className="text-[13px]">Renovação automática</div>
-                <Switch checked={editing.renovacao_automatica} onCheckedChange={(v) => setEditing({ ...editing, renovacao_automatica: v })} />
+      {visiblePlans.length === 0 ? (
+        <EmptyState icon={<LayoutGrid className="h-6 w-6" />} title="Nenhum plano" description="Nenhum plano corresponde aos filtros atuais." />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visiblePlans.map((p, idx) => {
+            const bCount = benefits.filter((b) => b.plan_id === p.id).length;
+            const subs = tenants.filter((t) => t.plano === p.slug && t.status === "ativo").length;
+            const accent = p.cor || "var(--ms-primary)";
+            const prev = idx > 0 ? visiblePlans[idx - 1] : null;
+            const next = idx < visiblePlans.length - 1 ? visiblePlans[idx + 1] : null;
+            return (
+              <div key={p.id} className="ms-card ms-hover-lift overflow-hidden">
+                <div className="border-b border-[var(--ms-border)] p-5" style={{ background: `linear-gradient(135deg, ${accent}18, transparent)` }}>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-[17px] font-semibold text-[var(--ms-text)]">{p.nome}</h3>
+                        {p.tag && <span className="ms-badge" style={{ background: `${accent}22`, color: accent }}>{p.tag}</span>}
+                        {p.em_breve && <span className="ms-badge bg-[#fffbeb] text-[#d97706]">Em breve</span>}
+                        {p.arquivado
+                          ? <span className="ms-badge bg-[#f1f5f9] text-[#475569]">Arquivado</span>
+                          : <StatusBadge status={p.ativo ? "ativo" : "inativo"} />}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[11px] text-[var(--ms-text-muted)]">{p.slug}</div>
+                      {p.descricao && <p className="mt-1.5 line-clamp-2 text-[12.5px] text-[var(--ms-text-muted)]">{p.descricao}</p>}
+                    </div>
+                    <Switch checked={p.ativo} onCheckedChange={(v) => toggleField.mutate({ p, field: "ativo", value: v })} />
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-1.5">
+                    <span className="text-[28px] font-bold text-[var(--ms-text)]">{fmtMoney(p.preco_mensal)}</span>
+                    <span className="text-[12px] text-[var(--ms-text-muted)]">/mês</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 divide-x divide-[var(--ms-border)] border-b border-[var(--ms-border)]">
+                  <PriceCell label="Trimestral" value={fmtMoney(p.preco_trimestral)} />
+                  <PriceCell label="Anual" value={fmtMoney(p.preco_anual)} />
+                  <PriceCell label="Teste" value={`${p.trial_dias}d`} />
+                </div>
+
+                <div className="grid grid-cols-3 divide-x divide-[var(--ms-border)] border-b border-[var(--ms-border)]">
+                  <StatCell icon={<Users className="h-3.5 w-3.5" />} label="Assinantes" value={String(subs)} />
+                  <StatCell icon={<Gift className="h-3.5 w-3.5" />} label="Benefícios" value={String(bCount)} />
+                  <StatCell icon={<Activity className="h-3.5 w-3.5" />} label="Atualizado" value={p.updated_at ? fmtDateOnly(p.updated_at) : "—"} />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 p-3">
+                  <Button size="sm" onClick={() => setEditing(p)} className="flex-1 min-w-[90px]">
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
+                  </Button>
+                  <IconBtn title="Subir" disabled={!prev} onClick={() => prev && swapOrder.mutate({ a: p, b: prev })}>
+                    <ArrowUp className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn title="Descer" disabled={!next} onClick={() => next && swapOrder.mutate({ a: p, b: next })}>
+                    <ArrowDown className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn title="Duplicar" onClick={async () => {
+                    const ok = await dialog.confirm({ title: "Duplicar plano?", description: `Uma cópia inativa de "${p.nome}" será criada com os mesmos benefícios.` });
+                    if (ok) duplicatePlan.mutate(p);
+                  }}>
+                    <Layers className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn
+                    title={p.arquivado ? "Restaurar" : "Arquivar"}
+                    onClick={async () => {
+                      const ok = await dialog.confirm({
+                        title: p.arquivado ? "Restaurar plano?" : "Arquivar plano?",
+                        description: p.arquivado
+                          ? "O plano voltará a aparecer nas listas normais."
+                          : "O plano ficará oculto para novos usuários mas assinaturas ativas continuam.",
+                      });
+                      if (ok) toggleField.mutate({ p, field: "arquivado", value: !p.arquivado });
+                    }}
+                  >
+                    <Clock className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn title="Excluir" tone="danger" onClick={async () => {
+                    if (subs > 0) { toast.error("Existem assinantes neste plano. Arquive em vez de excluir."); return; }
+                    const ok = await dialog.confirm({
+                      title: "Excluir plano definitivamente?",
+                      description: `"${p.nome}" e todos os seus benefícios serão apagados. Ação irreversível.`,
+                      destructive: true,
+                    });
+                    if (ok) removePlan.mutate(p);
+                  }}>
+                    <Trash2 className="h-4 w-4" />
+                  </IconBtn>
+                </div>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-[var(--ms-border)] p-2.5 sm:col-span-2">
+            );
+          })}
+        </div>
+      )}
+
+      {/* Edit / Create dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader><DialogTitle>{editing?.id ? "Editar plano" : "Novo plano"}</DialogTitle></DialogHeader>
+          {editing && (
+            <div className="grid max-h-[70vh] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label>Nome *</Label>
+                <Input value={editing.nome ?? ""} onChange={(e) => setEditing({ ...editing, nome: e.target.value })} placeholder="Ex: Plano Premium" />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Descrição</Label>
+                <Textarea rows={2} value={editing.descricao ?? ""} onChange={(e) => setEditing({ ...editing, descricao: e.target.value })} placeholder="Breve descrição exibida no card" />
+              </div>
+              <div>
+                <Label>Tag personalizada</Label>
+                <Select value={editing.tag ?? "__none"} onValueChange={(v) => setEditing({ ...editing, tag: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PLAN_TAG_OPTIONS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Cor de destaque</Label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {PLAN_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setEditing({ ...editing, cor: c })}
+                      className={`h-7 w-7 rounded-full border-2 transition ${editing.cor === c ? "border-[var(--ms-text)] scale-110" : "border-transparent"}`}
+                      style={{ background: c }}
+                      aria-label={c}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div><Label>Mensal (R$)</Label><Input type="number" step="0.01" value={editing.preco_mensal ?? 0} onChange={(e) => setEditing({ ...editing, preco_mensal: Number(e.target.value) })} /></div>
+              <div><Label>Trimestral (R$)</Label><Input type="number" step="0.01" value={editing.preco_trimestral ?? 0} onChange={(e) => setEditing({ ...editing, preco_trimestral: Number(e.target.value) })} /></div>
+              <div><Label>Anual (R$)</Label><Input type="number" step="0.01" value={editing.preco_anual ?? 0} onChange={(e) => setEditing({ ...editing, preco_anual: Number(e.target.value) })} /></div>
+              <div><Label>Teste (dias)</Label><Input type="number" value={editing.trial_dias ?? 0} onChange={(e) => setEditing({ ...editing, trial_dias: Number(e.target.value) })} /></div>
+              <div><Label>Ordem de exibição</Label><Input type="number" value={editing.ordem ?? 0} onChange={(e) => setEditing({ ...editing, ordem: Number(e.target.value) })} /></div>
+              <div className="flex items-center justify-between rounded-lg border border-[var(--ms-border)] p-2.5">
+                <div className="text-[13px]">Renovação automática</div>
+                <Switch checked={editing.renovacao_automatica ?? true} onCheckedChange={(v) => setEditing({ ...editing, renovacao_automatica: v })} />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-[var(--ms-border)] p-2.5">
                 <div className="text-[13px]">Marcar como "Em breve"</div>
-                <Switch checked={editing.em_breve} onCheckedChange={(v) => setEditing({ ...editing, em_breve: v })} />
+                <Switch checked={editing.em_breve ?? false} onCheckedChange={(v) => setEditing({ ...editing, em_breve: v })} />
               </div>
               <div className="flex items-center justify-between rounded-lg border border-[var(--ms-border)] p-2.5 sm:col-span-2">
                 <div className="text-[13px]">Plano ativo</div>
-                <Switch checked={editing.ativo} onCheckedChange={(v) => setEditing({ ...editing, ativo: v })} />
+                <Switch checked={editing.ativo ?? true} onCheckedChange={(v) => setEditing({ ...editing, ativo: v })} />
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
-            <Button onClick={() => editing && savePlan.mutate(editing)} disabled={savePlan.isPending}>Salvar</Button>
+            <Button disabled={!editing?.nome || savePlan.isPending} onClick={() => editing && savePlan.mutate(editing)}>
+              {editing?.id ? "Salvar alterações" : "Criar plano"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
