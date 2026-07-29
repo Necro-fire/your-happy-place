@@ -155,7 +155,7 @@ function AssinaturasMaster() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
         <Metric icon={<Users className="h-4 w-4" />} label="Total" value={String(metrics.total)} tone="slate" loading={loadingPlans} />
         <Metric icon={<CheckCircle2 className="h-4 w-4" />} label="Ativas" value={String(metrics.ativos)} tone="green" />
         <Metric icon={<Clock className="h-4 w-4" />} label="Em teste" value={String(metrics.teste)} tone="amber" />
