@@ -89,21 +89,6 @@ function PerfilPage() {
     }
   }
 
-  async function changePassword() {
-    if (pwd.length < 8) { toast.error("A senha precisa ter ao menos 8 caracteres."); return; }
-    if (pwd !== pwd2) { toast.error("As senhas não conferem."); return; }
-    setChangingPwd(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: pwd });
-      if (error) throw error;
-      toast.success("Senha alterada com sucesso");
-      setPwd(""); setPwd2("");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Não foi possível alterar a senha.");
-    } finally {
-      setChangingPwd(false);
-    }
-  }
 
   if (q.isLoading) return <InlineLoader label="Carregando seu perfil..." />;
   if (q.error) return <InlineError error={q.error as Error} onRetry={() => q.refetch()} />;
