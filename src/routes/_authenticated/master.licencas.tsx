@@ -218,9 +218,9 @@ function LicencasMaster() {
                             <ExternalLink className="h-4 w-4" />
                           </a>
                         )}
-                        <button title="Editar" onClick={() => setEditing(l)}
+                        <button title="Ver detalhes" onClick={() => setEditing(l)}
                           className="ms-hover-icon grid h-8 w-8 place-items-center rounded-lg text-[#2563eb] hover:bg-[#eff6ff]">
-                          <Pencil className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </button>
                         {l.situacao !== "ativa" && (
                           <button title="Liberar" onClick={() => changeSit.mutate({ id: l.id, situacao: "ativa" })}
